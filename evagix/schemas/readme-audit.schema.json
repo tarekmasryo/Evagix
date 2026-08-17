@@ -1,0 +1,326 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evagix.dev/schemas/readme-audit.schema.json",
+  "title": "Evagix README Claim Audit",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tool",
+    "repository",
+    "readme_path",
+    "status",
+    "complete",
+    "chars_read",
+    "max_chars",
+    "score",
+    "summary",
+    "supported_claims",
+    "unsupported_claims",
+    "weak_evidence_claims",
+    "partial_claims",
+    "manual_review_claims",
+    "waived_claims",
+    "claims",
+    "findings"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "tool": {
+      "const": "evagix"
+    },
+    "repository": {
+      "type": "string"
+    },
+    "readme_path": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "missing",
+        "empty",
+        "complete",
+        "truncated",
+        "invalid_utf8",
+        "read_error"
+      ]
+    },
+    "complete": {
+      "type": "boolean"
+    },
+    "chars_read": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "max_chars": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "summary": {
+      "$ref": "#/$defs/summary"
+    },
+    "supported_claims": {
+      "$ref": "#/properties/claims"
+    },
+    "unsupported_claims": {
+      "$ref": "#/properties/claims"
+    },
+    "weak_evidence_claims": {
+      "$ref": "#/properties/claims"
+    },
+    "partial_claims": {
+      "$ref": "#/properties/claims"
+    },
+    "manual_review_claims": {
+      "$ref": "#/properties/claims"
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "claim",
+          "phrase",
+          "verdict",
+          "evidence",
+          "missing_evidence",
+          "suggestion",
+          "suggested_replacement",
+          "source",
+          "source_file",
+          "source_line",
+          "line_range",
+          "confidence"
+        ],
+        "properties": {
+          "claim": {
+            "type": "string"
+          },
+          "phrase": {
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "supported",
+              "partial",
+              "partially_supported",
+              "weak_evidence",
+              "unsupported",
+              "manual_review_required",
+              "waived"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "missing_evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "suggestion": {
+            "type": "string"
+          },
+          "suggested_replacement": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "source_file": {
+            "type": "string"
+          },
+          "source_line": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "line_range": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "confidence": {
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "waived_claims": {
+      "$ref": "#/properties/claims"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "missing",
+              "empty",
+              "complete"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "complete": {
+            "const": true
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "truncated",
+              "invalid_utf8",
+              "read_error"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "complete": {
+            "const": false
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "summary": {
+      "type": "object",
+      "required": [
+        "supported_claims",
+        "unsupported_claims",
+        "weak_evidence_claims",
+        "partial_claims",
+        "manual_review_claims",
+        "waived_claims",
+        "findings",
+        "incomplete_findings"
+      ],
+      "properties": {
+        "supported_claims": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unsupported_claims": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "weak_evidence_claims": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "partial_claims": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "manual_review_claims": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "waived_claims": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "findings": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "incomplete_findings": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "finding": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "category",
+        "severity",
+        "status",
+        "source",
+        "evidence",
+        "missing",
+        "risk",
+        "recommendation",
+        "source_file",
+        "source_line",
+        "line_range",
+        "evidence_files",
+        "missing_evidence",
+        "confidence",
+        "root_cause",
+        "summary_only",
+        "metadata"
+      ],
+      "properties": {
+        "id": {"type": "string"},
+        "title": {"type": "string"},
+        "category": {"type": "string"},
+        "severity": {"enum": ["critical", "high", "medium", "low"]},
+        "status": {"type": "string"},
+        "source": {"type": "string"},
+        "evidence": {"type": "array", "items": {"type": "string"}},
+        "missing": {"type": "array", "items": {"type": "string"}},
+        "risk": {"type": "string"},
+        "recommendation": {"type": "string"},
+        "source_file": {"type": "string"},
+        "source_line": {"type": ["integer", "null"], "minimum": 1},
+        "line_range": {"type": "array", "items": {"type": "integer", "minimum": 1}},
+        "evidence_files": {"type": "array", "items": {"type": "string"}},
+        "missing_evidence": {"type": "array", "items": {"type": "string"}},
+        "confidence": {"enum": ["high", "medium", "low"]},
+        "root_cause": {"type": "string"},
+        "summary_only": {"type": "boolean"},
+        "metadata": {"type": "object"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

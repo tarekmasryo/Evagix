@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evagix.dev/schemas/audit-report.schema.json",
+  "title": "Evagix Audit Report",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tool",
+    "version",
+    "repository",
+    "ok",
+    "governance_ok",
+    "readiness_ok",
+    "overall_ok",
+    "summary",
+    "readiness",
+    "recommended_next_commands",
+    "findings",
+    "profiles"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "tool": { "const": "evagix" },
+    "version": { "type": "string" },
+    "repository": {
+      "type": "object",
+      "required": ["name", "path"],
+      "properties": {
+        "name": { "type": "string" },
+        "path": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "ok": { "type": "boolean" },
+    "governance_ok": { "type": "boolean" },
+    "readiness_ok": { "type": "boolean" },
+    "overall_ok": { "type": "boolean" },
+    "summary": {
+      "type": "object",
+      "required": ["finding_count", "severity_counts", "active_profiles", "scope"],
+      "properties": {
+        "finding_count": { "type": "integer", "minimum": 0 },
+        "severity_counts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "active_profiles": { "type": "array", "items": { "type": "string" } },
+        "scope": { "const": "governance-summary" }
+      },
+      "additionalProperties": false
+    },
+    "readiness": {
+      "type": "object",
+      "properties": {
+        "score_type": { "const": "static_evidence" },
+        "ok": { "type": "boolean" },
+        "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "finding_count": { "type": "integer", "minimum": 0 },
+        "severity_counts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "tier": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "recommended_next_commands": { "type": "array", "items": { "type": "string" } },
+    "findings": { "type": "array", "items": { "type": "object" } },
+    "profiles": { "type": "array", "items": { "type": "string" } }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "overall_ok": { "const": true }
+        },
+        "required": ["overall_ok"]
+      },
+      "then": {
+        "properties": {
+          "ok": { "const": true },
+          "governance_ok": { "const": true },
+          "readiness_ok": { "const": true }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "ok": { "const": true }
+        },
+        "required": ["ok"]
+      },
+      "then": {
+        "properties": {
+          "overall_ok": { "const": true }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "governance_ok": { "const": false }
+        },
+        "required": ["governance_ok"]
+      },
+      "then": {
+        "properties": {
+          "ok": { "const": false },
+          "overall_ok": { "const": false }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "readiness_ok": { "const": false }
+        },
+        "required": ["readiness_ok"]
+      },
+      "then": {
+        "properties": {
+          "ok": { "const": false },
+          "overall_ok": { "const": false }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "governance_ok": { "const": true },
+          "readiness_ok": { "const": true }
+        },
+        "required": ["governance_ok", "readiness_ok"]
+      },
+      "then": {
+        "properties": {
+          "ok": { "const": true },
+          "overall_ok": { "const": true }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,243 @@
+{
+  "_evagix_content_digest": "a3cdc57e45bdab12a81b88d6a5f827a8fecbbab4840c362f220cf92f6c168e31",
+  "_evagix_fingerprint": "evagix:fingerprint=595d1199dbd86301",
+  "_evagix_generated": "evagix:generated",
+  "classification": {
+    "detected_signals": {
+      "commands": [
+        "build",
+        "install",
+        "lint",
+        "test"
+      ],
+      "dev_tools": [
+        "pytest",
+        "ruff"
+      ],
+      "languages": [
+        "python"
+      ],
+      "package_managers": [
+        "pip"
+      ]
+    },
+    "primary": {
+      "confidence": 0.62,
+      "evidence": [
+        "python detected",
+        "pyproject.toml detected",
+        "build detected"
+      ],
+      "label": "Python Package",
+      "name": "python-package",
+      "signals": [
+        "build",
+        "pyproject.toml",
+        "python"
+      ]
+    },
+    "secondary": []
+  },
+  "commands": {
+    "build": "python -m build",
+    "install": "python -m pip install -e \".[dev]\"",
+    "lint": "ruff check .",
+    "test": "pytest"
+  },
+  "export_model": "universal_context_with_tool_specific_adapters",
+  "facts": {
+    "active_profiles": [],
+    "backend_tools": [],
+    "ci_platforms": [],
+    "ci_workflows": [],
+    "classification": {
+      "detected_signals": {
+        "commands": [
+          "build",
+          "install",
+          "lint",
+          "test"
+        ],
+        "dev_tools": [
+          "pytest",
+          "ruff"
+        ],
+        "languages": [
+          "python"
+        ],
+        "package_managers": [
+          "pip"
+        ]
+      },
+      "primary": {
+        "confidence": 0.62,
+        "evidence": [
+          "python detected",
+          "pyproject.toml detected",
+          "build detected"
+        ],
+        "label": "Python Package",
+        "name": "python-package",
+        "signals": [
+          "build",
+          "pyproject.toml",
+          "python"
+        ]
+      },
+      "secondary": []
+    },
+    "command_sources": {
+      "build": {
+        "confidence": "high",
+        "confidence_score": 0.9,
+        "detail": "Python ecosystem command evidence",
+        "line": null,
+        "path": "pyproject.toml",
+        "reason": "Python ecosystem command evidence; source=pyproject.toml; confidence=high; status=declared",
+        "source": "pyproject.toml",
+        "status": "declared"
+      },
+      "install": {
+        "confidence": "high",
+        "confidence_score": 0.9,
+        "detail": "editable Python project with dev extra detected",
+        "line": null,
+        "path": "pyproject.toml",
+        "reason": "editable Python project with dev extra detected; source=pyproject.toml; confidence=high; status=declared",
+        "source": "pyproject.toml",
+        "status": "declared"
+      },
+      "lint": {
+        "confidence": "high",
+        "confidence_score": 0.9,
+        "detail": "Python ecosystem command evidence",
+        "line": null,
+        "path": "pyproject.toml",
+        "reason": "Python ecosystem command evidence; source=pyproject.toml; confidence=high; status=declared",
+        "source": "pyproject.toml",
+        "status": "declared"
+      },
+      "test": {
+        "confidence": "high",
+        "confidence_score": 0.9,
+        "detail": "pytest configuration or test suite detected",
+        "line": null,
+        "path": "pyproject.toml/pytest.ini",
+        "reason": "pytest configuration or test suite detected; source=pyproject.toml/pytest.ini; confidence=high; status=declared",
+        "source": "pyproject.toml/pytest.ini",
+        "status": "declared"
+      }
+    },
+    "commands": {
+      "build": "python -m build",
+      "install": "python -m pip install -e \".[dev]\"",
+      "lint": "ruff check .",
+      "test": "pytest"
+    },
+    "config_files": [
+      "pyproject.toml"
+    ],
+    "config_path": "",
+    "container_platforms": [],
+    "custom_forbidden_actions": [],
+    "custom_rules": [],
+    "databases": [],
+    "dev_tools": [
+      "pytest",
+      "ruff"
+    ],
+    "ecosystems": [
+      {
+        "command_evidence": {
+          "build": "pyproject.toml",
+          "install": "pyproject.toml",
+          "lint": "pyproject.toml",
+          "test": "pyproject.toml"
+        },
+        "commands": {
+          "build": "python -m build",
+          "install": "python -m pip install -e \".[dev]\"",
+          "lint": "ruff check .",
+          "test": "python -m pytest"
+        },
+        "confidence": "high",
+        "evidence": [
+          "pyproject.toml"
+        ],
+        "frameworks": [],
+        "id": "python",
+        "language": "python",
+        "metadata": {},
+        "name": "Python",
+        "package_manager": "pip",
+        "path": ".",
+        "support": "deep",
+        "tools": [
+          "pytest",
+          "ruff"
+        ]
+      }
+    ],
+    "folders": [
+      "tests"
+    ],
+    "frameworks": [],
+    "frontend_tools": [],
+    "ignored_paths": [],
+    "infrastructure_tools": [],
+    "languages": [
+      "python"
+    ],
+    "lint_tools": [
+      "ruff"
+    ],
+    "llm_tools": [],
+    "ml_data_tools": [],
+    "package_managers": [
+      "pip"
+    ],
+    "queues": [],
+    "readme_ignore_claims": [],
+    "risk_flags": [],
+    "root_name": "basic-python-example",
+    "runtimes": [],
+    "subprojects": [
+      {
+        "commands": {
+          "build": "python -m build",
+          "install": "python -m pip install -e \".[dev]\"",
+          "lint": "ruff check .",
+          "test": "python -m pytest"
+        },
+        "dev_tools": [
+          "pytest",
+          "ruff"
+        ],
+        "frameworks": [],
+        "kind": "python",
+        "package_manager": "pip",
+        "path": "."
+      }
+    ],
+    "test_paths": [
+      "tests"
+    ],
+    "typecheck_tools": [],
+    "warnings": [
+      "No GitHub Actions workflow was detected."
+    ]
+  },
+  "fingerprint": "595d1199dbd86301",
+  "repository": "basic-python-example",
+  "risk_flags": [],
+  "safety": {
+    "custom_rules": [],
+    "forbidden_actions": [
+      "Do not commit secrets, tokens, API keys, private certificates, or local .env files.",
+      "Do not remove tests to make a failing suite pass.",
+      "Do not claim validation passed unless the command was actually run successfully."
+    ]
+  },
+  "schema_version": "1.0",
+  "tool": "evagix"
+}

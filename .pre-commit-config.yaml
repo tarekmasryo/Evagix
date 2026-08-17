@@ -1,0 +1,21 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: Ruff lint and import fixes
+        entry: ruff check --fix --no-cache
+        language: python
+        types_or: [python, pyi]
+        additional_dependencies: [ruff==0.15.20]
+      - id: ruff-format
+        name: Ruff format
+        entry: ruff format --no-cache
+        language: python
+        types_or: [python, pyi]
+        additional_dependencies: [ruff==0.15.20]
+      - id: mypy
+        name: Mypy
+        entry: mypy evagix
+        language: python
+        pass_filenames: false
+        additional_dependencies: [mypy==2.1.0]

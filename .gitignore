@@ -1,0 +1,33 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+pytest-cache-files-*/
+.ruff_cache/
+.mypy_cache/
+
+# Coverage artifacts
+.coverage
+.coverage*
+coverage.xml
+htmlcov/
+
+# Build and packaging artifacts
+dist/
+build/
+*.egg-info/
+
+# Local environments and secrets
+.venv/
+.venv*/
+venv/
+.tox/
+.nox/
+.env
+.env.*
+
+# OS/editor noise
+.DS_Store
+# Local research/output files
+search-results-clean.txt
+*.tmp

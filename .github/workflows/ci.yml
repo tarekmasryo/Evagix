@@ -1,0 +1,187 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  RUFF_NO_CACHE: "true"
+
+jobs:
+  quality:
+    name: Quality gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package and development tools
+        run: |
+          python -m pip install --upgrade -c constraints-release.txt pip setuptools wheel
+          python -m pip install -c constraints-release.txt -e ".[dev]"
+
+      - name: Static compile check
+        run: python -m compileall -q evagix tests scripts
+
+      - name: Lint
+        run: python -m ruff check .
+
+      - name: Format verification
+        run: python -m ruff format --check .
+
+      - name: Typecheck
+        run: python -m mypy evagix
+
+      - name: Tests with coverage
+        run: python -m pytest --cov=evagix --cov-branch --cov-report=term-missing --cov-fail-under=80
+
+  test:
+    name: ${{ matrix.os }} / Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install package and test tools
+        run: |
+          python -m pip install --upgrade -c constraints-release.txt pip setuptools wheel
+          python -m pip install -c constraints-release.txt -e ".[dev]"
+
+      - name: Cross-platform test suite
+        run: python -m pytest -q
+
+  self-governance:
+    name: Evagix self-governance
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Evagix
+        run: |
+          python -m pip install --upgrade -c constraints-release.txt pip setuptools wheel
+          python -m pip install --no-build-isolation -e .
+
+      - name: Evagix gates
+        run: |
+          python -m evagix audit .
+          python -m evagix check .
+          python -m evagix doctor . --strict --fail-under 80
+          python -m evagix readme-audit . --strict --fail-on unsupported
+          python -m evagix eval-context . --strict --fail-on high
+
+      - name: Fixture smoke tests
+        run: |
+          python -m evagix check tests/fixtures/basic-python
+          python -m evagix doctor tests/fixtures/basic-python --fail-under 80
+
+  build:
+    name: Build immutable release artifacts
+    needs: [quality, test, self-governance]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade -c constraints-release.txt pip setuptools wheel
+          python -m pip install -c constraints-release.txt build twine
+
+      - name: Build wheel and source distribution once
+        run: python -m build --no-isolation
+
+      - name: Check package metadata
+        run: python -m twine check --strict dist/*
+
+      - name: Build and verify the source ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_version="$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
+          source_archive="evagix-$package_version-source.zip"
+          source_prefix="evagix-$package_version/"
+          git archive --format=zip --prefix="$source_prefix" --output="$source_archive" HEAD
+          python scripts/verify_source_archive.py "$source_archive" --repository . --revision HEAD --prefix "$source_prefix"
+          sha256sum "$source_archive" > SOURCE_SHA256SUMS
+
+      - name: Generate SHA-256 checksums
+        shell: bash
+        run: sha256sum dist/* > SHA256SUMS
+
+      - name: Upload tested release candidates
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: evagix-release-dist
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload release checksums
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: evagix-release-checksums
+          path: SHA256SUMS
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload the verified source ZIP
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: evagix-source-zip
+          path: |
+            evagix-*-source.zip
+            SOURCE_SHA256SUMS
+          if-no-files-found: error
+          retention-days: 14
+
+  artifact-smoke:
+    name: Clean artifact installation
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+
+      - name: Download the exact artifacts built by CI
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: evagix-release-dist
+          path: dist
+
+      - name: Install and smoke-test wheel and sdist independently
+        run: python scripts/verify_artifacts.py dist

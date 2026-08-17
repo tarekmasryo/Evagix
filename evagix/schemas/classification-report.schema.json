@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evagix.dev/schemas/classification-report.schema.json",
+  "title": "Evagix Classification Report",
+  "type": "object",
+  "required": ["schema_version", "classification"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "classification": {
+      "type": "object",
+      "required": ["primary", "secondary", "detected_signals"],
+      "properties": {
+        "primary": {
+          "oneOf": [
+            { "$ref": "#/$defs/match" },
+            { "type": "null" }
+          ]
+        },
+        "secondary": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/match" }
+        },
+        "detected_signals": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "match": {
+      "type": "object",
+      "required": ["name", "label", "confidence", "evidence", "signals"],
+      "properties": {
+        "name": { "type": "string" },
+        "label": { "type": "string" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "evidence": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "signals": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

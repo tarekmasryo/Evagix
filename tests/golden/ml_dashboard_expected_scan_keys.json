@@ -1,0 +1,7 @@
+{
+  "languages_contains": ["python"],
+  "frameworks_contains": ["streamlit"],
+  "ml_data_tools_contains": ["pandas", "numpy", "scikit-learn"],
+  "commands_contains": ["test", "lint", "run"],
+  "profiles_contains": ["ml-dashboard"]
+}

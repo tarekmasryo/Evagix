@@ -1,0 +1,21 @@
+# Evagix self-governance config.
+
+[policy]
+fail_on_stale = true
+fail_under = 80
+require_onboarding_pack = false
+ignore_findings = []
+
+[commands]
+install = "python -m pip install -e \".[dev]\""
+test = "python -m pytest"
+test_coverage = "python -m pytest --cov=evagix --cov-branch --cov-report=term-missing --cov-fail-under=80"
+lint = "python -m ruff check ."
+format_check = "python -m ruff format --check ."
+typecheck = "python -m mypy evagix"
+build = "python -m build"
+package_check = "python -m twine check dist/*"
+doctor = "python -m evagix doctor . --strict --fail-under 80"
+context_eval = "python -m evagix eval-context . --strict"
+classify = "python -m evagix classify ."
+pr_risk = "python -m evagix pr-risk . --base main"

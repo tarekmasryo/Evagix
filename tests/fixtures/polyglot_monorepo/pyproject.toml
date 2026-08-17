@@ -1,0 +1,4 @@
+[project]
+name = "fixture-polyglot"
+version = "0.1.0"
+dependencies = ["fastapi", "langchain", "qdrant-client", "pytest", "black"]

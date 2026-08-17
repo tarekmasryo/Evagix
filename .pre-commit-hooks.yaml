@@ -1,0 +1,15 @@
+- id: evagix-check
+  name: Evagix context drift check
+  description: Verify that generated Evagix context files are present and synchronized.
+  entry: evagix check
+  language: python
+  pass_filenames: false
+  stages: [pre-commit, pre-push]
+
+- id: evagix-doctor
+  name: Evagix readiness check
+  description: Enforce the repository readiness threshold configured for Evagix.
+  entry: evagix doctor --strict --fail-under 80
+  language: python
+  pass_filenames: false
+  stages: [pre-push]

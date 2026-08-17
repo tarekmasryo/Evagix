@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evagix.dev/schemas/changed-report.schema.json",
+  "title": "Evagix Changed Files Report",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tool",
+    "base",
+    "head",
+    "files",
+    "required_gates",
+    "has_high_risk"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "tool": { "const": "evagix" },
+    "base": { "type": "string" },
+    "head": { "type": "string" },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "risk", "reason"],
+        "properties": {
+          "path": { "type": "string" },
+          "risk": { "enum": ["LOW", "MEDIUM", "HIGH"] },
+          "reason": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "required_gates": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "has_high_risk": { "type": "boolean" }
+  },
+  "additionalProperties": false
+}

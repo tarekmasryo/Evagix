@@ -1,0 +1,340 @@
+name: Publish to PyPI
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing v* tag to verify and publish
+        required: true
+        type: string
+
+      rehearse_testpypi:
+        description: Verify release on TestPyPI before publishing to PyPI
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+env:
+  RUFF_NO_CACHE: "true"
+
+concurrency:
+  group: publish-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Full release gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    outputs:
+      release_commit: ${{ steps.release_ref.outputs.commit }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: constraints-release.txt
+
+      - name: Verify release tag matches package version
+        id: release_ref
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          git show-ref --verify --quiet "refs/tags/$RELEASE_TAG"
+          tag_commit="$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")"
+          head_commit="$(git rev-parse HEAD)"
+          test "$head_commit" = "$tag_commit"
+          echo "commit=$head_commit" >> "$GITHUB_OUTPUT"
+          package_version="$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
+          test "$RELEASE_TAG" = "v$package_version"
+
+      - name: Install pinned quality and security toolchain
+        run: |
+          python -m pip install --upgrade -c constraints-release.txt pip setuptools wheel
+          python -m pip install -c constraints-release.txt -e ".[dev,security]"
+          python -m pip check
+
+      - name: Compile, lint, format, and typecheck
+        run: |
+          python -m compileall -q evagix tests scripts
+          python -m ruff check .
+          python -m ruff format --check .
+          python -m mypy evagix
+
+      - name: Run tests with coverage
+        run: python -m pytest --cov=evagix --cov-branch --cov-report=term-missing --cov-fail-under=80
+
+      - name: Audit dependencies
+        run: python -m pip_audit
+
+      - name: Run Evagix self-governance gates
+        run: |
+          python -m evagix audit .
+          python -m evagix check .
+          python -m evagix doctor . --strict --fail-under 80
+          python -m evagix readme-audit . --strict --fail-on unsupported
+          python -m evagix eval-context . --strict --fail-on high
+          python -m evagix sync . --plan
+
+  platform-test:
+    name: ${{ matrix.os }} / Python ${{ matrix.python-version }} release test
+    needs: verify
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.verify.outputs.release_commit }}
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: constraints-release.txt
+
+      - name: Install pinned test toolchain
+        run: |
+          python -m pip install --upgrade -c constraints-release.txt pip setuptools wheel
+          python -m pip install -c constraints-release.txt -e ".[dev]"
+
+      - name: Run cross-platform release tests
+        run: python -m pytest -q
+
+  build:
+    name: Build verified release artifacts
+    needs: [verify, platform-test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.verify.outputs.release_commit }}
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: constraints-release.txt
+
+      - name: Install pinned release toolchain
+        run: |
+          python -m pip install --upgrade -c constraints-release.txt pip setuptools wheel
+          python -m pip install -c constraints-release.txt build twine
+
+      - name: Build wheel and source distribution
+        run: python -m build --no-isolation
+
+      - name: Validate release artifacts
+        run: |
+          python -m twine check --strict dist/*
+          python scripts/verify_artifacts.py dist
+
+      - name: Build and verify the immutable source ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_version="$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
+          source_archive="evagix-$package_version-source.zip"
+          source_prefix="evagix-$package_version/"
+          git archive --format=zip --prefix="$source_prefix" --output="$source_archive" HEAD
+          python scripts/verify_source_archive.py "$source_archive" --repository . --revision HEAD --prefix "$source_prefix"
+          sha256sum "$source_archive" > SOURCE_SHA256SUMS
+
+      - name: Generate SHA-256 checksums
+        shell: bash
+        run: sha256sum dist/* > SHA256SUMS
+
+      - name: Upload immutable release artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: evagix-pypi-dist
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload release checksums
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: evagix-pypi-checksums
+          path: SHA256SUMS
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload the verified source ZIP
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: evagix-source-zip
+          path: |
+            evagix-*-source.zip
+            SOURCE_SHA256SUMS
+          if-no-files-found: error
+          retention-days: 7
+
+  publish-testpypi:
+    name: Rehearse verified artifacts on TestPyPI
+    if: ${{ inputs.rehearse_testpypi }}
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/evagix
+    permissions:
+      id-token: write
+    steps:
+      - name: Download the exact verified artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: evagix-pypi-dist
+          path: dist
+
+      - name: Publish through TestPyPI Trusted Publishing
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        with:
+          packages-dir: dist/
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+
+  verify-testpypi:
+    name: Verify exact TestPyPI artifacts and clean installation
+    if: ${{ inputs.rehearse_testpypi }}
+    needs: [publish-testpypi, verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.verify.outputs.release_commit }}
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+
+      - name: Download the exact built artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: evagix-pypi-dist
+          path: dist
+
+      - name: Download the release checksums
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: evagix-pypi-checksums
+
+      - name: Verify TestPyPI preserved every distribution byte-for-byte
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_version="$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
+          python scripts/verify_testpypi.py \
+            --package evagix \
+            --version "$package_version" \
+            --expected-dir dist \
+            --checksums SHA256SUMS \
+            --download-dir testpypi-dist
+
+      - name: Clean-install and smoke-test the downloaded TestPyPI wheel
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv testpypi-venv
+          testpypi-venv/bin/python -m pip install --no-index testpypi-dist/*.whl
+          testpypi-venv/bin/python -m pip check
+          testpypi-venv/bin/evagix --version
+          testpypi-venv/bin/evgx --version
+          testpypi-venv/bin/python -c 'from importlib.resources import files; assert files("evagix.schemas").joinpath("readme-audit.schema.json").is_file()'
+
+  publish:
+    name: Promote the exact verified artifacts to PyPI
+    needs: [build, verify-testpypi]
+    if: ${{ always() && needs.build.result == 'success' && (inputs.rehearse_testpypi == false || needs.verify-testpypi.result == 'success') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: pypi
+      url: https://pypi.org/p/evagix
+    permissions:
+      id-token: write
+    steps:
+      - name: Download the exact verified artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: evagix-pypi-dist
+          path: dist
+
+      - name: Publish through PyPI Trusted Publishing
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        with:
+          packages-dir: dist/
+
+  verify-pypi:
+    name: Verify exact production PyPI artifacts and clean installation
+    needs: [publish, verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.verify.outputs.release_commit }}
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+
+      - name: Download the exact built artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: evagix-pypi-dist
+          path: dist
+
+      - name: Download the release checksums
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: evagix-pypi-checksums
+
+      - name: Verify PyPI preserved every distribution byte-for-byte
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_version="$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
+          python scripts/verify_testpypi.py \
+            --index pypi \
+            --package evagix \
+            --version "$package_version" \
+            --expected-dir dist \
+            --checksums SHA256SUMS \
+            --download-dir pypi-dist
+
+      - name: Clean-install and smoke-test the downloaded PyPI wheel
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv pypi-venv
+          pypi-venv/bin/python -m pip install --no-index pypi-dist/*.whl
+          pypi-venv/bin/python -m pip check
+          pypi-venv/bin/evagix --version
+          pypi-venv/bin/evgx --version
+          pypi-venv/bin/python -c 'from importlib.resources import files; assert files("evagix.schemas").joinpath("scan-facts.schema.json").is_file()'

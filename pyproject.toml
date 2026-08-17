@@ -1,0 +1,96 @@
+[build-system]
+requires = ["setuptools>=83,<85", "wheel>=0.47,<1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evagix"
+version = "0.1.0"
+description = "Local-first evidence gate for AI-assisted repositories."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+authors = [
+  { name = "Tarek Masryo" }
+]
+keywords = ["agents", "ai-agents", "repo-governance", "context-engineering", "evidence-gate", "agent-context", "cli", "developer-tools", "ci", "repo-analysis"]
+classifiers = [
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Software Development :: Documentation",
+  "Topic :: Software Development :: Quality Assurance",
+  "Topic :: Software Development :: Testing",
+  "Typing :: Typed",
+]
+dependencies = []
+
+
+[project.urls]
+Homepage = "https://github.com/tarekmasryo/Evagix"
+Repository = "https://github.com/tarekmasryo/Evagix"
+Issues = "https://github.com/tarekmasryo/Evagix/issues"
+Changelog = "https://github.com/tarekmasryo/Evagix/blob/main/CHANGELOG.md"
+Security = "https://github.com/tarekmasryo/Evagix/blob/main/SECURITY.md"
+
+[project.optional-dependencies]
+dev = [
+  "setuptools==83.0.0",
+  "wheel==0.47.0",
+  "pytest==9.1.1",
+  "pytest-cov==7.1.0",
+  "ruff==0.15.20",
+  "mypy==2.1.0",
+  "build==1.5.0",
+  "twine==6.2.0",
+  "jsonschema==4.26.0",
+]
+security = [
+  "pip-audit==2.10.1",
+]
+
+[project.scripts]
+evagix = "evagix.cli:main"
+evgx = "evagix.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["evagix*"]
+
+[tool.setuptools.package-data]
+evagix = ["py.typed"]
+"evagix.schemas" = ["*.json"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/fixtures/**" = ["F401"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_unused_configs = true
+warn_return_any = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+pretty = true
+packages = ["evagix"]
+
+
+[tool.coverage.run]
+branch = true

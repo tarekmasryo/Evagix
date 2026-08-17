@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "start": "vite --host 0.0.0.0"
+  },
+  "dependencies": {"@vitejs/plugin-react": "latest", "react": "latest", "vite": "latest"},
+  "devDependencies": {"typescript": "latest", "vitest": "latest"}
+}

@@ -1,0 +1,11 @@
+include README.md
+include LICENSE
+include CHANGELOG.md
+include SECURITY.md
+include evagix/py.typed
+recursive-include evagix/schemas *.json
+
+prune tests
+
+global-exclude *.py[cod]
+global-exclude CACHEDIR.TAG

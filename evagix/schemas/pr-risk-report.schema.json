@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evagix.dev/schemas/pr-risk-report.schema.json",
+  "title": "Evagix PR Risk Report",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tool",
+    "base",
+    "head",
+    "risk_level",
+    "decision",
+    "reasons",
+    "required_gates",
+    "readiness_score",
+    "context_ok",
+    "changed"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "tool": { "const": "evagix" },
+    "base": { "type": "string" },
+    "head": { "type": "string" },
+    "risk_level": { "enum": ["low", "medium", "high", "critical"] },
+    "decision": { "enum": ["merge", "review", "block"] },
+    "reasons": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "required_gates": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "readiness_score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "context_ok": { "type": "boolean" },
+    "changed": {
+      "type": "object",
+      "required": ["files", "required_gates", "has_high_risk"],
+      "properties": {
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "risk", "reason"],
+            "properties": {
+              "path": { "type": "string" },
+              "risk": { "enum": ["LOW", "MEDIUM", "HIGH"] },
+              "reason": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required_gates": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "has_high_risk": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

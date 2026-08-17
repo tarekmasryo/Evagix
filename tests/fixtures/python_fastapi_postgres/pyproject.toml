@@ -1,0 +1,10 @@
+[project]
+name = "fixture-fastapi"
+version = "0.1.0"
+dependencies = ["fastapi", "uvicorn", "sqlalchemy", "psycopg", "alembic", "pytest", "ruff", "mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100

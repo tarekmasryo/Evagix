@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evagix.dev/schemas/scan-facts.schema.json",
+  "title": "Evagix Scan Facts",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "root_name",
+    "languages",
+    "runtimes",
+    "package_managers",
+    "frameworks",
+    "commands",
+    "command_sources",
+    "ci_platforms",
+    "infrastructure_tools",
+    "container_platforms"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "root_name": {
+      "type": "string"
+    },
+    "languages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "runtimes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "package_managers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "frameworks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "backend_tools": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "frontend_tools": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "llm_tools": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ml_data_tools": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "commands": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "command_sources": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/evidence"
+      }
+    },
+    "ci_platforms": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "infrastructure_tools": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "container_platforms": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ecosystems": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "required": [
+        "source",
+        "detail",
+        "confidence",
+        "confidence_score",
+        "status"
+      ],
+      "properties": {
+        "source": { "type": "string" },
+        "detail": { "type": "string" },
+        "confidence": { "enum": ["high", "medium", "low"] },
+        "confidence_score": { "type": "number" },
+        "status": { "enum": ["verified", "configured", "declared", "inferred"] },
+        "reason": { "type": "string" },
+        "path": { "type": "string" },
+        "line": { "type": ["integer", "null"], "minimum": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "confidence": { "const": "high" } }, "required": ["confidence"] },
+          "then": { "properties": { "confidence_score": { "const": 0.9 } } }
+        },
+        {
+          "if": { "properties": { "confidence": { "const": "medium" } }, "required": ["confidence"] },
+          "then": { "properties": { "confidence_score": { "const": 0.65 } } }
+        },
+        {
+          "if": { "properties": { "confidence": { "const": "low" } }, "required": ["confidence"] },
+          "then": { "properties": { "confidence_score": { "const": 0.35 } } }
+        }
+      ],
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evagix.dev/schemas/evagix-config.schema.json",
+  "title": "evagix.toml Configuration",
+  "type": "object",
+  "properties": {
+    "targets": {
+      "type": "object",
+      "properties": {
+        "universal_md": {
+          "type": "boolean"
+        },
+        "universal_json": {
+          "type": "boolean"
+        },
+        "agent_brief": {
+          "type": "boolean"
+        },
+        "safety_policy": {
+          "type": "boolean"
+        },
+        "repo_map": {
+          "type": "boolean"
+        },
+        "agent_tasks": {
+          "type": "boolean"
+        },
+        "agents": {
+          "type": "boolean"
+        },
+        "claude": {
+          "type": "boolean"
+        },
+        "gemini": {
+          "type": "boolean"
+        },
+        "cursor": {
+          "type": "boolean"
+        },
+        "copilot": {
+          "type": "boolean"
+        },
+        "windsurf": {
+          "type": "boolean"
+        },
+        "continue": {
+          "type": "boolean"
+        },
+        "cline": {
+          "type": "boolean"
+        },
+        "roo": {
+          "type": "boolean"
+        },
+        "aider": {
+          "type": "boolean"
+        },
+        "openhands": {
+          "type": "boolean"
+        },
+        "generic": {
+          "type": "boolean"
+        },
+        "custom": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "path"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "format": {
+                "enum": [
+                  "markdown",
+                  "json"
+                ]
+              },
+              "include": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "profiles": {
+      "type": "object",
+      "properties": {
+        "profiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "policy": {
+      "type": "object",
+      "properties": {
+        "fail_on_stale": {
+          "type": "boolean"
+        },
+        "require_onboarding_pack": {
+          "type": "boolean"
+        },
+        "fail_under": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "ignore_findings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ignored_findings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "severity": {
+      "type": "object",
+      "additionalProperties": {
+        "enum": [
+          "info",
+          "warning",
+          "error"
+        ]
+      }
+    },
+    "commands": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\S"
+      }
+    },
+    "rules": {
+      "type": "object",
+      "properties": {
+        "general": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "forbidden": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "ignore": {
+      "type": "object",
+      "properties": {
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "readme_audit": {
+      "type": "object",
+      "properties": {
+        "ignore_claims": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Deprecated alias for waive_claims. Matching claims remain visible as waived."
+        },
+        "waive_claims": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "description": "README claims accepted by explicit policy. Waived claims remain visible and reduce the audit score."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

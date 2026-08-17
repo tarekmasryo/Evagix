@@ -1,0 +1,14 @@
+{
+  "_evagix_content_digest": "c187cd2892c03e6199ace2e72d741c90f2886a0db617ffbe00096921b0c6cadb",
+  "_evagix_fingerprint": "evagix:fingerprint=595d1199dbd86301",
+  "_evagix_generated": "evagix:generated",
+  "schema_version": "1.0",
+  "targets": {
+    ".evagix/context.json": {
+      "content_digest": "a3cdc57e45bdab12a81b88d6a5f827a8fecbbab4840c362f220cf92f6c168e31"
+    },
+    ".evagix/context.md": {
+      "content_digest": "8eef7c3a8dcb384d2514520c1ac093db5576a936e2496520b31594a0fe0e2532"
+    }
+  }
+}

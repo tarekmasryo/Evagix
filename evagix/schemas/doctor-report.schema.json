@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evagix.dev/schemas/doctor-report.schema.json",
+  "title": "Evagix Doctor Report",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tool",
+    "tool_version",
+    "repository",
+    "score",
+    "ok",
+    "findings"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "tool": {
+      "const": "evagix"
+    },
+    "tool_version": {
+      "type": "string"
+    },
+    "repository": {
+      "type": "string"
+    },
+    "score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "fail_under": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "profiles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "severity",
+          "code",
+          "message",
+          "penalty"
+        ],
+        "properties": {
+          "severity": {
+            "enum": [
+              "info",
+              "warning",
+              "error"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "penalty": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "maturity_level": {
+      "type": "string"
+    },
+    "categories": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "score",
+          "status",
+          "findings"
+        ],
+        "properties": {
+          "score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "status": {
+            "enum": [
+              "pass",
+              "info",
+              "warn",
+              "fail"
+            ]
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": true
+}

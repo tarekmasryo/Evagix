@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evagix.dev/schemas/drift-report.schema.json",
+  "title": "Evagix Drift Report",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tool",
+    "report_type",
+    "repository",
+    "status",
+    "ok",
+    "missing_targets",
+    "stale_targets",
+    "tampered_targets",
+    "unmanaged_targets",
+    "invalid_encoding_targets",
+    "warnings",
+    "errors",
+    "recommended_fix"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "tool": {
+      "const": "evagix"
+    },
+    "report_type": {
+      "const": "drift"
+    },
+    "repository": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "in-sync",
+        "drift-detected"
+      ]
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "missing_targets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stale_targets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tampered_targets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unmanaged_targets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "recommended_fix": {
+      "type": "string"
+    },
+    "invalid_encoding_targets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

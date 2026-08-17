@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evagix.dev/schemas/evidence.schema.json",
+  "title": "Evagix Evidence Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tool",
+    "repository",
+    "summary",
+    "claims",
+    "agent_context",
+    "commands",
+    "ecosystems",
+    "findings"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "tool": {
+      "const": "evagix"
+    },
+    "repository": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "object"
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "agent_context": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "commands": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "ecosystems": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "additionalProperties": false
+}

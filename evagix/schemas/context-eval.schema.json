@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evagix.dev/schemas/context-eval.schema.json",
+  "title": "Evagix Context Evaluation",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tool",
+    "repository",
+    "evaluation"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "tool": {
+      "const": "evagix"
+    },
+    "repository": {
+      "type": "string"
+    },
+    "evaluation": {
+      "type": "object",
+      "required": [
+        "score",
+        "score_type",
+        "management",
+        "ok",
+        "target_count",
+        "present_targets",
+        "missing_targets",
+        "checks"
+      ],
+      "properties": {
+        "score": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "score_type": {
+          "enum": [
+            "static_structural",
+            "unscored_external_context",
+            "unscored_missing_context"
+          ]
+        },
+        "management": {
+          "enum": [
+            "evagix",
+            "external",
+            "missing"
+          ]
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "target_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "present_targets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "missing_targets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "status",
+              "message"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "pass",
+                  "warn",
+                  "fail"
+                ]
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "management": { "const": "evagix" } },
+            "required": ["management"]
+          },
+          "then": {
+            "properties": {
+              "score": { "type": "integer" },
+              "score_type": { "const": "static_structural" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "management": { "const": "external" } },
+            "required": ["management"]
+          },
+          "then": {
+            "properties": {
+              "score": { "const": null },
+              "score_type": { "const": "unscored_external_context" },
+              "ok": { "const": false }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "management": { "const": "missing" } },
+            "required": ["management"]
+          },
+          "then": {
+            "properties": {
+              "score": { "const": null },
+              "score_type": { "const": "unscored_missing_context" },
+              "ok": { "const": false }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

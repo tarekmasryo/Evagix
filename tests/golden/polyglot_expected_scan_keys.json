@@ -1,0 +1,6 @@
+{
+  "languages_contains": ["python", "javascript/typescript"],
+  "frameworks_contains": ["fastapi", "langchain", "react", "vite"],
+  "commands_contains": ["lint", "frontend_build", "frontend_test", "frontend_run", "run"],
+  "profiles_contains": ["python-backend", "ai-service", "frontend-app", "polyglot-monorepo", "infra-heavy"]
+}

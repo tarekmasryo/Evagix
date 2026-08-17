@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evagix.dev/schemas/decision-plan.schema.json",
+  "title": "Evagix Repo Decision Plan",
+  "type": "object",
+  "required": ["schema_version", "tool", "repository", "decision"],
+  "properties": {
+    "schema_version": {"type": "string"},
+    "tool": {"const": "evagix"},
+    "repository": {"type": "string"},
+    "decision": {
+      "type": "object",
+      "required": ["readiness", "risk_level", "next_best_actions", "safe_for_ai_agents", "needs_human_approval", "hardening_steps", "rationale"],
+      "properties": {
+        "readiness": {"enum": ["ready", "limited", "not-ready"]},
+        "risk_level": {"enum": ["low", "medium", "high"]},
+        "next_best_actions": {"type": "array", "items": {"type": "string"}},
+        "safe_for_ai_agents": {"type": "array", "items": {"type": "string"}},
+        "needs_human_approval": {"type": "array", "items": {"type": "string"}},
+        "hardening_steps": {"type": "array", "items": {"type": "string"}},
+        "rationale": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
