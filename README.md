@@ -1,8 +1,8 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./docs/assets/evagix-banner-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="./docs/assets/evagix-banner-light.png">
-    <img src="./docs/assets/evagix-banner-light.png" alt="Evagix banner" width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tarekmasryo/Evagix/main/docs/assets/evagix-banner-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/tarekmasryo/Evagix/main/docs/assets/evagix-banner-light.png">
+    <img src="https://raw.githubusercontent.com/tarekmasryo/Evagix/main/docs/assets/evagix-banner-light.png" alt="Evagix banner" width="100%">
   </picture>
 </p>
 
@@ -29,7 +29,7 @@
     <img alt="Python versions" src="https://img.shields.io/pypi/pyversions/evagix">
   </a>
   <img alt="Runtime dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-brightgreen">
-  <a href="./LICENSE">
+  <a href="https://github.com/tarekmasryo/Evagix/blob/main/LICENSE">
     <img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-blue">
   </a>
 </p>
@@ -52,9 +52,9 @@
   ·
   <a href="#commands">Commands</a>
   ·
-  <a href="./docs">Docs</a>
+  <a href="https://github.com/tarekmasryo/Evagix/tree/main/docs">Docs</a>
   ·
-  <a href="./SECURITY.md">Security</a>
+  <a href="https://github.com/tarekmasryo/Evagix/blob/main/SECURITY.md">Security</a>
 </p>
 
 ---
@@ -119,7 +119,9 @@ The shorter `evgx` alias is also available:
 evgx doctor .
 ```
 
-Evagix supports Python **3.11–3.14** through its release CI matrix.
+Evagix supports Python 3.11, 3.12, 3.13, and 3.14 through its release CI matrix.
+
+Evagix v0.1.0 provides conservative local evidence checks for repository claims, documented commands, agent-facing context, and generated context.
 
 ---
 
@@ -181,7 +183,7 @@ Findings are designed to explain:
 * why it matters;
 * and whether it should be fixed, reviewed, or deliberately waived.
 
-See the complete [rule reference](./docs/rules-reference.md).
+See the complete [rule reference](https://github.com/tarekmasryo/Evagix/blob/main/docs/rules-reference.md).
 
 ---
 
@@ -241,7 +243,15 @@ Most users only need a small part of the CLI.
 | Explain a finding              | `evagix explain <finding-code>` |
 | Export a report                | `evagix report .`               |
 
-For the complete command inventory, flags, advanced workflows, and exit-code semantics, see [docs/commands.md](./docs/commands.md).
+### Advanced commands
+
+| Goal              | Command              |
+| ----------------- | -------------------- |
+| Baseline snapshot | `evagix baseline .`  |
+| Baseline diff     | `evagix diff .`      |
+| Scoped checks     | `evagix scoped .`    |
+
+For the complete command inventory, flags, advanced workflows, and exit-code semantics, see [docs/commands.md](https://github.com/tarekmasryo/Evagix/blob/main/docs/commands.md).
 
 ### Strict gates
 
@@ -332,7 +342,7 @@ README examples can be excluded from claim analysis so example text is not autom
 
 Intentional policy waivers remain visible in results and do not become supporting evidence.
 
-See [docs/configuration.md](./docs/configuration.md).
+See [docs/configuration.md](https://github.com/tarekmasryo/Evagix/blob/main/docs/configuration.md).
 
 ---
 
@@ -354,7 +364,7 @@ evagix report . --format sarif --output evagix.sarif --force
 | **Markdown** | Human-readable reports                           |
 | **SARIF**    | Code-scanning style integrations where supported |
 
-Stable machine-readable contracts are documented in [docs/schemas.md](./docs/schemas.md).
+Stable machine-readable contracts are documented in [docs/schemas.md](https://github.com/tarekmasryo/Evagix/blob/main/docs/schemas.md).
 
 JSON output is not automatically a stable public contract. Stable outputs are the schema-backed formats documented by Evagix.
 
@@ -407,7 +417,7 @@ Evagix intentionally avoids turning missing evidence into confidence.
 
 The goal is not to maximize scores. The goal is to keep conclusions proportional to the evidence available.
 
-Exact rule semantics are documented in the [rule reference](./docs/rules-reference.md).
+Exact rule semantics are documented in the [rule reference](https://github.com/tarekmasryo/Evagix/blob/main/docs/rules-reference.md).
 
 ---
 
@@ -458,7 +468,7 @@ evgx --version
 
 ## Supported environments
 
-Evagix targets Python **3.11, 3.12, 3.13, and 3.14** through its release CI matrix.
+Evagix targets Python 3.11, 3.12, 3.13, and 3.14 through its release CI matrix.
 
 It has **zero runtime dependencies**.
 
@@ -496,15 +506,15 @@ These boundaries are intentional. Evagix validates repository evidence and conte
 
 | Document                                    | Purpose                                                    |
 | ------------------------------------------- | ---------------------------------------------------------- |
-| [Commands](./docs/commands.md)              | CLI workflows, flags, exit behavior, and advanced commands |
-| [Configuration](./docs/configuration.md)    | Repository policy and configuration                        |
-| [Rules](./docs/rules.md)                    | Rule overview                                              |
-| [Rule reference](./docs/rules-reference.md) | Complete rule semantics                                    |
-| [Architecture](./docs/architecture.md)      | Architecture boundaries and extension rules                |
-| [Schemas](./docs/schemas.md)                | Machine-readable contracts                                 |
-| [Contributing](./CONTRIBUTING.md)           | Development and contribution workflow                      |
-| [Changelog](./CHANGELOG.md)                 | Release history and notable changes                        |
-| [Security](./SECURITY.md)                   | Security policy and vulnerability reporting                |
+| [Commands](https://github.com/tarekmasryo/Evagix/blob/main/docs/commands.md)              | CLI workflows, flags, exit behavior, and advanced commands |
+| [Configuration](https://github.com/tarekmasryo/Evagix/blob/main/docs/configuration.md)    | Repository policy and configuration                        |
+| [Rules](https://github.com/tarekmasryo/Evagix/blob/main/docs/rules.md)                    | Rule overview                                              |
+| [Rule reference](https://github.com/tarekmasryo/Evagix/blob/main/docs/rules-reference.md) | Complete rule semantics                                    |
+| [Architecture](https://github.com/tarekmasryo/Evagix/blob/main/docs/architecture.md)      | Architecture boundaries and extension rules                |
+| [Schemas](https://github.com/tarekmasryo/Evagix/blob/main/docs/schemas.md)                | Machine-readable contracts                                 |
+| [Contributing](https://github.com/tarekmasryo/Evagix/blob/main/CONTRIBUTING.md)           | Development and contribution workflow                      |
+| [Changelog](https://github.com/tarekmasryo/Evagix/blob/main/CHANGELOG.md)                 | Release history and notable changes                        |
+| [Security](https://github.com/tarekmasryo/Evagix/blob/main/SECURITY.md)                   | Security policy and vulnerability reporting                |
 
 For bugs, feature requests, or unexpected behavior, use [GitHub Issues](https://github.com/tarekmasryo/Evagix/issues).
 
@@ -530,7 +540,7 @@ python -m pytest --cov=evagix --cov-branch --cov-report=term-missing --cov-fail-
 
 Evagix also validates itself through its own repository checks.
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) before contributing and [docs/architecture.md](./docs/architecture.md) before making architectural changes.
+See [CONTRIBUTING.md](https://github.com/tarekmasryo/Evagix/blob/main/CONTRIBUTING.md) before contributing and [docs/architecture.md](https://github.com/tarekmasryo/Evagix/blob/main/docs/architecture.md) before making architectural changes.
 
 ---
 
@@ -542,10 +552,10 @@ It does not intentionally read `.env` files or private-key formats as ordinary r
 
 Command safety, path handling, sensitive-data redaction, and generated-context integrity are treated as explicit validation boundaries.
 
-For vulnerability reporting and the full security policy, see [SECURITY.md](./SECURITY.md).
+For vulnerability reporting and the full security policy, see [SECURITY.md](https://github.com/tarekmasryo/Evagix/blob/main/SECURITY.md).
 
 ---
 
 ## License
 
-Evagix is licensed under the [Apache License 2.0](./LICENSE).
+Evagix is licensed under the [Apache License 2.0](https://github.com/tarekmasryo/Evagix/blob/main/LICENSE).
