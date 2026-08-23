@@ -1,0 +1,66 @@
+name: Bug report
+description: Report incorrect or unexpected Evagix behavior
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Briefly describe the problem.
+      placeholder: Describe what Evagix did unexpectedly.
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: What command did you run?
+      render: shell
+      placeholder: evagix doctor .
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect Evagix to do?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened instead?
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Evagix version
+      description: Run `evagix --version`.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system and Python version, if relevant.
+      placeholder: "Windows 11, Python 3.13"
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add any useful output, repository details, or reproduction notes. Please redact sensitive data.
+    validations:
+      required: false

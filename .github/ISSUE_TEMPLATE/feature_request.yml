@@ -1,0 +1,36 @@
+name: Feature request
+description: Suggest a focused improvement or new Evagix capability
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What problem or workflow would this improvement address?
+      placeholder: Describe the need before the proposed solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed improvement
+      description: What would you like Evagix to do?
+    validations:
+      required: true
+
+  - type: textarea
+    id: example
+    attributes:
+      label: Example
+      description: Add a small example if it helps explain the expected behavior.
+      placeholder: |
+        Repository state:
+        ...
+
+        Expected Evagix result:
+        ...
+    validations:
+      required: false

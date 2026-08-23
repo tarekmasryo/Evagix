@@ -1,12 +1,21 @@
-<h1 align="center">Evagix</h1>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./docs/assets/evagix-banner-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="./docs/assets/evagix-banner-light.png">
+    <img src="./docs/assets/evagix-banner-light.png" alt="Evagix banner" width="100%">
+  </picture>
+</p>
+
+<h1 align="center">Verify what your repository says against what it actually contains.</h1>
 
 <p align="center">
   <strong>Local-first evidence validation for AI-assisted repositories.</strong>
 </p>
 
 <p align="center">
-  Evagix checks repository claims, documented commands, agent-facing instructions,
-  and generated context against local evidence before humans or coding agents rely on them.
+  Evagix checks documentation, commands, agent instructions, generated context,
+  and repository claims against local evidence before developers, CI pipelines,
+  or coding agents act on that information.
 </p>
 
 <p align="center">
@@ -16,35 +25,111 @@
   <a href="https://github.com/tarekmasryo/Evagix/actions/workflows/ci.yml">
     <img alt="CI" src="https://github.com/tarekmasryo/Evagix/actions/workflows/ci.yml/badge.svg">
   </a>
-  <img alt="Python" src="https://img.shields.io/badge/python-3.11--3.14-blue">
+  <a href="https://pypi.org/project/evagix/">
+    <img alt="Python versions" src="https://img.shields.io/pypi/pyversions/evagix">
+  </a>
   <img alt="Runtime dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-brightgreen">
-  <a href="https://github.com/tarekmasryo/Evagix/blob/main/LICENSE">
+  <a href="./LICENSE">
     <img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-blue">
   </a>
 </p>
 
 <p align="center">
-  <a href="#quick-start">Quick start</a>
-  ·
-  <a href="#core-commands">Commands</a>
-  ·
-  <a href="https://github.com/tarekmasryo/Evagix/tree/main/docs">Documentation</a>
-  ·
-  <a href="https://github.com/tarekmasryo/Evagix/blob/main/SECURITY.md">Security</a>
+  <strong>Local-first</strong> ·
+  <strong>Evidence-backed</strong> ·
+  <strong>Agent-aware</strong> ·
+  <strong>CI-friendly</strong> ·
+  <strong>JSON / SARIF outputs</strong> ·
+  <strong>Zero runtime dependencies</strong>
 </p>
 
 <p align="center">
-  Evagix v0.1.0 provides conservative local evidence checks and
-  CI-friendly repository validation.
+  <a href="#quick-start">Quick start</a>
+  ·
+  <a href="#why-evagix">Why Evagix?</a>
+  ·
+  <a href="#what-evagix-validates">What it validates</a>
+  ·
+  <a href="#commands">Commands</a>
+  ·
+  <a href="./docs">Docs</a>
+  ·
+  <a href="./SECURITY.md">Security</a>
 </p>
+
+---
+
+## Quick start
+
+Install Evagix from PyPI:
+
+```bash
+python -m pip install evagix
+```
+
+For an isolated CLI installation:
+
+```bash
+pipx install evagix
+```
+
+Run a repository readiness check:
+
+```bash
+evagix doctor .
+```
+
+Example output:
+
+```text
+Evagix Static Evidence Score: 100/100
+Static evidence tier: clear
+Required threshold: 80/100
+
+Score breakdown:
+  - repository_readiness: 100/100 (pass)
+  - agent_context_governance: 100/100 (pass)
+  - pr_risk_readiness: 100/100 (pass)
+
+Categories:
+  - agent_context: 100/100 (pass)
+  - commands: 100/100 (pass)
+  - ci: 100/100 (pass)
+  - docs_onboarding: 100/100 (pass)
+  - safety: 100/100 (pass)
+  - project_specific: 100/100 (pass)
+
+No issues found.
+```
+
+Results depend on the repository being inspected.
+
+For a broader local review:
+
+```bash
+evagix doctor .
+evagix readme-audit .
+evagix eval-context . --strict
+evagix check .
+```
+
+The shorter `evgx` alias is also available:
+
+```bash
+evgx doctor .
+```
+
+Evagix supports Python **3.11–3.14** through its release CI matrix.
 
 ---
 
 ## Why Evagix?
 
-AI-assisted development increasingly depends on repository text: README files, agent instructions, CI notes, generated context, and documented commands.
+Modern repositories contain more than source code.
 
-Those instructions can drift away from the repository they describe.
+README files document setup and capabilities. CI files describe automation. `AGENTS.md` and other agent-facing files tell coding tools how to work with the repository. Generated context summarizes repository state for humans and AI systems.
+
+Those sources can drift away from the repository they describe.
 
 ```text
 README says: npm test
@@ -61,65 +146,272 @@ AGENTS.md documents one test command
 evagix.toml declares another
 ```
 
-Evagix treats repository instructions as evidence-backed artifacts rather than trusted prose.
+A developer or coding agent can then follow instructions that look authoritative but no longer match the repository.
 
-```text
-repository evidence
-        ↓
-rules + policy
-        ↓
-findings + scoring
-        ↓
-text / JSON / Markdown / SARIF
-```
+Evagix checks those instructions and claims against repository-local evidence before they are trusted.
 
-It is intentionally focused: Evagix validates repository-facing evidence and instructions. It does not replace tests, CI, code review, SAST, secret scanning, or dependency auditing.
+**Repository instructions are treated as evidence-backed artifacts, not trusted prose.**
 
----
-
-## Quick start
-
-Install:
-
-```bash
-python -m pip install evagix
-```
-
-Run the main checks:
-
-```bash
-evagix doctor . --strict --fail-under 80
-evagix readme-audit . --strict --fail-on unsupported
-evagix eval-context . --strict --fail-on high
-evagix check .
-```
-
-The shorter `evgx` command is also available:
-
-```bash
-evgx doctor .
-```
+Evagix is intentionally focused. It complements tests, CI, code review, static application security testing (SAST), secret scanning, and dependency auditing rather than replacing them.
 
 ---
 
 <!-- evagix:audit-ignore-start -->
 
-## Typical findings
+## What Evagix validates
 
-| Finding | Why it matters |
-| --- | --- |
-| README claims Docker support, but no Dockerfile or Compose file was found. | Prevents unsupported setup claims from being treated as repository fact. |
-| README documents `npm test`, but no matching package script exists. | Flags stale commands before humans or agents copy them. |
-| `AGENTS.md` and `evagix.toml` disagree about the canonical test command. | Surfaces conflicting agent instructions. |
-| Generated context fingerprint no longer matches repository facts. | Detects context drift. |
-| Agent-facing docs instruct tools to read local environment files. | Flags risky guidance around local secrets. |
-| CI is claimed in documentation, but no workflow evidence exists. | Prevents readiness claims from being inferred without evidence. |
+Evagix collects local repository evidence and evaluates several related surfaces.
+
+| Area                    | What Evagix checks                                                                                          | Example                                                                |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| **README claims**       | Claims about tests, CI, Docker, packaging, deployment, typing, monitoring, and related capabilities         | Docker support is documented, but no Dockerfile or Compose file exists |
+| **Commands**            | Install, test, lint, typecheck, build, evaluation, smoke, and application-run commands                      | `npm test` is documented, but no matching package script exists        |
+| **Agent context**       | `AGENTS.md`, supported context files, canonical commands, conflicts, and unsafe guidance                    | `AGENTS.md` and `evagix.toml` define different test commands           |
+| **Generated context**   | Missing, stale, unmanaged, modified, truncated, or invalid generated targets                                | Managed context no longer matches current repository evidence          |
+| **Safety signals**      | Dangerous shell guidance, credential-bearing commands, environment exposure, and context-poisoning patterns | Agent instructions encourage risky access to local environment files   |
+| **Repository evidence** | Languages, tests, migrations, tooling, workflows, infrastructure markers, and related signals               | A documented capability has weak or missing supporting evidence        |
+| **CI and PR context**   | Workflow evidence and advisory changed-file risk signals                                                    | CI is claimed without matching workflow evidence                       |
 
 <!-- evagix:audit-ignore-end -->
 
+Findings are designed to explain:
+
+* what was detected;
+* what evidence supports the result;
+* why it matters;
+* and whether it should be fixed, reviewed, or deliberately waived.
+
+See the complete [rule reference](./docs/rules-reference.md).
+
 ---
 
-## Install
+## How it works
+
+```mermaid
+flowchart LR
+    A[Repository] --> B[Evidence collection]
+    B --> C[Rules + policy]
+    C --> D[Findings + scoring]
+    D --> E[Reports]
+    D --> F[Generated context]
+```
+
+Evagix inspects repository-local evidence such as:
+
+* documentation;
+* configuration;
+* package and project metadata;
+* documented commands;
+* tests and tooling;
+* CI workflows;
+* infrastructure markers;
+* agent-facing context.
+
+It then evaluates that evidence using deterministic rules and repository policy.
+
+Evagix performs **static repository inspection**.
+
+By default, it does **not**:
+
+* execute project test, lint, build, or application commands;
+* install project dependencies;
+* call model APIs;
+* upload repository contents.
+
+Static markers are evidence signals, not proof of high-impact claims such as `secure` or `production-ready`.
+
+When evidence is incomplete, Evagix reports that uncertainty instead of manufacturing confidence.
+
+---
+
+## Commands
+
+Most users only need a small part of the CLI.
+
+| Goal                           | Command                         |
+| ------------------------------ | ------------------------------- |
+| Repository readiness           | `evagix doctor .`               |
+| README evidence audit          | `evagix readme-audit .`         |
+| Agent-context evaluation       | `evagix eval-context .`         |
+| Generated-context verification | `evagix check .`                |
+| Repository governance audit    | `evagix audit .`                |
+| Generate context               | `evagix compile .`              |
+| Preview synchronization        | `evagix sync . --plan`          |
+| PR risk signals                | `evagix pr-risk . --base main`  |
+| Explain a finding              | `evagix explain <finding-code>` |
+| Export a report                | `evagix report .`               |
+
+For the complete command inventory, flags, advanced workflows, and exit-code semantics, see [docs/commands.md](./docs/commands.md).
+
+### Strict gates
+
+Evagix can start in reporting mode and later enforce explicit repository policy.
+
+```bash
+evagix doctor . --strict --fail-under 80
+evagix readme-audit . --strict --fail-on unsupported
+evagix eval-context . --strict --fail-on high
+```
+
+`--strict` enables stricter evaluation. It does not replace command-specific failure policy.
+
+Thresholds such as `--fail-under` and selectors such as `--fail-on` determine when a configured gate fails.
+
+This allows teams to inspect a repository first and introduce enforcement only after the expected policy is clear.
+
+---
+
+## CI
+
+A conservative CI gate can run:
+
+```bash
+python -m evagix check .
+python -m evagix doctor . --strict --fail-under 80
+python -m evagix readme-audit . --strict --fail-on unsupported
+python -m evagix eval-context . --strict --fail-on high
+```
+
+Evagix can also generate a downstream GitHub Actions workflow:
+
+```bash
+evagix init-ci . --fail-under 85
+```
+
+For gradual adoption:
+
+1. run Evagix in reporting mode;
+2. review the findings;
+3. define the expected repository policy;
+4. add strict thresholds where enforcement is appropriate.
+
+`pr-risk` is advisory. It does not replace repository validation, tests, CI, dependency auditing, or human review.
+
+### Pre-commit
+
+Evagix provides hooks for downstream repositories:
+
+```yaml
+repos:
+  - repo: https://github.com/tarekmasryo/Evagix
+    rev: v0.1.0
+    hooks:
+      - id: evagix-check
+      - id: evagix-doctor
+```
+
+---
+
+## Configuration
+
+Repository policy lives in `evagix.toml`.
+
+```toml
+[policy]
+fail_on_stale = true
+fail_under = 80
+
+[commands]
+test = "python -m pytest"
+lint = "python -m ruff check ."
+typecheck = "python -m mypy evagix"
+```
+
+Configuration can define:
+
+* canonical repository commands;
+* generated targets;
+* policy thresholds;
+* repository-specific validation behavior.
+
+Evagix validates configuration before trusting it.
+
+Invalid keys, empty commands, unsafe target paths, literal command credentials, and high-risk shell commands are rejected at the relevant boundary.
+
+README examples can be excluded from claim analysis so example text is not automatically treated as a real repository claim.
+
+Intentional policy waivers remain visible in results and do not become supporting evidence.
+
+See [docs/configuration.md](./docs/configuration.md).
+
+---
+
+## Outputs
+
+Evagix supports human-readable and machine-readable output for local review, CI, and automation.
+
+```bash
+evagix doctor . --format json
+evagix readme-audit . --format json
+evagix eval-context . --format json
+evagix report . --format sarif --output evagix.sarif --force
+```
+
+| Format       | Typical use                                      |
+| ------------ | ------------------------------------------------ |
+| **Text**     | Local inspection                                 |
+| **JSON**     | CI and automation                                |
+| **Markdown** | Human-readable reports                           |
+| **SARIF**    | Code-scanning style integrations where supported |
+
+Stable machine-readable contracts are documented in [docs/schemas.md](./docs/schemas.md).
+
+JSON output is not automatically a stable public contract. Stable outputs are the schema-backed formats documented by Evagix.
+
+Evidence-sensitive reads are bounded. Truncated, unreadable, or invalid UTF-8 input is reported as incomplete instead of being treated as clean evidence.
+
+---
+
+## Generated context
+
+Evagix can generate opt-in agent-facing context derived from repository evidence.
+
+Neutral Evagix-managed targets include:
+
+```text
+.evagix/context.md
+.evagix/context.json
+```
+
+Integrity state is stored separately in:
+
+```text
+.evagix/integrity.json
+```
+
+Generated context includes ownership and repository fingerprint information.
+
+This allows `evagix check` to distinguish:
+
+* repository changes that make generated context stale;
+* manual modification of Evagix-managed context;
+* cases where both conditions are present.
+
+Tool-specific exports are **opt-in** and are generated only when explicitly requested or configured.
+
+Compatibility with a tool-specific target format does not imply affiliation, endorsement, or sponsorship.
+
+---
+
+## Conservative behavior
+
+Evagix intentionally avoids turning missing evidence into confidence.
+
+* External or missing agent context remains unscored instead of receiving a positive structural score.
+* Incomplete README reads do not become clean `100/100` results.
+* Invalid UTF-8 and unreadable evidence are surfaced instead of silently ignored.
+* Generated-context freshness and integrity are evaluated independently.
+* Unsafe repository-internal symlink traversal is rejected.
+* Policy waivers remain visible and do not create supporting evidence.
+* Static repository markers are not treated as proof of broad claims such as `secure` or `production-ready`.
+
+The goal is not to maximize scores. The goal is to keep conclusions proportional to the evidence available.
+
+Exact rule semantics are documented in the [rule reference](./docs/rules-reference.md).
+
+---
+
+## Installation
 
 ### PyPI
 
@@ -133,13 +425,15 @@ For an isolated CLI installation:
 pipx install evagix
 ```
 
-Upgrade with:
+### Upgrade
+
+With pip:
 
 ```bash
 python -m pip install --upgrade evagix
 ```
 
-or:
+With pipx:
 
 ```bash
 pipx upgrade evagix
@@ -153,247 +447,90 @@ cd Evagix
 python -m pip install -e ".[dev]"
 ```
 
-Check the CLI:
+Verify the installation:
 
 ```bash
 evagix --version
 evgx --version
 ```
 
-Evagix requires **Python 3.11 or newer** and has **zero runtime dependencies**.
-
-The release CI matrix validates Python 3.11, 3.12, 3.13, and 3.14. Newer interpreter versions are considered supported only after they enter that matrix.
-
----
-
-## What Evagix checks
-
-Evagix works from repository-local evidence.
-
-| Area | What it looks for |
-| --- | --- |
-| README evidence | Unsupported or weakly supported claims about tests, CI, Docker, packaging, deployment, typing, monitoring, and related capabilities |
-| Commands | Install, test, lint, typecheck, build, eval, smoke, and application-run evidence |
-| Agent context | `AGENTS.md`, supported tool-specific context files, conflicts, unsafe instructions, and missing canonical commands |
-| Generated context | Missing, stale, unmanaged, tampered, truncated, or invalid generated targets |
-| Safety signals | Dangerous shell guidance, credential-bearing commands, environment exposure, and context-poisoning patterns |
-| Repository signals | Languages, tests, migrations, tooling, infrastructure markers, and related readiness evidence |
-| CI / PR context | Workflow evidence and advisory changed-file risk signals |
-
-Findings are designed to explain what was detected, what evidence supports it, why it matters, and what should be fixed or deliberately waived.
-
-See the complete [`rule reference`](https://github.com/tarekmasryo/Evagix/blob/main/docs/rules-reference.md).
-
----
-
-## Core commands
-
-| Goal | Command |
-| --- | --- |
-| Repository readiness | `evagix doctor . --strict --fail-under 80` |
-| README evidence audit | `evagix readme-audit . --strict --fail-on unsupported` |
-| Agent-context evaluation | `evagix eval-context . --strict --fail-on high` |
-| Generated-context verification | `evagix check .` |
-| Generate context | `evagix compile . --force` |
-| Preview synchronization | `evagix sync . --plan` |
-| Repository audit | `evagix audit .` |
-| PR risk signals | `evagix pr-risk . --base main` |
-| Explain a finding | `evagix explain missing-ci` |
-| Export a report | `evagix report .` |
-
-Additional commands for baselines, scoped checks, context packs, evidence export, and automation are documented in [`docs/commands.md`](https://github.com/tarekmasryo/Evagix/blob/main/docs/commands.md).
-
-`--strict` enables stricter gate behavior. Failure thresholds are controlled by command-specific options such as `--fail-under`, `--fail-on high`, and `--fail-on unsupported`.
-
-`pr-risk` is advisory and does not replace repository checks, tests, CI, or human review.
-
-### Advanced commands
-
-| Goal | Command |
-| --- | --- |
-| Baseline snapshot | `evagix baseline .` |
-| Baseline diff | `evagix diff .` |
-| Scoped checks | `evagix scoped .` |
-| Context pack | `evagix context-pack .` |
-
----
-
-## How it works
-
-```mermaid
-flowchart LR
-    A[Repository files] --> B[Evidence collection]
-    B --> C[Rules and policy]
-    C --> D[Findings and scoring]
-    D --> E[Reports and generated context]
-
-    B --> B1[README claims]
-    B --> B2[Commands]
-    B --> B3[Agent context]
-    B --> B4[CI and repository signals]
-
-    E --> E1[Text]
-    E --> E2[JSON]
-    E --> E3[Markdown]
-    E --> E4[SARIF]
-```
-
-Evagix does **not** execute project commands while scanning, install project dependencies, call model APIs, or upload the repository.
-
-Static markers are evidence signals, not proof of high-impact claims such as `secure` or `production-ready`. When local evidence is insufficient, Evagix keeps the result weak, partial, unsupported, or subject to manual review instead of manufacturing certainty.
-
----
-
-## Reports and outputs
-
-```bash
-evagix doctor . --format json
-evagix readme-audit . --format json
-evagix eval-context . --format json
-evagix report . --format sarif --output evagix.sarif --force
-```
-
-| Format | Typical use |
-| --- | --- |
-| Text | Local review |
-| JSON | Automation and CI parsing |
-| Markdown | Human-readable reports |
-| SARIF | Code-scanning style integrations where supported |
-
-Evidence-sensitive reads are bounded. Truncated, unreadable, or invalid UTF-8 input is reported as incomplete rather than being treated as clean evidence.
-
----
-
-## CI usage
-
-A conservative CI gate can run:
-
-```bash
-python -m evagix check .
-python -m evagix doctor . --strict --fail-under 80
-python -m evagix readme-audit . --strict --fail-on unsupported
-python -m evagix eval-context . --strict --fail-on high
-```
-
-For gradual adoption, start with reporting-only output, review the findings, then add strict thresholds when the repository policy is ready to enforce them.
-
----
-
-## Configuration
-
-`evagix.toml` defines canonical commands, generated targets, and policy thresholds.
-
-```toml
-[policy]
-fail_on_stale = true
-fail_under = 80
-
-[commands]
-test = "python -m pytest"
-lint = "python -m ruff check ."
-typecheck = "python -m mypy evagix"
-```
-
-Configuration is validated before it is trusted. Invalid keys, empty commands, unsafe target paths, literal command credentials, and high-risk shell commands are rejected at the relevant boundary.
-
-README examples can be excluded from claim analysis, while intentionally waived real claims remain visible in results.
-
-See [`docs/configuration.md`](https://github.com/tarekmasryo/Evagix/blob/main/docs/configuration.md).
-
----
-
-## Generated context
-
-Evagix can create opt-in agent-facing context for `AGENTS.md`-compatible workflows and supported tool-specific targets.
-
-Neutral Evagix-managed context targets include:
-
-```text
-.evagix/context.md
-.evagix/context.json
-```
-
-Generated context carries ownership and fingerprint information.
-
-Evagix records integrity state separately in:
-
-```text
-.evagix/integrity.json
-```
-
-This allows `evagix check` to detect stale context and manual modification independently, and to report both when appropriate.
-
-Tool-specific exports are generated only when explicitly requested or configured. Vendor names identify compatible target formats only; they do not imply affiliation, endorsement, or sponsorship.
-
----
-
-## Conservative behavior
-
-Evagix intentionally avoids turning missing evidence into confidence:
-
-- External or missing agent context is unscored rather than receiving a positive structural score.
-- Incomplete README reads do not become clean `100/100` results.
-- Invalid UTF-8 and unsafe path conditions are surfaced instead of silently ignored.
-- Generated context freshness and integrity are checked independently.
-- Unsafe repository-internal symlink traversal is rejected.
-- Policy waivers remain visible and do not create supporting evidence.
-
-Exact semantics are documented in the [`rule reference`](https://github.com/tarekmasryo/Evagix/blob/main/docs/rules-reference.md).
-
 ---
 
 ## Supported environments
 
-Evagix targets Python **3.11–3.14** through its release matrix.
+Evagix targets Python **3.11, 3.12, 3.13, and 3.14** through its release CI matrix.
 
-It has zero runtime dependencies and does not require network access for repository scans.
+It has **zero runtime dependencies**.
 
-Evagix can inspect repositories containing different languages and ecosystems, but it is not a deep language or framework analyzer.
+Repository scans do not require model APIs or network access.
+
+Evagix can inspect repositories containing different languages and ecosystems, but it is not a deep language- or framework-specific analyzer.
+
+New Python versions are considered supported after they enter the release matrix.
 
 ---
 
 ## Scope
 
-Evagix is not:
+Evagix has a deliberately narrow responsibility:
 
-- a full security scanner;
-- a secret scanner;
-- a dependency vulnerability auditor;
-- a semantic code analyzer;
-- a test runner;
-- a CI replacement;
-- a release approval system.
+> Check whether repository-facing claims, instructions, commands, and managed context are supported by the local evidence available to developers and coding agents.
 
-It complements those tools by checking whether repository-facing instructions and claims are supported by local evidence available to humans and coding agents.
+It complements existing engineering and security tooling.
+
+Evagix is **not**:
+
+* a test runner;
+* a CI replacement;
+* a semantic code analyzer;
+* a full security scanner;
+* a secret scanner;
+* a dependency vulnerability auditor;
+* a release approval system.
+
+These boundaries are intentional. Evagix validates repository evidence and context; it does not attempt to prove the runtime correctness or security of an entire software system.
 
 ---
 
 ## Documentation
 
-| Document | Purpose |
-| --- | --- |
-| [`docs/architecture.md`](https://github.com/tarekmasryo/Evagix/blob/main/docs/architecture.md) | Architecture boundaries and extension rules |
-| [`docs/commands.md`](https://github.com/tarekmasryo/Evagix/blob/main/docs/commands.md) | Command guide and common workflows |
-| [`docs/configuration.md`](https://github.com/tarekmasryo/Evagix/blob/main/docs/configuration.md) | Configuration reference |
-| [`docs/rules.md`](https://github.com/tarekmasryo/Evagix/blob/main/docs/rules.md) | Rule overview |
-| [`docs/rules-reference.md`](https://github.com/tarekmasryo/Evagix/blob/main/docs/rules-reference.md) | Complete rule reference |
-| [`docs/schemas.md`](https://github.com/tarekmasryo/Evagix/blob/main/docs/schemas.md) | JSON schema notes |
-| [`SECURITY.md`](https://github.com/tarekmasryo/Evagix/blob/main/SECURITY.md) | Security policy |
-| [`CONTRIBUTING.md`](https://github.com/tarekmasryo/Evagix/blob/main/CONTRIBUTING.md) | Contribution workflow |
+| Document                                    | Purpose                                                    |
+| ------------------------------------------- | ---------------------------------------------------------- |
+| [Commands](./docs/commands.md)              | CLI workflows, flags, exit behavior, and advanced commands |
+| [Configuration](./docs/configuration.md)    | Repository policy and configuration                        |
+| [Rules](./docs/rules.md)                    | Rule overview                                              |
+| [Rule reference](./docs/rules-reference.md) | Complete rule semantics                                    |
+| [Architecture](./docs/architecture.md)      | Architecture boundaries and extension rules                |
+| [Schemas](./docs/schemas.md)                | Machine-readable contracts                                 |
+| [Contributing](./CONTRIBUTING.md)           | Development and contribution workflow                      |
+| [Changelog](./CHANGELOG.md)                 | Release history and notable changes                        |
+| [Security](./SECURITY.md)                   | Security policy and vulnerability reporting                |
+
+For bugs, feature requests, or unexpected behavior, use [GitHub Issues](https://github.com/tarekmasryo/Evagix/issues).
 
 ---
 
 ## Development
 
+Install the development dependencies:
+
 ```bash
 python -m pip install -e ".[dev]"
+```
+
+Run the local quality gates:
+
+```bash
+python -m compileall -q evagix tests scripts
 python -m ruff check .
 python -m ruff format --check .
 python -m mypy evagix
 python -m pytest --cov=evagix --cov-branch --cov-report=term-missing --cov-fail-under=80
 ```
 
-Architecture boundaries are documented in [`docs/architecture.md`](https://github.com/tarekmasryo/Evagix/blob/main/docs/architecture.md).
+Evagix also validates itself through its own repository checks.
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) before contributing and [docs/architecture.md](./docs/architecture.md) before making architectural changes.
 
 ---
 
@@ -403,10 +540,12 @@ Evagix is designed to inspect repository evidence conservatively and avoid unnec
 
 It does not intentionally read `.env` files or private-key formats as ordinary repository evidence.
 
-For vulnerability reporting and security policy, see [`SECURITY.md`](https://github.com/tarekmasryo/Evagix/blob/main/SECURITY.md).
+Command safety, path handling, sensitive-data redaction, and generated-context integrity are treated as explicit validation boundaries.
+
+For vulnerability reporting and the full security policy, see [SECURITY.md](./SECURITY.md).
 
 ---
 
 ## License
 
-Apache-2.0. See [`LICENSE`](https://github.com/tarekmasryo/Evagix/blob/main/LICENSE).
+Evagix is licensed under the [Apache License 2.0](./LICENSE).

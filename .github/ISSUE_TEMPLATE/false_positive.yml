@@ -1,0 +1,58 @@
+name: False positive / validation issue
+description: Report a finding or validation result that does not match the repository evidence
+title: "[Validation]: "
+labels:
+  - bug
+body:
+  - type: input
+    id: finding
+    attributes:
+      label: Finding or rule
+      description: Provide the finding code or rule ID, if available.
+      placeholder: "<finding-code or rule-id>"
+    validations:
+      required: false
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: What command produced the result?
+      render: shell
+      placeholder: evagix readme-audit .
+    validations:
+      required: true
+
+  - type: textarea
+    id: reported
+    attributes:
+      label: Reported result
+      description: What did Evagix report?
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Repository evidence
+      description: What local evidence do you believe contradicts or satisfies the finding?
+      placeholder: Provide the smallest relevant file paths, snippets, or configuration.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+      description: What should Evagix report instead?
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Evagix version
+      description: Run `evagix --version`.
+      placeholder: "0.1.0"
+    validations:
+      required: true
