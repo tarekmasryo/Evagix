@@ -1,0 +1,935 @@
+/*
+ * Evagix documentation theme
+ * Docs-first: restrained chrome, readable type, strong navigation,
+ * and Evagix identity through the mark plus cyan/cobalt accents.
+ */
+
+:root {
+  --md-text-font: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --md-code-font: "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  --ev-bg: #ffffff;
+  --ev-surface: #f7f9fc;
+  --ev-surface-2: #f1f5f9;
+  --ev-text: #111827;
+  --ev-muted: #5b6673;
+  --ev-subtle: #697582;
+  --ev-border: #e3e8ef;
+  --ev-border-strong: #cfd8e3;
+  --ev-cyan: #087f9c;
+  --ev-blue: #1f63e9;
+  --ev-cyan-soft: rgba(8, 127, 156, 0.075);
+  --ev-blue-soft: rgba(31, 99, 233, 0.075);
+  --ev-code: #f4f7fa;
+  --ev-header: #ffffff;
+  --ev-header-text: #111827;
+  --ev-header-muted: #647180;
+  --ev-search: #f7f9fc;
+  --ev-search-border: #dce3eb;
+  --ev-search-focus: #8fcbd7;
+
+  --md-primary-fg-color: #ffffff;
+  --md-primary-fg-color--light: #ffffff;
+  --md-primary-fg-color--dark: #f7f9fc;
+  --md-accent-fg-color: #087f9c;
+  --md-default-bg-color: var(--ev-bg);
+  --md-default-fg-color: var(--ev-text);
+  --md-default-fg-color--light: var(--ev-muted);
+  --md-default-fg-color--lighter: var(--ev-subtle);
+  --md-code-bg-color: var(--ev-code);
+  --md-code-fg-color: #243140;
+}
+
+[data-md-color-scheme="slate"] {
+  --ev-bg: #090e15;
+  --ev-surface: #0d141e;
+  --ev-surface-2: #101923;
+  --ev-text: #edf3f7;
+  --ev-muted: #a7b2bd;
+  --ev-subtle: #7f8c99;
+  --ev-border: rgba(163, 186, 204, 0.12);
+  --ev-border-strong: rgba(163, 186, 204, 0.20);
+  --ev-cyan: #50ddda;
+  --ev-blue: #6f8cff;
+  --ev-cyan-soft: rgba(80, 221, 218, 0.075);
+  --ev-blue-soft: rgba(111, 140, 255, 0.085);
+  --ev-code: #08111b;
+  --ev-header: #060b12;
+  --ev-header-text: #f4f7fa;
+  --ev-header-muted: #a5b2bd;
+  --ev-search: #0a121b;
+  --ev-search-border: rgba(154, 191, 208, 0.17);
+  --ev-search-focus: rgba(80, 221, 218, 0.42);
+
+  --md-primary-fg-color: #060b12;
+  --md-primary-fg-color--light: #0a1420;
+  --md-primary-fg-color--dark: #03070c;
+  --md-accent-fg-color: #50ddda;
+  --md-default-bg-color: var(--ev-bg);
+  --md-default-fg-color: var(--ev-text);
+  --md-default-fg-color--light: var(--ev-muted);
+  --md-default-fg-color--lighter: var(--ev-subtle);
+  --md-code-bg-color: var(--ev-code);
+  --md-code-fg-color: #dbe7ef;
+}
+
+/* ---------- Global reading surface ---------- */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body,
+input {
+  font-family: var(--md-text-font);
+}
+
+code,
+kbd,
+pre {
+  font-family: var(--md-code-font);
+}
+
+.md-grid {
+  max-width: 78rem;
+}
+
+.md-main {
+  background: var(--ev-bg);
+}
+
+.md-main__inner {
+  margin-top: 1.05rem;
+}
+
+.md-content__inner {
+  max-width: 48.5rem;
+  padding-bottom: 3.2rem;
+}
+
+.md-typeset {
+  font-size: 0.89rem;
+  line-height: 1.78;
+}
+
+.md-typeset p,
+.md-typeset li {
+  color: var(--ev-muted);
+}
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3,
+.md-typeset h4 {
+  color: var(--ev-text);
+  letter-spacing: -0.024em;
+}
+
+.md-typeset h1 {
+  max-width: 25ch;
+  margin-bottom: 0.9rem;
+  font-size: clamp(1.85rem, 3vw, 2.15rem);
+  font-weight: 750;
+  line-height: 1.18;
+}
+
+.md-typeset h2 {
+  margin-top: 2.8rem;
+  margin-bottom: 0.9rem;
+  padding-top: 0.12rem;
+  font-size: 1.42rem;
+  font-weight: 735;
+}
+
+.md-typeset h3 {
+  margin-top: 1.8rem;
+  font-weight: 700;
+}
+
+.md-typeset a {
+  text-underline-offset: 0.16em;
+}
+
+.md-typeset blockquote {
+  border-left-color: var(--ev-cyan);
+  color: var(--ev-muted);
+}
+
+/* ---------- Compact adaptive header ---------- */
+
+.md-header {
+  color: var(--ev-header-text);
+  background: var(--ev-header);
+  box-shadow: 0 1px 0 var(--ev-border);
+}
+
+.md-header__inner {
+  display: flex;
+  align-items: center;
+  min-height: 3.15rem;
+  padding: 0 0.85rem;
+  gap: 0.18rem;
+}
+
+/* Stable Evagix brand: mark + real text, one link, no dynamic page-title logic. */
+.ev-header-brand {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 0.52rem;
+  min-width: 0;
+  height: 2.45rem;
+  padding: 0 0.1rem;
+  color: var(--ev-header-text);
+  text-decoration: none;
+}
+
+.ev-header-brand:hover {
+  color: var(--ev-header-text);
+}
+
+.ev-header-brand__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  flex: 0 0 1.9rem;
+}
+
+.ev-header-brand__mark img,
+.ev-header-brand__mark svg {
+  display: block;
+  width: 1.9rem;
+  height: 1.9rem;
+  object-fit: contain;
+}
+
+.ev-header-brand__name {
+  color: var(--ev-header-text);
+  font-size: 1rem;
+  font-weight: 740;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+/* This flexible spacer is the only element allowed to consume spare width. */
+.ev-header-spacer {
+  flex: 1 1 auto;
+  min-width: 0.8rem;
+}
+
+.md-header__button {
+  flex: 0 0 auto;
+  color: var(--ev-header-muted);
+}
+
+.md-header__button:hover {
+  color: var(--ev-header-text);
+}
+
+.md-header__option {
+  flex: 0 0 auto;
+  margin: 0 0.08rem;
+}
+
+.md-search {
+  flex: 0 0 16.5rem;
+  width: 16.5rem;
+  margin: 0 0.15rem;
+}
+
+.md-search__form {
+  height: 2.08rem;
+  border: 1px solid var(--ev-search-border);
+  border-radius: 0.46rem;
+  background: var(--ev-search);
+  box-shadow: none;
+  transition: border-color 0.14s ease, box-shadow 0.14s ease, background-color 0.14s ease;
+}
+
+.md-search__form:hover,
+.md-search__form:focus-within {
+  border-color: var(--ev-search-focus);
+  background: var(--ev-search);
+  box-shadow: 0 0 0 3px var(--ev-cyan-soft);
+}
+
+.md-search__input {
+  color: var(--ev-header-text);
+  font-size: 0.76rem;
+}
+
+
+.md-search__input::placeholder {
+  color: var(--ev-header-muted);
+  opacity: 1;
+}
+
+/* Keep search glyphs visible in both palettes.
+   Material's default search icon color is optimized for a colored primary header,
+   while Evagix uses a white header in light mode. */
+.md-search .md-search__icon,
+.md-search .md-search__icon svg {
+  color: var(--ev-header-muted);
+}
+
+.md-search .md-search__icon svg {
+  fill: currentColor;
+}
+
+.md-search__form:hover .md-search__icon,
+.md-search__form:focus-within .md-search__icon {
+  color: var(--ev-cyan);
+}
+
+/* Normalize the rest of the header utility icons across light/dark modes. */
+.md-header__button svg,
+.md-source__icon svg {
+  fill: currentColor;
+  color: inherit;
+}
+
+/* GitHub stays compact: icon only, no repository label or counters. */
+.md-header__source {
+  display: flex;
+  flex: 0 0 2.08rem;
+  width: 2.08rem;
+  min-width: 2.08rem;
+  margin-left: 0.05rem;
+}
+
+.md-source {
+  width: 2.08rem;
+  height: 2.08rem;
+  padding: 0;
+  border-radius: 0.42rem;
+}
+
+.md-source:hover {
+  background: var(--ev-cyan-soft);
+}
+
+.md-source__icon {
+  width: 2.08rem;
+  height: 2.08rem;
+  margin: 0;
+}
+
+.md-source__icon svg {
+  width: 1.12rem;
+  height: 1.12rem;
+}
+
+.md-source__repository,
+.md-source__facts {
+  display: none;
+}
+
+/* ---------- Primary sidebar ---------- */
+
+/* Remove the redundant project title above the desktop navigation.
+   The project identity already lives in the top header as mark + site name. */
+@media screen and (min-width: 76.25em) {
+  .md-sidebar--primary .md-nav--primary > .md-nav__title {
+    display: none;
+  }
+
+  .md-sidebar--primary .md-nav--primary {
+    padding-top: 0.2rem;
+  }
+}
+
+@media screen and (min-width: 76.25em) {
+  .md-sidebar--primary {
+    border-right: 1px solid var(--ev-border);
+  }
+}
+
+.md-sidebar--primary .md-sidebar__scrollwrap,
+.md-sidebar--secondary .md-sidebar__scrollwrap {
+  scrollbar-width: thin;
+}
+
+.md-nav__title {
+  color: var(--ev-text);
+  font-weight: 720;
+}
+
+.md-nav__link {
+  position: relative;
+  border-radius: 0.34rem;
+  color: var(--ev-muted);
+  line-height: 1.42;
+  transition: color 0.14s ease, background-color 0.14s ease;
+}
+
+.md-nav__link:hover {
+  color: var(--ev-text);
+  background: var(--ev-cyan-soft);
+}
+
+.md-nav__link--active {
+  color: var(--ev-cyan) !important;
+  font-weight: 700;
+  background: var(--ev-cyan-soft);
+}
+
+.md-nav__link--active::before {
+  content: "";
+  position: absolute;
+  left: -0.48rem;
+  top: 0.32rem;
+  bottom: 0.32rem;
+  width: 2px;
+  border-radius: 99px;
+  background: var(--ev-cyan);
+}
+
+.md-nav__item--section > .md-nav__link {
+  margin-top: 0.84rem;
+  color: var(--ev-subtle);
+  font-size: 0.68rem;
+  font-weight: 740;
+  letter-spacing: 0.035em;
+  text-transform: none;
+}
+
+.md-nav__item--section > .md-nav__link:hover {
+  color: var(--ev-subtle);
+  background: transparent;
+}
+
+/* ---------- On this page ---------- */
+
+.md-sidebar--secondary .md-nav__title {
+  color: var(--ev-text);
+  font-size: 0.74rem;
+  font-weight: 750;
+}
+
+.md-sidebar--secondary .md-nav__link {
+  font-size: 0.71rem;
+  line-height: 1.45;
+}
+
+.md-sidebar--secondary .md-nav__link--active {
+  background: transparent;
+}
+
+/* ---------- Native documentation components ---------- */
+
+.md-typeset pre > code {
+  border: 1px solid var(--ev-border);
+  border-radius: 0.48rem;
+}
+
+.md-typeset code {
+  border-radius: 0.26rem;
+}
+
+.md-typeset table:not([class]) {
+  border: 1px solid var(--ev-border);
+  border-radius: 0.44rem;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.md-typeset table:not([class]) th {
+  background: var(--ev-surface);
+  color: var(--ev-text);
+  font-weight: 690;
+}
+
+.md-typeset table:not([class]) td {
+  border-top-color: var(--ev-border);
+}
+
+.md-typeset .admonition,
+.md-typeset details {
+  border-color: var(--ev-border);
+  box-shadow: none;
+}
+
+.md-typeset .admonition-title,
+.md-typeset summary {
+  font-weight: 690;
+}
+
+/* ---------- Home: branded overview, still documentation ---------- */
+
+.md-typeset .evagix-home-brand {
+  position: relative;
+  width: min(100%, 29rem);
+  margin: 0.45rem auto 0.65rem;
+}
+
+.md-typeset .evagix-home-brand__image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.md-typeset .evagix-home-brand__image--dark {
+  display: none;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .evagix-home-brand__image--light {
+  display: none;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .evagix-home-brand__image--dark {
+  display: block;
+}
+
+.md-typeset .evagix-home-tagline {
+  margin: 0 auto 2rem;
+  color: var(--ev-muted);
+  font-size: 0.95rem;
+  font-weight: 620;
+  text-align: center;
+}
+
+.md-typeset .evagix-home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.15rem 0 1.75rem;
+}
+
+.md-typeset .evagix-doc-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.28rem;
+  padding: 0.45rem 0.78rem;
+  border: 1px solid var(--ev-border-strong);
+  border-radius: 0.42rem;
+  background: var(--ev-bg);
+  color: var(--ev-text);
+  font-size: 0.75rem;
+  font-weight: 680;
+  text-decoration: none;
+  transition: border-color 0.14s ease, background-color 0.14s ease, color 0.14s ease;
+}
+
+.md-typeset .evagix-doc-button:hover {
+  border-color: var(--ev-cyan);
+  background: var(--ev-cyan-soft);
+}
+
+.md-typeset .evagix-doc-button--primary {
+  border-color: transparent;
+  background: var(--ev-blue);
+  color: #ffffff;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .evagix-doc-button--primary {
+  background: var(--ev-cyan);
+  color: #061018;
+}
+
+.md-typeset .evagix-doc-button--quiet {
+  border-color: transparent;
+  background: transparent;
+  color: var(--ev-cyan);
+}
+
+.md-typeset .evagix-evidence-example {
+  display: grid;
+  grid-template-columns:
+    minmax(7rem, 0.85fr)
+    1.8rem
+    minmax(11rem, 1.2fr)
+    1.8rem
+    minmax(15rem, 1.65fr);
+  grid-template-areas:
+    "claim-label . evidence-label . finding-label"
+    "claim-value arrow-one evidence-value arrow-two finding-value";
+  column-gap: 0.9rem;
+  row-gap: 0.55rem;
+  align-items: start;
+  margin: 1.1rem 0 1.35rem;
+  padding: 1.05rem 1.15rem 1.15rem;
+  border: 1px solid var(--ev-border);
+  border-left: 3px solid var(--ev-cyan);
+  border-radius: 0.46rem;
+  background: var(--ev-surface);
+}
+
+.md-typeset .evagix-evidence-label {
+  margin: 0;
+  color: var(--ev-subtle);
+  font-size: 0.61rem;
+  font-weight: 770;
+  line-height: 1.3;
+  letter-spacing: 0.055em;
+}
+
+.md-typeset .evagix-evidence-label--claim {
+  grid-area: claim-label;
+}
+
+.md-typeset .evagix-evidence-label--evidence {
+  grid-area: evidence-label;
+}
+
+.md-typeset .evagix-evidence-label--finding {
+  grid-area: finding-label;
+}
+
+.md-typeset .evagix-evidence-value {
+  min-width: 0;
+  align-self: start;
+  color: var(--ev-text);
+  line-height: 1.45;
+}
+
+.md-typeset .evagix-evidence-value--claim {
+  grid-area: claim-value;
+}
+
+.md-typeset .evagix-evidence-value--evidence {
+  grid-area: evidence-value;
+}
+
+.md-typeset .evagix-evidence-value--finding {
+  grid-area: finding-value;
+}
+
+.md-typeset .evagix-evidence-value code,
+.md-typeset .evagix-evidence-value strong {
+  color: var(--ev-text);
+  font-size: 0.72rem;
+}
+
+.md-typeset .evagix-evidence-arrow {
+  position: relative;
+  width: 1.7rem;
+  height: 0.9rem;
+  margin-top: 0.18rem;
+  color: var(--ev-cyan);
+  align-self: start;
+  justify-self: center;
+}
+
+.md-typeset .evagix-evidence-arrow--one {
+  grid-area: arrow-one;
+}
+
+.md-typeset .evagix-evidence-arrow--two {
+  grid-area: arrow-two;
+}
+
+.md-typeset .evagix-evidence-arrow::before {
+  content: "";
+  position: absolute;
+  left: 0.05rem;
+  right: 0.16rem;
+  top: 50%;
+  height: 1.5px;
+  transform: translateY(-50%);
+  border-radius: 99px;
+  background: currentColor;
+  opacity: 0.9;
+}
+
+.md-typeset .evagix-evidence-arrow::after {
+  content: "";
+  position: absolute;
+  right: 0.07rem;
+  top: 50%;
+  width: 0.38rem;
+  height: 0.38rem;
+  transform: translateY(-50%) rotate(45deg);
+  border-top: 1.5px solid currentColor;
+  border-right: 1.5px solid currentColor;
+}
+
+
+@media screen and (min-width: 701px) and (max-width: 980px) {
+  .md-typeset .evagix-evidence-example {
+    grid-template-columns:
+      minmax(6rem, 0.8fr)
+      1.45rem
+      minmax(9rem, 1.15fr)
+      1.45rem
+      minmax(12rem, 1.5fr);
+    column-gap: 0.65rem;
+    padding-left: 0.9rem;
+    padding-right: 0.9rem;
+  }
+
+  .md-typeset .evagix-evidence-value code,
+  .md-typeset .evagix-evidence-value strong {
+    font-size: 0.69rem;
+  }
+}
+
+/* ---------- Footer ---------- */
+
+.md-footer {
+  border-top: 1px solid var(--ev-border);
+}
+
+/* ---------- Responsive ---------- */
+
+@media screen and (max-width: 76.1875em) {
+  .md-content__inner {
+    max-width: none;
+  }
+
+  .md-search {
+    flex-basis: 14rem;
+    width: 14rem;
+  }
+}
+
+@media screen and (max-width: 59.984375em) {
+  .md-header__inner {
+    padding-left: 0.65rem;
+    padding-right: 0.65rem;
+  }
+
+  .md-search {
+    flex: 0 0 auto;
+    width: auto;
+    margin: 0;
+  }
+
+  .md-header__source {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 700px) {
+  .md-typeset {
+    font-size: 0.86rem;
+  }
+
+  .md-typeset .evagix-home-brand {
+    width: min(100%, 23rem);
+  }
+
+  .md-typeset .evagix-evidence-example {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "claim-label"
+      "claim-value"
+      "arrow-one"
+      "evidence-label"
+      "evidence-value"
+      "arrow-two"
+      "finding-label"
+      "finding-value";
+    row-gap: 0.42rem;
+  }
+
+  .md-typeset .evagix-evidence-arrow {
+    transform: rotate(90deg);
+    transform-origin: center;
+    justify-self: start;
+    margin: 0.18rem 0 0.28rem 0.22rem;
+  }
+}
+
+@media screen and (max-width: 430px) {
+  .ev-header-brand {
+    gap: 0.4rem;
+  }
+
+  .ev-header-brand__name {
+    font-size: 0.92rem;
+  }
+
+  .ev-header-brand__mark,
+  .ev-header-brand__mark img,
+  .ev-header-brand__mark svg {
+    width: 1.68rem;
+    height: 1.68rem;
+    flex-basis: 1.68rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
+
+
+/* Keyboard focus remains visible without adding permanent visual noise. */
+.ev-header-brand:focus-visible,
+.md-header__button:focus-visible,
+.md-source:focus-visible,
+.md-search__input:focus-visible {
+  outline: 2px solid var(--ev-cyan);
+  outline-offset: 2px;
+}
+
+/* Search text must remain readable on the light header even when the input is autofilled/focused. */
+.md-search__input,
+.md-search__input:focus {
+  color: var(--ev-header-text);
+  caret-color: var(--ev-cyan);
+}
+
+/* Rule Reference is intentionally search-first. Hide the giant secondary TOC
+   from the presentation layer without modifying the authoritative source page. */
+body:has(.md-content h1#evagix-rule-reference) .md-sidebar--secondary,
+body:has(.md-content h1#evagix-rule-reference) label[for="__toc"] {
+  display: none;
+}
+
+/* ---------- Documentation readability polish ---------- */
+
+/* Keep the authoritative Configuration reference untouched while presenting
+   its longest README markers as a small, scannable reference panel. */
+.md-typeset h3#readme-exclusions-and-waivers + p + ul {
+  margin: 1rem 0 1.25rem;
+  padding: 0.9rem 1rem 0.9rem 2rem;
+  border: 1px solid var(--ev-border);
+  border-radius: 0.58rem;
+  background: var(--ev-surface);
+}
+
+.md-typeset h3#readme-exclusions-and-waivers + p + ul > li {
+  margin: 0.55rem 0;
+}
+
+/* The first source bullet contains two long HTML-comment markers separated by
+   a slash. Visually stack the markers and move the explanation underneath,
+   without changing docs/configuration.md or the text available to assistive
+   technology. The original direct text nodes are collapsed by font-size: 0;
+   code nodes and the explanatory pseudo-element restore readable sizing. */
+.md-typeset h3#readme-exclusions-and-waivers + p + ul > li:first-child {
+  font-size: 0;
+  line-height: 1.5;
+}
+
+.md-typeset h3#readme-exclusions-and-waivers + p + ul > li:first-child::marker {
+  font-size: 0.82rem;
+}
+
+.md-typeset h3#readme-exclusions-and-waivers + p + ul > li:first-child code {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 0 0.38rem;
+  padding: 0.22rem 0.45rem;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.md-typeset h3#readme-exclusions-and-waivers + p + ul > li:first-child::after {
+  content: "Excludes documentation examples and quoted material from claim extraction.";
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  line-height: 1.7;
+  color: var(--ev-subtle);
+}
+
+/* Other inline identifiers in the panel may still be long on narrow screens. */
+.md-typeset h3#readme-exclusions-and-waivers + p + ul > li:not(:first-child) code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* Material for MkDocs renders Mermaid natively. Keep diagrams visually part of
+   the documentation surface and readable in both color schemes. */
+.md-typeset .mermaid {
+  margin: 1.45rem 0 1.7rem;
+  padding: 1rem;
+  overflow-x: auto;
+  border: 1px solid var(--ev-border);
+  border-radius: 0.65rem;
+  background: var(--ev-surface);
+  text-align: center;
+}
+
+.md-typeset .mermaid svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+/* Rule tables contain long stable IDs. Preserve the identifier while letting
+   narrow viewports wrap safely instead of forcing the page wider than the UI. */
+.md-typeset table code {
+  overflow-wrap: anywhere;
+}
+
+@media screen and (max-width: 700px) {
+  .md-typeset h3#readme-exclusions-and-waivers + p + ul {
+    padding: 0.75rem 0.75rem 0.75rem 1.7rem;
+  }
+
+  .md-typeset h3#readme-exclusions-and-waivers + p + ul > li:first-child code {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+
+/* ---------- Evidence-flow mental model ---------- */
+
+/* Keep the Mermaid source maintainable while giving the rendered diagram a
+   compact documentation-first presentation. The diagram itself owns no fixed
+   palette, so Material can adapt it cleanly between light and dark schemes. */
+.md-typeset .mermaid {
+  scrollbar-width: thin;
+}
+
+.md-typeset .mermaid svg {
+  min-width: 46rem;
+}
+
+/* The flow stays readable on desktop without forcing tiny labels. Narrow
+   viewports can pan the diagram horizontally inside its own surface. */
+@media screen and (min-width: 820px) {
+  .md-typeset .mermaid svg {
+    min-width: 0;
+  }
+}
+
+.md-typeset .evagix-flow-traits {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem 1rem;
+  margin: -0.6rem 0 1.45rem;
+  color: var(--ev-subtle);
+  font-size: 0.67rem;
+  font-weight: 720;
+  letter-spacing: 0.025em;
+}
+
+.md-typeset .evagix-flow-traits span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.md-typeset .evagix-flow-traits span:not(:last-child)::after {
+  content: "·";
+  color: var(--ev-cyan);
+  font-weight: 800;
+}
+
+@media screen and (max-width: 520px) {
+  .md-typeset .evagix-flow-traits {
+    justify-content: flex-start;
+    gap: 0.35rem 0.8rem;
+  }
+}

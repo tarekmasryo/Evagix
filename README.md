@@ -191,25 +191,23 @@ See the complete [rule reference](https://github.com/tarekmasryo/Evagix/blob/mai
 
 ```mermaid
 flowchart LR
-    A[Repository] --> B[Evidence collection]
-    B --> C[Rules + policy]
-    C --> D[Findings + scoring]
-    D --> E[Reports]
-    D --> F[Generated context]
+    A["Claims & guidance<br/>README · docs · agent context"]
+    B["Repository signals<br/>manifests · config · workflows · structure"]
+    C["Evidence collection<br/>repository-local"]
+    D["CLAIMS ↔ EVIDENCE<br/>VALIDATION"]
+    E["Rule evaluation"]
+    F["Findings"]
+    G["CLI · JSON · SARIF · CI"]
+
+    A --> C
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
 ```
 
-Evagix inspects repository-local evidence such as:
-
-* documentation;
-* configuration;
-* package and project metadata;
-* documented commands;
-* tests and tooling;
-* CI workflows;
-* infrastructure markers;
-* agent-facing context.
-
-It then evaluates that evidence using deterministic rules and repository policy.
+Evagix collects repository-local signals from documentation, configuration, manifests, workflows, command definitions, and agent-facing context. It validates documented claims and guidance against the available evidence, then applies deterministic rules and repository policy to produce findings for local review, CI, and automation.
 
 Evagix performs **static repository inspection**.
 

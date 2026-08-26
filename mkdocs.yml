@@ -1,0 +1,93 @@
+site_name: Evagix
+site_description: Local-first evidence validation for AI-assisted repositories.
+site_author: Tarek Masryo
+site_url: !ENV [READTHEDOCS_CANONICAL_URL, "https://evagix.readthedocs.io/"]
+site_dir: build/docs-site
+
+repo_name: Evagix
+repo_url: https://github.com/tarekmasryo/Evagix
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  custom_dir: overrides
+  language: en
+  logo: assets/evagix-mark.png
+  favicon: assets/evagix-mark.png
+  font: false
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.tracking
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search:
+      separator: '[\\s\\-\\.]+'
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      title: On this page
+      toc_depth: "2-3"
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - Getting Started:
+      - Overview: index.md
+      - Quick Start: getting-started/index.md
+  - Guides:
+      - Configuration: configuration.md
+      - CI Integration: guides/ci.md
+  - Reference:
+      - CLI Reference: commands.md
+      - Rules: rules.md
+      - Rule Reference:
+          - Browse Rules: rule-index.md
+          - Complete Registry: rules-reference.md
+      - Schemas: schemas.md
+  - Concepts:
+      - How Evagix Works: concepts.md
+  - Internals:
+      - Architecture: architecture.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/tarekmasryo/Evagix
+      name: Evagix on GitHub
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/evagix/
+      name: Evagix on PyPI
+
+extra_css:
+  - assets/stylesheets/extra.css
