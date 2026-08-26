@@ -52,7 +52,7 @@
   ·
   <a href="#commands">Commands</a>
   ·
-  <a href="https://github.com/tarekmasryo/Evagix/tree/main/docs">Docs</a>
+  <a href="https://evagix.readthedocs.io/">Docs</a>
   ·
   <a href="https://github.com/tarekmasryo/Evagix/blob/main/SECURITY.md">Security</a>
 </p>
