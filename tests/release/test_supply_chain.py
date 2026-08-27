@@ -65,11 +65,9 @@ def test_publish_workflow_requires_full_quality_security_and_platform_gates() ->
     assert "id-token: write" not in production_verify
     assert "needs: build" in testpypi
     assert "needs: [publish-testpypi, verify]" in testpypi
-    assert testpypi.count("if: ${{ inputs.rehearse_testpypi }}") == 2
+    assert "inputs.rehearse_testpypi" not in workflow
     assert "needs: [build, verify-testpypi]" in publish
-    assert "needs.build.result == 'success'" in publish
-    assert "inputs.rehearse_testpypi == false" in publish
-    assert "needs.verify-testpypi.result == 'success'" in publish
+    assert "if:" not in publish
     assert "needs: [publish, verify]" in production_verify
     assert "needs: [verify, platform-test]" in workflow
     assert "python -m ruff check ." in workflow
@@ -81,18 +79,22 @@ def test_publish_workflow_requires_full_quality_security_and_platform_gates() ->
     assert "python -m evagix sync . --plan" in workflow
     assert "os: [ubuntu-latest, windows-latest, macos-latest]" in workflow
     assert 'python-version: ["3.11", "3.12", "3.13", "3.14"]' in workflow
-    assert "workflow_dispatch:" in workflow
-    assert workflow.count("ref: refs/tags/${{ inputs.tag }}") == 1
-    assert workflow.count("ref: ${{ needs.verify.outputs.release_commit }}") == 4
+    assert "release:\n    types: [published]" in workflow
+    assert "workflow_dispatch:" not in workflow
+    assert "inputs.tag" not in workflow
+    assert "needs.verify.outputs.release_commit" not in workflow
+    assert "release_commit:" not in workflow
+    assert workflow.count("ref: ${{ github.sha }}") == 5
     assert "fetch-depth: 0" in workflow
-    assert "release_commit: ${{ steps.release_ref.outputs.commit }}" in workflow
-    assert 'echo "commit=$head_commit" >> "$GITHUB_OUTPUT"' in workflow
+    assert "RELEASE_TAG: ${{ github.event.release.tag_name }}" in workflow
+    assert "EVENT_SHA: ${{ github.sha }}" in workflow
     assert 'git show-ref --verify --quiet "refs/tags/$RELEASE_TAG"' in workflow
     assert 'git rev-parse "refs/tags/$RELEASE_TAG^{commit}"' in workflow
     assert "git rev-parse HEAD" in workflow
+    assert 'test "$head_commit" = "$EVENT_SHA"' in workflow
+    assert 'echo "commit=$head_commit" >> "$GITHUB_OUTPUT"' not in workflow
     assert "repository-url: https://test.pypi.org/legacy/" in testpypi
     assert "skip-existing: true" in testpypi
-    assert "release:" not in workflow
     assert "scripts/verify_testpypi.py" in testpypi
     assert "Downloaded TestPyPI artifact differs" not in workflow
     assert "testpypi-dist/*.whl" in testpypi
