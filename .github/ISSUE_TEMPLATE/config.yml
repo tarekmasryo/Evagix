@@ -1,10 +1,14 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
 
 contact_links:
+  - name: Discussions
+    url: https://github.com/tarekmasryo/Evagix/discussions
+    about: Ask questions, share ideas, and discuss Evagix with the community.
+
+  - name: Documentation
+    url: https://evagix.readthedocs.io/
+    about: Check the documentation before opening an issue.
+
   - name: Security vulnerability
     url: https://github.com/tarekmasryo/Evagix/security/advisories/new
     about: Report security vulnerabilities privately.
-
-  - name: Documentation
-    url: https://github.com/tarekmasryo/Evagix/tree/main/docs
-    about: Check the documentation before opening an issue.
