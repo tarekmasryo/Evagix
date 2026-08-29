@@ -57,6 +57,12 @@
   <a href="https://github.com/tarekmasryo/Evagix/blob/main/SECURITY.md">Security</a>
 </p>
 
+<p align="center">
+  <img src="docs/assets/evagix-demo.gif"
+       alt="Evagix validating repository claims against local evidence"
+       width="100%">
+</p>
+
 ---
 
 ## Quick start
