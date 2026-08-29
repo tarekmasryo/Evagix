@@ -58,7 +58,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/evagix-demo.gif"
+  <img src="https://raw.githubusercontent.com/tarekmasryo/Evagix/main/docs/assets/evagix-demo.gif"
        alt="Evagix validating repository claims against local evidence"
        width="100%">
 </p>
