@@ -20,6 +20,12 @@ Evagix checks documented capabilities, commands, agent-facing instructions, and 
   <a class="evagix-doc-button evagix-doc-button--quiet" href="https://github.com/tarekmasryo/Evagix">GitHub ↗</a>
 </div>
 
+<p align="center">
+  <img src="assets/evagix-demo.gif"
+       alt="Evagix validating repository claims against local evidence"
+       width="100%">
+</p>
+
 ## Start here
 
 ```bash
