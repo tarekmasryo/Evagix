@@ -28,9 +28,20 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
 
 def dispatch(args: Any) -> int | None:
     if args.command == "changed":
-        return _cmd_changed(Path(args.path), base=args.base, head=args.head, output_format=args.format)
+        return _cmd_changed(
+            Path(args.path),
+            base=args.base,
+            head=args.head,
+            output_format=args.format,
+            style=args.terminal_style,
+        )
     if args.command == "pr-risk":
         return _cmd_pr_risk(
-            Path(args.path), base=args.base, head=args.head, output_format=args.format, profiles=args.profile
+            Path(args.path),
+            base=args.base,
+            head=args.head,
+            output_format=args.format,
+            profiles=args.profile,
+            style=args.terminal_style,
         )
     return None

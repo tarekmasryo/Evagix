@@ -131,6 +131,6 @@ def test_init_ci_writes_workflow(tmp_path: Path) -> None:
     assert workflow.exists()
     content = workflow.read_text(encoding="utf-8")
     assert "evagix check ." in content
-    assert "git+https://github.com/tarekmasryo/Evagix.git@v0.1.0" in content
+    assert "git+https://github.com/tarekmasryo/Evagix.git@v0.1.1" in content
     assert "AGENTS.md" in content
     assert "CODEX.md" not in content

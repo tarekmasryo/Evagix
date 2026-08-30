@@ -21,6 +21,12 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
     scan_parser.add_argument("--json", action="store_true", help="Compatibility alias for --format json.")
     scan_parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format.")
     scan_parser.add_argument(
+        "--no-color",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="Disable ANSI styling for human-readable output.",
+    )
+    scan_parser.add_argument(
         "--verbose", action="store_true", help="Print all detected subprojects, commands, and warnings."
     )
     scan_parser.add_argument("--profile", action="append", help="Override/add policy profile for the scan output.")
@@ -54,18 +60,27 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
 def dispatch(args: Any) -> int | None:
     if args.command == "scan":
         return _cmd_scan(
-            Path(args.path), as_json=args.json or args.format == "json", verbose=args.verbose, profiles=args.profile
+            Path(args.path),
+            as_json=args.json or args.format == "json",
+            verbose=args.verbose,
+            profiles=args.profile,
+            style=args.terminal_style,
         )
     if args.command == "suggest":
-        return _cmd_suggest(Path(args.path), profiles=args.profile)
+        return _cmd_suggest(Path(args.path), profiles=args.profile, style=args.terminal_style)
     if args.command == "profiles":
-        return _cmd_profiles(args.name)
+        return _cmd_profiles(args.name, style=args.terminal_style)
     if args.command == "targets":
-        return _cmd_targets(args.action, args.name)
+        return _cmd_targets(args.action, args.name, style=args.terminal_style)
     if args.command == "policy":
-        return _cmd_policy(Path(args.path), as_json=args.json)
+        return _cmd_policy(Path(args.path), as_json=args.json, style=args.terminal_style)
     if args.command == "classify":
-        return _cmd_classify(Path(args.path), as_json=args.json, profiles=args.profile)
+        return _cmd_classify(
+            Path(args.path),
+            as_json=args.json,
+            profiles=args.profile,
+            style=args.terminal_style,
+        )
     if args.command == "explain":
-        return _cmd_explain(args.code)
+        return _cmd_explain(args.code, style=args.terminal_style)
     return None

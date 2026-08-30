@@ -8,11 +8,19 @@ from evagix import __version__
 from evagix.commands.common import _facts, _normalize_root, _resolve_cli_output_path, _targets
 from evagix.model import RepoFacts
 from evagix.security.output import redacted_text_output
+from evagix.terminal import PLAIN_STYLE, TerminalStyle
 from evagix.utils import stable_json, write_text
 from evagix.validators import DoctorReport, apply_config_policy, audit_repo, doctor_repo
 
 
-def _cmd_audit(root: Path, as_json: bool, output: str | None, force: bool, profiles: list[str] | None = None) -> int:
+def _cmd_audit(
+    root: Path,
+    as_json: bool,
+    output: str | None,
+    force: bool,
+    profiles: list[str] | None = None,
+    style: TerminalStyle = PLAIN_STYLE,
+) -> int:
     root = _normalize_root(root)
     facts, config = _facts(root, profiles)
     report = apply_config_policy(
@@ -32,7 +40,7 @@ def _cmd_audit(root: Path, as_json: bool, output: str | None, force: bool, profi
     if as_json:
         print(stable_json(payload))
     else:
-        _print_audit_text(report, findings)
+        _print_audit_text(report, findings, overall_ok=bool(payload["overall_ok"]), style=style)
     if output:
         output_path = _resolve_cli_output_path(root, output)
         if output_path.exists() and not force:
@@ -43,18 +51,32 @@ def _cmd_audit(root: Path, as_json: bool, output: str | None, force: bool, profi
     return 0 if bool(payload["overall_ok"]) else 1
 
 
-def _print_audit_text(report: DoctorReport, findings: Sequence[object]) -> None:
-    print("Evagix Audit")
+def _print_audit_text(
+    report: DoctorReport,
+    findings: Sequence[object],
+    *,
+    overall_ok: bool,
+    style: TerminalStyle = PLAIN_STYLE,
+) -> None:
+    print(style.heading("Evagix Audit"))
     print(
-        "Scope: governance summary plus lightweight profile hints; use doctor/readme-audit/eval-context for full detail."
-    )
-    print(f"Static evidence: {report.score}/100 ({'pass' if report.ok else 'needs attention'})")
-    if not findings:
-        print("No audit findings.")
-    for item in findings:
-        print(
-            f"  - [{getattr(item, 'severity', 'info')}] {getattr(item, 'code', 'finding')}: {getattr(item, 'message', str(item))}"
+        style.muted(
+            "Scope: governance summary plus lightweight profile hints; use doctor/readme-audit/eval-context for full detail."
         )
+    )
+    print("")
+    print(f"Status: {style.status('PASS' if overall_ok else 'FAIL')}")
+    print(f"Static evidence: {report.score}/100 ({'pass' if report.ok else 'needs attention'})")
+    print("")
+    print(style.heading("Findings:"))
+    if not findings:
+        print(f"  [{style.status('PASS', width=5)}] No audit findings.")
+    for item in findings:
+        severity = str(getattr(item, "severity", "info"))
+        code = getattr(item, "code", "finding")
+        message = getattr(item, "message", str(item))
+        print(f"  [{style.severity(severity, width=5)}] {code}")
+        print(f"          {message}")
 
 
 def audit_payload(

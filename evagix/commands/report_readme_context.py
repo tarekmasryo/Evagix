@@ -12,6 +12,7 @@ from evagix.readme_audit import (
     render_readme_audit_json,
     render_readme_audit_markdown,
 )
+from evagix.terminal import PLAIN_STYLE, TerminalStyle, style_human_text
 from evagix.utils import write_text
 
 
@@ -23,6 +24,7 @@ def _cmd_readme_audit(
     profiles: list[str] | None = None,
     strict: bool = False,
     fail_on: str | None = None,
+    style: TerminalStyle = PLAIN_STYLE,
 ) -> int:
     root = _normalize_root(root)
     facts, _ = _facts(root, profiles)
@@ -36,7 +38,7 @@ def _cmd_readme_audit(
         write_text(output_path, content)
         print(f"Created {output}")
         return exit_code
-    print(content, end="")
+    print(style_human_text(content, style) if output_format == "text" else content, end="")
     return exit_code
 
 
@@ -83,6 +85,7 @@ def _cmd_eval_context(
     strict: bool = False,
     fail_on: str | None = None,
     fail_under: int | None = None,
+    style: TerminalStyle = PLAIN_STYLE,
 ) -> int:
     root = _normalize_root(root)
     facts, config = _facts(root, profiles)
@@ -113,7 +116,7 @@ def _cmd_eval_context(
         write_text(output_path, content)
         print(f"Created {output}")
         return exit_code
-    print(content, end="")
+    print(style_human_text(content, style) if output_format == "text" else content, end="")
     return exit_code
 
 

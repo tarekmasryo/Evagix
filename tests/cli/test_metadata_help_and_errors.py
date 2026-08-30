@@ -33,7 +33,7 @@ def test_cli_version_flag(capsys: pytest.CaptureFixture[str]) -> None:
     with pytest.raises(SystemExit) as exc:
         main(["--version"])
     assert exc.value.code == 0
-    assert "evagix 0.1.0" in capsys.readouterr().out
+    assert "evagix 0.1.1" in capsys.readouterr().out
 
 
 def test_short_cli_alias_is_registered() -> None:

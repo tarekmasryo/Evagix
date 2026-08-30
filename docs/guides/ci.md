@@ -29,13 +29,13 @@ The command writes `.github/workflows/evagix.yml` and refuses to overwrite an ex
 For a released PyPI package, use the generated PyPI mode or select it explicitly:
 
 ```bash
-evagix init-ci . --install-mode pypi --package-version 0.1.0 --fail-under 85
+evagix init-ci . --install-mode pypi --package-version 0.1.1 --fail-under 85
 ```
 
 To pin a specific GitHub repository and ref:
 
 ```bash
-evagix init-ci . --install-mode github --repo tarekmasryo/Evagix --ref v0.1.0 --fail-under 85
+evagix init-ci . --install-mode github --repo tarekmasryo/Evagix --ref v0.1.1 --fail-under 85
 ```
 
 Editable installation is intended for local Evagix development rather than downstream repositories:
@@ -51,7 +51,7 @@ Evagix exposes downstream pre-commit hooks:
 ```yaml
 repos:
   - repo: https://github.com/tarekmasryo/Evagix
-    rev: v0.1.0
+    rev: v0.1.1
     hooks:
       - id: evagix-check
       - id: evagix-doctor

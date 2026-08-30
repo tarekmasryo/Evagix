@@ -8,6 +8,7 @@ from evagix.decide import render_decision_json, render_decision_markdown
 from evagix.drift import build_drift_report, render_drift_json, render_drift_markdown
 from evagix.evidence import render_evidence_payload
 from evagix.strict_scoring import build_evidence_ledger
+from evagix.terminal import PLAIN_STYLE, TerminalStyle, style_human_text
 from evagix.utils import write_text
 
 
@@ -17,6 +18,7 @@ def _cmd_decide(
     output: str | None,
     force: bool,
     profiles: list[str] | None = None,
+    style: TerminalStyle = PLAIN_STYLE,
 ) -> int:
     root = _normalize_root(root)
     facts, _ = _facts(root, profiles)
@@ -29,7 +31,7 @@ def _cmd_decide(
         write_text(output_path, content)
         print(f"Created {output}")
         return 0
-    print(content, end="")
+    print(style_human_text(content, style) if output_format == "text" else content, end="")
     return 0
 
 
@@ -39,6 +41,7 @@ def _cmd_drift(
     output: str | None,
     force: bool,
     profiles: list[str] | None = None,
+    style: TerminalStyle = PLAIN_STYLE,
 ) -> int:
     root = _normalize_root(root)
     facts, config = _facts(root, profiles)
@@ -52,7 +55,7 @@ def _cmd_drift(
         write_text(output_path, content)
         print(f"Created {output}")
         return 0
-    print(content, end="")
+    print(style_human_text(content, style) if output_format == "text" else content, end="")
     return 0 if report.ok else 1
 
 

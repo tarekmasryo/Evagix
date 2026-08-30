@@ -16,12 +16,19 @@ from evagix.pr_risk import (
     render_pr_risk_json,
     render_pr_risk_text,
 )
+from evagix.terminal import PLAIN_STYLE, TerminalStyle, style_human_text
 from evagix.validators import (
     check_repo,
 )
 
 
-def _cmd_changed(root: Path, base: str, head: str, output_format: str) -> int:
+def _cmd_changed(
+    root: Path,
+    base: str,
+    head: str,
+    output_format: str,
+    style: TerminalStyle = PLAIN_STYLE,
+) -> int:
     root = _normalize_root(root)
     try:
         facts, _config = _facts(root)
@@ -34,11 +41,18 @@ def _cmd_changed(root: Path, base: str, head: str, output_format: str) -> int:
     elif output_format == "github-annotations":
         print(render_changed_github_annotations(report), end="")
     else:
-        print(render_changed_text(report), end="")
+        print(style_human_text(render_changed_text(report), style), end="")
     return 1 if report.has_high_risk else 0
 
 
-def _cmd_pr_risk(root: Path, base: str, head: str, output_format: str, profiles: list[str] | None = None) -> int:
+def _cmd_pr_risk(
+    root: Path,
+    base: str,
+    head: str,
+    output_format: str,
+    profiles: list[str] | None = None,
+    style: TerminalStyle = PLAIN_STYLE,
+) -> int:
     root = _normalize_root(root)
     facts, config, doctor = _doctor(root, profiles)
     check = check_repo(
@@ -58,5 +72,5 @@ def _cmd_pr_risk(root: Path, base: str, head: str, output_format: str, profiles:
     elif output_format == "github-annotations":
         print(render_pr_risk_github_annotations(report), end="")
     else:
-        print(render_pr_risk_text(report), end="")
+        print(style_human_text(render_pr_risk_text(report), style), end="")
     return 1 if report.should_block else 0

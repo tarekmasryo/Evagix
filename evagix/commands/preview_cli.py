@@ -34,11 +34,11 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
 
 def dispatch(args: Any) -> int | None:
     if args.command == "agents":
-        return _cmd_agents(Path(args.path), output_format=args.format)
+        return _cmd_agents(Path(args.path), output_format=args.format, style=args.terminal_style)
     if args.command == "prepare":
-        return _cmd_prepare(Path(args.path), plan=args.plan)
+        return _cmd_prepare(Path(args.path), plan=args.plan, style=args.terminal_style)
     if args.command == "context-pack":
         return _cmd_context_pack(Path(args.path))
     if args.command == "mcp":
-        return _cmd_mcp(Path(args.path), output_format=args.format)
+        return _cmd_mcp(Path(args.path), output_format=args.format, style=args.terminal_style)
     return None

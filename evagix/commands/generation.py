@@ -29,6 +29,7 @@ from evagix.safety import WORKFLOW_INPUT_POLICY, EvagixSafetyError
 from evagix.scanner import scan_repo
 from evagix.scoped import scoped_outputs
 from evagix.templates import BASELINE_CONFIG_TEMPLATE, EVAGIX_CONFIG_TEMPLATE, evagix_ci_workflow
+from evagix.terminal import PLAIN_STYLE, TerminalStyle
 from evagix.utils import facts_fingerprint, is_generated, normalize_generated_content
 from evagix.validators import check_repo
 
@@ -39,6 +40,7 @@ def _cmd_compile(
     dry_run: bool,
     force: bool,
     profiles: list[str] | None = None,
+    style: TerminalStyle = PLAIN_STYLE,
 ) -> int:
     root = _normalize_root(root)
     facts, config = _facts(root, profiles)
@@ -82,7 +84,7 @@ def _cmd_compile(
         planned.append((relative_path, content))
 
     if skipped:
-        print("Planned writes:")
+        print(style.heading("Planned writes:"))
         for relative_path, _ in planned:
             print(f"  - {relative_path}")
         print("Skipped existing non-evagix files. Re-run with --force to overwrite:", file=sys.stderr)
@@ -97,28 +99,37 @@ def _cmd_compile(
             print(f"ERROR: {exc}", file=sys.stderr)
             return 1
 
-    print("Planned writes:" if dry_run else "Written:")
+    print(style.heading("Planned writes:" if dry_run else "Written:"))
     for relative_path, _ in planned:
         print(f"  - {relative_path}")
 
     if facts.warnings:
-        print("Warnings:")
+        print(style.heading("Warnings:"))
         for warning in facts.warnings:
             print(f"  - {warning}")
     return 0
 
 
-def _cmd_sync(root: Path, plan: bool = False, profiles: list[str] | None = None) -> int:
+def _cmd_sync(
+    root: Path,
+    plan: bool = False,
+    profiles: list[str] | None = None,
+    style: TerminalStyle = PLAIN_STYLE,
+) -> int:
     root = _normalize_root(root)
     if plan:
-        return _cmd_sync_plan(root, profiles=profiles)
-    compile_code = _cmd_compile(root, target=None, dry_run=False, force=False, profiles=profiles)
+        return _cmd_sync_plan(root, profiles=profiles, style=style)
+    compile_code = _cmd_compile(root, target=None, dry_run=False, force=False, profiles=profiles, style=style)
     if compile_code != 0:
         return compile_code
-    return _cmd_check(root, profiles=profiles)
+    return _cmd_check(root, profiles=profiles, style=style)
 
 
-def _cmd_sync_plan(root: Path, profiles: list[str] | None = None) -> int:
+def _cmd_sync_plan(
+    root: Path,
+    profiles: list[str] | None = None,
+    style: TerminalStyle = PLAIN_STYLE,
+) -> int:
     facts, config = _facts(root, profiles)
     if reject_unsafe_generated_commands(root, facts):
         return 1
@@ -151,10 +162,10 @@ def _cmd_sync_plan(root: Path, profiles: list[str] | None = None) -> int:
             will_update.append(relative_path)
 
     protected = [".env", "secrets/", "migrations/", ".git/", "node_modules/"]
-    print("Evagix sync plan")
+    print(style.heading("Evagix sync plan"))
     if not will_create and not will_update and not fingerprint_only and not will_skip:
         print("No changes needed.")
-        print("Will not touch:")
+        print(style.heading("Will not touch:"))
         for item in protected:
             print(f"  - {item}")
         return 0
@@ -162,20 +173,20 @@ def _cmd_sync_plan(root: Path, profiles: list[str] | None = None) -> int:
         print("Would refresh generated fingerprints only. No semantic context changes detected.")
         for item in fingerprint_only:
             print(f"  - {item}")
-    print("Will create:")
+    print(style.heading("Will create:"))
     for item in will_create or ["None"]:
         print(f"  - {item}")
-    print("Will update:")
+    print(style.heading("Will update:"))
     for item in will_update or ["None"]:
         print(f"  - {item}")
-    print("Will not touch:")
+    print(style.heading("Will not touch:"))
     for item in protected:
         print(f"  - {item}")
     if will_skip:
-        print("Existing non-Evagix files that would be skipped:")
+        print(style.heading("Existing non-Evagix files that would be skipped:"))
         for item in will_skip:
             print(f"  - {item}")
-    print("Apply with: evagix sync .")
+    print(style.muted("Apply with: evagix sync ."))
     return 0
 
 
@@ -200,7 +211,11 @@ def _without_generated_fingerprint(content: str) -> str:
     return normalized
 
 
-def _cmd_check(root: Path, profiles: list[str] | None = None) -> int:
+def _cmd_check(
+    root: Path,
+    profiles: list[str] | None = None,
+    style: TerminalStyle = PLAIN_STYLE,
+) -> int:
     root = _normalize_root(root)
     facts, config = _facts(root, profiles)
     result = check_repo(
@@ -210,23 +225,30 @@ def _cmd_check(root: Path, profiles: list[str] | None = None) -> int:
         custom_targets=config.custom_targets,
         fail_on_stale=config.fail_on_stale,
     )
-    print(
-        "Evagix check passed." if result.ok else "Evagix check failed.",
-        file=sys.stdout if result.ok else sys.stderr,
+    check_message = "Evagix check passed." if result.ok else "Evagix check failed."
+    print(style.success(check_message) if result.ok else check_message, file=sys.stdout if result.ok else sys.stderr)
+    scope_message = (
+        "Scope: generated context freshness and Evagix self-governance only. "
+        "For full readiness, run doctor, readme-audit, and eval-context."
     )
     print(
-        "Scope: generated context freshness and Evagix self-governance only. "
-        "For full readiness, run doctor, readme-audit, and eval-context.",
+        style.muted(scope_message) if result.ok else scope_message,
         file=sys.stdout if result.ok else sys.stderr,
     )
     for warning in result.warnings:
-        print(f"WARNING: {warning}")
+        print(f"{style.warning('WARNING')}: {warning}")
     for error in result.errors:
         print(f"ERROR: {error}", file=sys.stderr)
     return 0 if result.ok else 1
 
 
-def _cmd_onboard(root: Path, dry_run: bool, force: bool, profiles: list[str] | None = None) -> int:
+def _cmd_onboard(
+    root: Path,
+    dry_run: bool,
+    force: bool,
+    profiles: list[str] | None = None,
+    style: TerminalStyle = PLAIN_STYLE,
+) -> int:
     root = _normalize_root(root)
     facts, _ = _facts(root, profiles)
     if reject_unsafe_generated_commands(root, facts):
@@ -243,7 +265,7 @@ def _cmd_onboard(root: Path, dry_run: bool, force: bool, profiles: list[str] | N
         return 1
     if not dry_run:
         apply_write_plan(plan)
-    print("Planned onboarding writes:" if dry_run else "Created onboarding pack:")
+    print(style.heading("Planned onboarding writes:" if dry_run else "Created onboarding pack:"))
     for relative_path in plan.relative_paths:
         print(f"  - {relative_path}")
     return 0
@@ -280,7 +302,12 @@ def _cmd_diff(root: Path, target: list[str] | None) -> int:
     return 1 if changed else 0
 
 
-def _cmd_init(root: Path, force: bool, profiles: list[str] | None = None) -> int:
+def _cmd_init(
+    root: Path,
+    force: bool,
+    profiles: list[str] | None = None,
+    style: TerminalStyle = PLAIN_STYLE,
+) -> int:
     root = _normalize_existing_root(root)
     path = root / "evagix.toml"
     if path.exists() and not force:
@@ -298,11 +325,16 @@ def _cmd_init(root: Path, force: bool, profiles: list[str] | None = None) -> int
     except OSError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
-    print("Created evagix.toml")
+    print(style.info("Created evagix.toml"))
     return 0
 
 
-def _cmd_baseline(root: Path, force: bool, profiles: list[str] | None = None) -> int:
+def _cmd_baseline(
+    root: Path,
+    force: bool,
+    profiles: list[str] | None = None,
+    style: TerminalStyle = PLAIN_STYLE,
+) -> int:
     root = _normalize_root(root)
     path = root / "evagix.toml"
     if path.exists() and not force:
@@ -324,7 +356,7 @@ def _cmd_baseline(root: Path, force: bool, profiles: list[str] | None = None) ->
     except OSError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
-    print(f"Created evagix.toml with {len(ignore_codes)} ignored finding code(s).")
+    print(style.info(f"Created evagix.toml with {len(ignore_codes)} ignored finding code(s)."))
     return 0
 
 
@@ -350,6 +382,7 @@ def _cmd_init_ci(
     repo: str = DEFAULT_GITHUB_REPO,
     ref: str = DEFAULT_GITHUB_REF,
     package_version: str | None = None,
+    style: TerminalStyle = PLAIN_STYLE,
 ) -> int:
     root = _normalize_existing_root(root)
     path = root / ".github" / "workflows" / "evagix.yml"
@@ -372,18 +405,23 @@ def _cmd_init_ci(
     except OSError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
-    print("Created .github/workflows/evagix.yml")
+    print(style.info("Created .github/workflows/evagix.yml"))
     return 0
 
 
-def _cmd_scoped(root: Path, dry_run: bool, force: bool) -> int:
+def _cmd_scoped(
+    root: Path,
+    dry_run: bool,
+    force: bool,
+    style: TerminalStyle = PLAIN_STYLE,
+) -> int:
     root = _normalize_root(root)
     facts, _ = _facts(root)
     if reject_unsafe_generated_commands(root, facts):
         return 1
     outputs = scoped_outputs(facts)
     if not outputs:
-        print("No scoped AGENTS.md files were suggested for this repository.")
+        print(style.info("No scoped AGENTS.md files were suggested for this repository."))
         return 0
     plan = build_write_plan(root, outputs, force=force)
     if plan.conflicts:
@@ -392,7 +430,7 @@ def _cmd_scoped(root: Path, dry_run: bool, force: bool) -> int:
         return 1
     if not dry_run:
         apply_write_plan(plan)
-    print("Planned scoped writes:" if dry_run else "Written scoped files:")
+    print(style.heading("Planned scoped writes:" if dry_run else "Written scoped files:"))
     for relative_path in plan.relative_paths:
         print(f"  - {relative_path}")
     return 0

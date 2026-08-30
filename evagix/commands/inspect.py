@@ -15,6 +15,7 @@ from evagix.explain import explain_finding
 from evagix.model import RepoFacts
 from evagix.profiles import PROFILES, normalize_profiles
 from evagix.targets import ALL_TARGET_KEYS, TARGET_ADAPTERS, target_list_rows
+from evagix.terminal import PLAIN_STYLE, TerminalStyle, style_human_text
 from evagix.utils import (
     stable_json,
 )
@@ -23,12 +24,20 @@ from evagix.validators import (
 )
 
 
-def _cmd_scan(root: Path, as_json: bool, verbose: bool = False, profiles: list[str] | None = None) -> int:
+def _cmd_scan(
+    root: Path,
+    as_json: bool,
+    verbose: bool = False,
+    profiles: list[str] | None = None,
+    style: TerminalStyle = PLAIN_STYLE,
+) -> int:
     facts, _ = _facts(root, profiles)
     if as_json:
         payload = {"schema_version": "1.0", **facts.to_dict()}
         print(stable_json(payload))
         return 0
+    print(style.heading("Evagix Scan"))
+    print("")
     print(f"Repository: {facts.root_name}")
     print(f"Languages: {', '.join(facts.languages) or 'not detected'}")
     print(f"Frameworks: {', '.join(facts.frameworks) or 'not detected'}")
@@ -42,14 +51,16 @@ def _cmd_scan(root: Path, as_json: bool, verbose: bool = False, profiles: list[s
     print(f"Infrastructure tools: {', '.join(facts.infrastructure_tools) or 'not detected'}")
     print(f"Container platforms: {', '.join(facts.container_platforms) or 'not detected'}")
     if getattr(facts, "ecosystems", None):
-        print("Ecosystems:")
+        print("")
+        print(style.heading("Ecosystems:"))
         displayed_ecosystems = facts.ecosystems if verbose else facts.ecosystems[:12]
         for item in displayed_ecosystems:
             labels = ", ".join(item.frameworks or item.tools or [item.language])
-            print(f"  - {item.path}: {item.name} ({labels}; {item.support}; {item.confidence})")
+            detail = style.muted(f"({labels}; {item.support}; {item.confidence})")
+            print(f"  - {item.path}: {item.name} {detail}")
         hidden = len(facts.ecosystems) - len(displayed_ecosystems)
         if hidden > 0:
-            print(f"  - ... {hidden} more ecosystem(s) hidden; re-run with --verbose to show all.")
+            print(style.muted(f"  - ... {hidden} more ecosystem(s) hidden; re-run with --verbose to show all."))
     else:
         print("Ecosystems: not detected")
     print(f"Runtimes: {', '.join(facts.runtimes) or 'not detected'}")
@@ -60,34 +71,39 @@ def _cmd_scan(root: Path, as_json: bool, verbose: bool = False, profiles: list[s
         print(f"Config: {facts.config_path}")
     _print_classification_summary(facts)
     if facts.subprojects:
-        print("Subprojects:")
+        print("")
+        print(style.heading("Subprojects:"))
         displayed_subprojects = facts.subprojects if verbose else facts.subprojects[:20]
         for subproject in displayed_subprojects:
             labels = ", ".join(subproject.frameworks or subproject.dev_tools or [subproject.kind])
-            print(f"  - {subproject.path}: {labels} ({subproject.package_manager or 'n/a'})")
+            detail = style.muted(f"({subproject.package_manager or 'n/a'})")
+            print(f"  - {subproject.path}: {labels} {detail}")
         hidden = len(facts.subprojects) - len(displayed_subprojects)
         if hidden > 0:
-            print(f"  - ... {hidden} more subproject(s) hidden; re-run with --verbose to show all.")
-    print("Commands:")
+            print(style.muted(f"  - ... {hidden} more subproject(s) hidden; re-run with --verbose to show all."))
+    print("")
+    print(style.heading("Commands:"))
     if facts.commands:
         command_items = list(facts.commands.items())
         displayed_commands = command_items if verbose else _summarize_commands(command_items)
         for name, command in displayed_commands:
             source = facts.command_sources[name]
-            print(f"  - {name}: {command} ({source.source}, {source.confidence})")
+            detail = style.muted(f"({source.source}, {source.confidence})")
+            print(f"  - {name}: {command} {detail}")
         hidden = len(command_items) - len(displayed_commands)
         if hidden > 0:
-            print(f"  - ... {hidden} more command(s) hidden; re-run with --verbose to show all.")
+            print(style.muted(f"  - ... {hidden} more command(s) hidden; re-run with --verbose to show all."))
     else:
         print("  - none detected")
     if facts.warnings:
-        print("Warnings:")
+        print("")
+        print(style.heading("Warnings:"))
         displayed_warnings = facts.warnings if verbose else facts.warnings[:20]
         for warning in displayed_warnings:
-            print(f"  - {warning}")
+            print(f"  [{style.status('WARN', width=4)}] {warning}")
         hidden = len(facts.warnings) - len(displayed_warnings)
         if hidden > 0:
-            print(f"  - ... {hidden} more warning(s) hidden; re-run with --verbose to show all.")
+            print(style.muted(f"  - ... {hidden} more warning(s) hidden; re-run with --verbose to show all."))
     return 0
 
 
@@ -113,21 +129,26 @@ def _print_classification_summary(facts: RepoFacts) -> None:
             print("Secondary capabilities: " + "; ".join(labels))
 
 
-def _cmd_classify(root: Path, as_json: bool, profiles: list[str] | None = None) -> int:
+def _cmd_classify(
+    root: Path,
+    as_json: bool,
+    profiles: list[str] | None = None,
+    style: TerminalStyle = PLAIN_STYLE,
+) -> int:
     facts, _ = _facts(root, profiles)
     classification = facts.classification
     if classification:
         if as_json:
             print(stable_json({"schema_version": "1.0", "classification": classification}) + "\n", end="")
         else:
-            print(_render_classification_text_from_dict(classification), end="")
+            print(style_human_text(_render_classification_text_from_dict(classification), style), end="")
         return 0
 
     fallback = classify_project(_normalize_existing_root(root), facts)
     if as_json:
         print(render_classification_json(fallback), end="")
     else:
-        print(render_classification_text(fallback), end="")
+        print(style_human_text(render_classification_text(fallback), style), end="")
     return 0
 
 
@@ -161,16 +182,20 @@ def _render_classification_text_from_dict(classification: dict[str, object]) -> 
     return "\n".join(lines).rstrip() + "\n"
 
 
-def _cmd_suggest(root: Path, profiles: list[str] | None = None) -> int:
+def _cmd_suggest(
+    root: Path,
+    profiles: list[str] | None = None,
+    style: TerminalStyle = PLAIN_STYLE,
+) -> int:
     root = _normalize_root(root)
     facts, _ = _facts(root, profiles)
-    print("Suggested next actions:")
+    print(style.heading("Suggested next actions:"))
     for index, action in enumerate(suggest_actions(root, facts), start=1):
         print(f"  {index}. {action}")
     return 0
 
 
-def _cmd_profiles(name: str | None = None) -> int:
+def _cmd_profiles(name: str | None = None, style: TerminalStyle = PLAIN_STYLE) -> int:
     if name:
         try:
             normalized = normalize_profiles([name])[0]
@@ -178,17 +203,17 @@ def _cmd_profiles(name: str | None = None) -> int:
             print(str(exc), file=sys.stderr)
             return 1
         definition = PROFILES[normalized]
-        print(f"{definition.name}: {definition.title}")
+        print(style.heading(f"{definition.name}: {definition.title}"))
         print(definition.description)
-        print(f"Category: {definition.category}")
+        print(style.muted(f"Category: {definition.category}"))
         return 0
-    print("Available profiles:")
+    print(style.heading("Available profiles:"))
     for definition in PROFILES.values():
         print(f"  - {definition.name}: {definition.title} ({definition.category})")
     return 0
 
 
-def _cmd_targets(action: str, name: str | None) -> int:
+def _cmd_targets(action: str, name: str | None, style: TerminalStyle = PLAIN_STYLE) -> int:
     if action == "show":
         if not name:
             print("Target name required. Example: `evagix targets show claude`.", file=sys.stderr)
@@ -198,20 +223,20 @@ def _cmd_targets(action: str, name: str | None) -> int:
             print(f"Unsupported target: {name}", file=sys.stderr)
             print("Supported targets: " + ", ".join(ALL_TARGET_KEYS), file=sys.stderr)
             return 1
-        print(f"Target: {adapter.name}")
+        print(style.heading(f"Target: {adapter.name}"))
         print(f"Path: {adapter.path}")
         print(f"Label: {adapter.label}")
         print(f"Status: {'default' if adapter.default_enabled else 'optional'}")
         print(f"Category: {adapter.category}")
-        print(f"Description: {adapter.description}")
+        print(style.muted(f"Description: {adapter.description}"))
         return 0
 
-    print("Available targets:")
+    print(style.heading("Available targets:"))
     for target_name, path, status, description in target_list_rows():
         print(f"  - {target_name}: {path} ({status})")
-        print(f"    {description}")
+        print(style.muted(f"    {description}"))
     print("")
-    print("Examples:")
+    print(style.heading("Examples:"))
     print("  evagix compile . --target universal_md")
     print("  evagix compile . --target universal_json")
     print("  evagix compile . --target claude")
@@ -219,7 +244,7 @@ def _cmd_targets(action: str, name: str | None) -> int:
     return 0
 
 
-def _cmd_policy(root: Path, as_json: bool) -> int:
+def _cmd_policy(root: Path, as_json: bool, style: TerminalStyle = PLAIN_STYLE) -> int:
     root = _normalize_existing_root(root)
     config = load_config(root)
     payload = {
@@ -244,10 +269,10 @@ def _cmd_policy(root: Path, as_json: bool) -> int:
     if as_json:
         print(stable_json(payload))
     else:
-        print("Evagix Policy")
+        print(style.heading("Evagix Policy"))
         print(f"Config: {payload['config_path'] or 'not found'}")
         if config.parse_error:
-            print(f"Invalid config: {config.parse_error}")
+            print(f"{style.warning('Invalid config')}: {config.parse_error}")
         print(f"Profiles: {', '.join(config.profiles) or 'not configured'}")
         print(f"Fail under: {config.fail_under}")
         print(f"Fail on stale: {config.fail_on_stale}")
@@ -260,17 +285,17 @@ def _cmd_policy(root: Path, as_json: bool) -> int:
     return 1 if config.parse_error else 0
 
 
-def _cmd_explain(code: str) -> int:
+def _cmd_explain(code: str, style: TerminalStyle = PLAIN_STYLE) -> int:
     item = explain_finding(code)
-    print(f"{item.code}: {item.title}")
-    print(f"Severity hint: {item.severity_hint}")
+    print(style.heading(f"{item.code}: {item.title}"))
+    print(f"Severity hint: {style.semantic(item.severity_hint)}")
     print("")
-    print("Meaning:")
+    print(style.heading("Meaning:"))
     print(f"  {item.meaning}")
     print("")
-    print("Why it matters:")
+    print(style.heading("Why it matters:"))
     print(f"  {item.why_it_matters}")
     print("")
-    print("Recommended fix:")
+    print(style.heading("Recommended fix:"))
     print(f"  {item.recommended_fix}")
     return 0

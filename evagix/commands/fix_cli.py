@@ -36,5 +36,6 @@ def dispatch(args: Any) -> int | None:
             apply_changes=args.apply,
             force=args.force,
             fail_under=args.fail_under,
+            style=args.terminal_style,
         )
     return None

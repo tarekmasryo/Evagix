@@ -211,4 +211,4 @@ def test_supported_python_matrix_matches_metadata_and_documentation() -> None:
     assert expected_matrix in publish
     assert '"Programming Language :: Python :: 3.14"' in pyproject
     assert "Python 3.11, 3.12, 3.13, and 3.14" in readme
-    assert "Evagix v0.1.0 provides conservative local evidence checks" in readme
+    assert "Evagix provides conservative local evidence checks" in readme

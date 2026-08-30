@@ -6,6 +6,7 @@ from pathlib import Path
 from evagix.commands.common import _facts, _normalize_root, _resolve_cli_output_path, _targets
 from evagix.config import EvagixConfig
 from evagix.model import RepoFacts
+from evagix.terminal import PLAIN_STYLE, TerminalStyle
 from evagix.utils import write_text
 from evagix.validators import (
     DoctorReport,
@@ -58,6 +59,7 @@ def _cmd_doctor(
     fail_under: int | None = None,
     profiles: list[str] | None = None,
     strict: bool = False,
+    style: TerminalStyle = PLAIN_STYLE,
 ) -> int:
     root = _normalize_root(root)
     facts, config, report = build_doctor_report(root, profiles, strict=strict)
@@ -75,30 +77,54 @@ def _cmd_doctor(
     elif output_format == "github-annotations":
         print(render_github_annotations(report), end="")
     else:
-        _print_doctor_text(report, threshold=threshold, strict=strict, threshold_failed=threshold_failed)
+        _print_doctor_text(
+            report,
+            threshold=threshold,
+            strict=strict,
+            threshold_failed=threshold_failed,
+            style=style,
+        )
     return 1 if threshold_failed or any(item.severity == "error" for item in report.findings) else 0
 
 
-def _print_doctor_text(report: DoctorReport, *, threshold: int, strict: bool, threshold_failed: bool) -> None:
+def _print_doctor_text(
+    report: DoctorReport,
+    *,
+    threshold: int,
+    strict: bool,
+    threshold_failed: bool,
+    style: TerminalStyle = PLAIN_STYLE,
+) -> None:
+    print(style.heading("Evagix Doctor"))
+    print("")
+    has_errors = any(item.severity == "error" for item in report.findings)
+    overall_status = "FAIL" if threshold_failed or has_errors else ("PASS" if report.ok else "WARN")
+    print(f"Status: {style.status(overall_status)}")
     print(f"Evagix Static Evidence Score: {report.score}/100")
     if strict:
-        print("Mode: strict evidence-first")
-    print(f"Static evidence tier: {report.maturity_level}")
+        print(f"Mode: {style.muted('strict evidence-first')}")
+    print(f"Static evidence tier: {style.maturity(report.maturity_level)}")
     print(f"Required threshold: {threshold}/100")
     if report.domain_scores:
-        print("Score breakdown:")
+        print("")
+        print(style.heading("Score breakdown:"))
+        width = max(len(name) for name in report.domain_scores)
         for name, domain in report.domain_scores.items():
-            print(f"  - {name}: {domain.score}/100 ({domain.status})")
+            print(f"  {name:<{width}}  {domain.score:>3}/100  [{style.status(domain.status, width=4)}]")
     if report.categories:
-        print("Categories:")
+        print("")
+        print(style.heading("Categories:"))
+        width = max(len(name) for name in report.categories)
         for name, category in report.categories.items():
-            print(f"  - {name}: {category.score}/100 ({category.status})")
+            print(f"  {name:<{width}}  {category.score:>3}/100  [{style.status(category.status, width=4)}]")
+    print("")
+    print(style.heading("Findings:"))
     if not report.findings:
-        print("No issues found.")
+        print(f"  [{style.status('PASS', width=5)}] No issues found.")
     else:
-        print("Findings:")
         for item in report.findings:
-            print(f"  - [{item.severity}] {item.code}: {item.message}")
+            print(f"  [{style.severity(item.severity, width=5)}] {item.code}")
+            print(f"          {item.message}")
     if threshold_failed:
         print(f"ERROR: readiness score is below threshold={threshold}", file=sys.stderr)
 

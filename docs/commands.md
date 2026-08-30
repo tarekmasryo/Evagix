@@ -17,6 +17,8 @@ Use this path when you want to understand the current repository state without c
 
 This compact inventory mirrors the registered CLI. Use `evagix <command> --help` for complete flags and examples.
 
+Human-readable terminal styling is enabled on supported interactive terminals. Disable it with the global `--no-color` option or the `NO_COLOR` environment variable; non-TTY, redirected, piped, CI, and machine-readable output remains plain.
+
 | Group | Commands |
 | --- | --- |
 | Inspect | `evagix scan`, `evagix suggest`, `evagix profiles`, `evagix targets`, `evagix policy`, `evagix classify`, `evagix explain` |
@@ -49,7 +51,7 @@ evagix init-ci . --fail-under 85
 Pin a specific GitHub fork or tag when the package is not installed from PyPI:
 
 ```bash
-evagix init-ci . --install-mode github --repo tarekmasryo/Evagix --ref v0.1.0
+evagix init-ci . --install-mode github --repo tarekmasryo/Evagix --ref v0.1.1
 ```
 
 Use editable installation only for local Evagix development:
@@ -65,7 +67,7 @@ Evagix also provides pre-commit hooks for downstream repositories:
 ```yaml
 repos:
   - repo: https://github.com/tarekmasryo/Evagix
-    rev: v0.1.0
+    rev: v0.1.1
     hooks:
       - id: evagix-check
       - id: evagix-doctor
@@ -163,7 +165,7 @@ These commands are useful for staged adoption and early feedback. Preview and ex
 | `evagix audit .` | Emit a lightweight strict governance audit plus readiness summary. | Read-only unless `--output` is supplied. | `--format text\|json`, `--output`, `--force`, `--profile` | `0` only when governance and readiness pass; `1` when either fails or output is guarded. | Stable; exposes `governance_ok`, `readiness_ok`, and `overall_ok`. |
 | `evagix mcp .` | Detect common MCP configuration files without claiming a security audit. | Read-only. | `--format text\|json` | `0` successful detection; nonzero on operational failure. | Preview, not schema-backed. |
 | `evagix context-pack .` | Print a source-grounded context summary. | Read-only; prints to stdout. | None. | `0` success; operational failures remain nonzero. | No JSON mode. |
-| `evagix prepare . --plan` | Print an experimental repository preparation plan. | Read-only; never writes project files in v0.1.0. | `--plan` is required. | `0` plan rendered; `2` unsupported invocation without `--plan`. | No JSON mode. |
+| `evagix prepare . --plan` | Print an experimental repository preparation plan. | Read-only; does not write project files. | `--plan` is required. | `0` plan rendered; `2` unsupported invocation without `--plan`. | No JSON mode. |
 | `evagix fix <code> .` / `evagix fix . --plan` | Preview a registered remediation or a repository-level fix plan. | Dry-run by default; writes only with `--apply`. | `--plan`, `--apply`, `--force`, `--fail-under` | `0` plan/apply success; `1` guarded write failure; `2` missing finding code. | No JSON mode. |
 
 ## Machine-readable contract stability

@@ -88,24 +88,28 @@ evagix doctor .
 Example output:
 
 ```text
+Evagix Doctor
+
+Status: PASS
 Evagix Static Evidence Score: 100/100
 Static evidence tier: clear
 Required threshold: 80/100
 
 Score breakdown:
-  - repository_readiness: 100/100 (pass)
-  - agent_context_governance: 100/100 (pass)
-  - pr_risk_readiness: 100/100 (pass)
+  repository_readiness      100/100  [PASS]
+  agent_context_governance  100/100  [PASS]
+  pr_risk_readiness         100/100  [PASS]
 
 Categories:
-  - agent_context: 100/100 (pass)
-  - commands: 100/100 (pass)
-  - ci: 100/100 (pass)
-  - docs_onboarding: 100/100 (pass)
-  - safety: 100/100 (pass)
-  - project_specific: 100/100 (pass)
+  agent_context     100/100  [PASS]
+  commands          100/100  [PASS]
+  ci                100/100  [PASS]
+  docs_onboarding   100/100  [PASS]
+  safety            100/100  [PASS]
+  project_specific  100/100  [PASS]
 
-No issues found.
+Findings:
+  [PASS ] No issues found.
 ```
 
 Results depend on the repository being inspected.
@@ -127,7 +131,7 @@ evgx doctor .
 
 Evagix supports Python 3.11, 3.12, 3.13, and 3.14 through its release CI matrix.
 
-Evagix v0.1.0 provides conservative local evidence checks for repository claims, documented commands, agent-facing context, and generated context.
+Evagix provides conservative local evidence checks for repository claims, documented commands, agent-facing context, and generated context.
 
 ---
 
@@ -308,7 +312,7 @@ Evagix provides hooks for downstream repositories:
 ```yaml
 repos:
   - repo: https://github.com/tarekmasryo/Evagix
-    rev: v0.1.0
+    rev: v0.1.1
     hooks:
       - id: evagix-check
       - id: evagix-doctor
@@ -417,7 +421,9 @@ Evagix intentionally avoids turning missing evidence into confidence.
 * Generated-context freshness and integrity are evaluated independently.
 * Unsafe repository-internal symlink traversal is rejected.
 * Policy waivers remain visible and do not create supporting evidence.
+<!-- evagix:audit-ignore-start -->
 * Static repository markers are not treated as proof of broad claims such as `secure` or `production-ready`.
+<!-- evagix:audit-ignore-end -->
 
 The goal is not to maximize scores. The goal is to keep conclusions proportional to the evidence available.
 

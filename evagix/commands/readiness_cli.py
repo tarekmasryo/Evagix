@@ -25,6 +25,12 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         "--format", choices=["text", "json", "sarif", "markdown", "pr-comment", "github-annotations"], default="text"
     )
     doctor_parser.add_argument(
+        "--no-color",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="Disable ANSI styling for human-readable output.",
+    )
+    doctor_parser.add_argument(
         "--fail-under",
         type=score_threshold_arg,
         default=None,
@@ -139,6 +145,12 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
     audit_parser.add_argument("--json", action="store_true", help="Compatibility alias for --format json.")
     audit_parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format.")
     audit_parser.add_argument(
+        "--no-color",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="Disable ANSI styling for human-readable output.",
+    )
+    audit_parser.add_argument(
         "-o", "--output", default=None, help="Optional Markdown output path relative to the repository root."
     )
     audit_parser.add_argument("--force", action="store_true", help="Overwrite an existing audit report.")
@@ -154,10 +166,15 @@ def dispatch(args: Any) -> int | None:
             fail_under=args.fail_under,
             profiles=args.profile,
             strict=args.strict,
+            style=args.terminal_style,
         )
     if args.command == "report":
         return _cmd_report(
-            Path(args.path), output=args.output, output_format=args.format, force=args.force, profiles=args.profile
+            Path(args.path),
+            output=args.output,
+            output_format=args.format,
+            force=args.force,
+            profiles=args.profile,
         )
     if args.command == "readme-audit":
         return _cmd_readme_audit(
@@ -168,14 +185,25 @@ def dispatch(args: Any) -> int | None:
             profiles=args.profile,
             strict=args.strict,
             fail_on=args.fail_on,
+            style=args.terminal_style,
         )
     if args.command in {"decide", "plan"}:
         return _cmd_decide(
-            Path(args.path), output_format=args.format, output=args.output, force=args.force, profiles=args.profile
+            Path(args.path),
+            output_format=args.format,
+            output=args.output,
+            force=args.force,
+            profiles=args.profile,
+            style=args.terminal_style,
         )
     if args.command == "drift":
         return _cmd_drift(
-            Path(args.path), output_format=args.format, output=args.output, force=args.force, profiles=args.profile
+            Path(args.path),
+            output_format=args.format,
+            output=args.output,
+            force=args.force,
+            profiles=args.profile,
+            style=args.terminal_style,
         )
     if args.command == "eval-context":
         return _cmd_eval_context(
@@ -187,6 +215,7 @@ def dispatch(args: Any) -> int | None:
             strict=args.strict,
             fail_on=args.fail_on,
             fail_under=args.fail_under,
+            style=args.terminal_style,
         )
     if args.command == "evidence":
         return _cmd_evidence(Path(args.path), output=args.output, force=args.force, profiles=args.profile)
@@ -197,5 +226,6 @@ def dispatch(args: Any) -> int | None:
             output=args.output,
             force=args.force,
             profiles=args.profile,
+            style=args.terminal_style,
         )
     return None

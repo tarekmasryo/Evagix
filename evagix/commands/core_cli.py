@@ -108,20 +108,31 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
 def dispatch(args: Any) -> int | None:
     if args.command == "compile":
         return _cmd_compile(
-            Path(args.path), target=args.target, dry_run=args.dry_run, force=args.force, profiles=args.profile
+            Path(args.path),
+            target=args.target,
+            dry_run=args.dry_run,
+            force=args.force,
+            profiles=args.profile,
+            style=args.terminal_style,
         )
     if args.command == "sync":
-        return _cmd_sync(Path(args.path), plan=args.plan, profiles=args.profile)
+        return _cmd_sync(Path(args.path), plan=args.plan, profiles=args.profile, style=args.terminal_style)
     if args.command == "check":
-        return _cmd_check(Path(args.path), profiles=args.profile)
+        return _cmd_check(Path(args.path), profiles=args.profile, style=args.terminal_style)
     if args.command == "onboard":
-        return _cmd_onboard(Path(args.path), dry_run=args.dry_run, force=args.force, profiles=args.profile)
+        return _cmd_onboard(
+            Path(args.path),
+            dry_run=args.dry_run,
+            force=args.force,
+            profiles=args.profile,
+            style=args.terminal_style,
+        )
     if args.command == "baseline":
-        return _cmd_baseline(Path(args.path), force=args.force, profiles=args.profile)
+        return _cmd_baseline(Path(args.path), force=args.force, profiles=args.profile, style=args.terminal_style)
     if args.command == "diff":
         return _cmd_diff(Path(args.path), target=args.target)
     if args.command == "init":
-        return _cmd_init(Path(args.path), force=args.force, profiles=args.profile)
+        return _cmd_init(Path(args.path), force=args.force, profiles=args.profile, style=args.terminal_style)
     if args.command == "init-ci":
         return _cmd_init_ci(
             Path(args.path),
@@ -131,7 +142,8 @@ def dispatch(args: Any) -> int | None:
             repo=args.repo,
             ref=args.ref,
             package_version=args.package_version,
+            style=args.terminal_style,
         )
     if args.command == "scoped":
-        return _cmd_scoped(Path(args.path), dry_run=args.dry_run, force=args.force)
+        return _cmd_scoped(Path(args.path), dry_run=args.dry_run, force=args.force, style=args.terminal_style)
     return None
