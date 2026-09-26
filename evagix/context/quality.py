@@ -7,6 +7,7 @@ from evagix.command_safety import (
     scan_package_script_dangers,
     scan_task_recipe_dangers,
 )
+from evagix.config import CustomTarget
 from evagix.context.command_checks import _conflicting_commands, _missing_validation_context
 from evagix.context.content_checks import (
     _duplicated_instructions,
@@ -25,8 +26,10 @@ from evagix.model import RepoFacts
 from evagix.prompt_injection import scan_context_poisoning
 
 
-def audit_context_quality(root: Path, facts: RepoFacts, *, strict: bool = False) -> list[Finding]:
-    files = _agent_context_files(root)
+def audit_context_quality(
+    root: Path, facts: RepoFacts, *, strict: bool = False, custom_targets: list[CustomTarget] | None = None
+) -> list[Finding]:
+    files = _agent_context_files(root, extra_paths=[root / target.path for target in custom_targets or []])
     findings: list[Finding] = []
     findings.extend(_unsafe_context_paths(root))
     findings.extend(invalid_agent_context_findings(root, files))
