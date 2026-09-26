@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from evagix.model import RepoFacts, Subproject
+from evagix.safety import quote_command_directory
 from evagix.scanner_utils import TraversalDiagnostics, _iter_named_files
 from evagix.scanning.base import _read_json
 from evagix.scanning.node_policy import _node_install_command, _node_package_manager
@@ -71,7 +72,7 @@ def _scan_node_package(root: Path, package_json: Path, facts: RepoFacts) -> None
 
     prefix = {"npm": "npm run", "pnpm": "pnpm", "yarn": "yarn", "bun": "bun run"}[pm]
     install, install_detail, install_confidence = _node_install_command(project_dir, pm, root, root_data)
-    cmd_prefix = f"cd {rel} && " if rel != "." else ""
+    cmd_prefix = f"cd {quote_command_directory(rel)} && " if rel != "." else ""
     _set_command(
         facts,
         _scoped_name(rel, "install"),

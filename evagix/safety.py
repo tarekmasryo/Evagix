@@ -13,6 +13,15 @@ class EvagixSafetyError(ValueError):
     """Raised when user-provided paths or workflow inputs are unsafe."""
 
 
+def quote_command_directory(directory: str) -> str:
+    """Quote a literal directory in the shared CMD/POSIX subset, without shell-specific escaping."""
+    if not re.fullmatch(r"[\w ./@+=:,'-]+", directory):
+        raise EvagixSafetyError(
+            f"Unsupported command directory {directory!r}: shell-specific escaping would be required."
+        )
+    return f'"{directory}"' if " " in directory or "'" in directory else directory
+
+
 @dataclass(frozen=True)
 class RepositoryPathPolicy:
     """Centralized repository-root validation for CLI commands.

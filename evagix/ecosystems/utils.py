@@ -9,6 +9,7 @@ from typing import Any
 
 from evagix.core.io import safe_read_text
 from evagix.ecosystems.profiles import ECOSYSTEM_PROFILES, EcosystemDetection, EcosystemProfile
+from evagix.safety import quote_command_directory
 from evagix.scanner_utils import TraversalDiagnostics, _iter_repo_files
 
 MAX_MARKER_DEPTH = 5
@@ -205,7 +206,7 @@ def _strip_cd(command: str) -> str:
 
 
 def _scope(rel: str, command: str) -> str:
-    return command if rel == "." else f"cd {rel} && {command}"
+    return command if rel == "." else f"cd {quote_command_directory(rel)} && {command}"
 
 
 def _rel(path: Path, root: Path) -> str:
