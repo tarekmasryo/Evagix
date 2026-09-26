@@ -6,7 +6,7 @@ from typing import Any
 
 from evagix.config_models import CustomTarget, EvagixConfig
 from evagix.config_validate import _validate_raw_config
-from evagix.core.io import safe_read_text
+from evagix.core.io import safe_read_text_result
 from evagix.thresholds import coerce_score_threshold
 
 CONFIG_FILENAMES = ("evagix.toml", ".evagix.toml")
@@ -23,7 +23,13 @@ def load_config(root: Path) -> EvagixConfig:
 
 def _parse_config(path: Path) -> EvagixConfig:
     try:
-        raw = tomllib.loads(safe_read_text(path, root=path.parent))
+        result = safe_read_text_result(path, root=path.parent)
+        if result.truncated:
+            return EvagixConfig(
+                path=path,
+                parse_error=f"Config read incomplete: {path.name} was truncated at {result.max_chars} characters.",
+            )
+        raw = tomllib.loads(result.text)
     except (OSError, tomllib.TOMLDecodeError, UnicodeDecodeError) as exc:
         return EvagixConfig(path=path, parse_error=f"{type(exc).__name__}: {exc}")
 
