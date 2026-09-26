@@ -6,7 +6,7 @@ from evagix.model import RepoFacts, Subproject
 from evagix.scanner_utils import TraversalDiagnostics, _iter_named_files
 from evagix.scanning.base import _read_json
 from evagix.scanning.node_policy import _node_install_command, _node_package_manager
-from evagix.scanning.shared import _add_unique, _set_command, is_node_test_placeholder
+from evagix.scanning.shared import _add_unique, _set_command, is_node_test_placeholder, valid_node_dependency_fields
 from evagix.signatures import NODE_DEV_TOOLS, NODE_FRAMEWORKS
 
 
@@ -39,7 +39,7 @@ def _scan_node_package(root: Path, package_json: Path, facts: RepoFacts) -> None
     project_dir = package_json.parent
     rel = project_dir.relative_to(root).as_posix() if project_dir != root else "."
     data = _read_json(package_json, facts.warnings, root)
-    if not data:
+    if not data or not valid_node_dependency_fields(data, package_json.relative_to(root).as_posix(), facts.warnings):
         return
 
     _add_unique(facts.languages, "javascript/typescript")

@@ -12,6 +12,7 @@ from evagix.scanning.shared import (
     _set_command,
     has_python_package_metadata,
     setup_cfg_has_package_metadata,
+    valid_python_dependency_fields,
 )
 from evagix.signatures import (
     BACKEND_PACKAGES,
@@ -58,6 +59,8 @@ def _scan_python(root: Path, facts: RepoFacts, ignored_paths: set[str]) -> None:
     )
 
     pyproject_data = _read_toml(pyproject, facts.warnings, root) if pyproject_exists else {}
+    if not valid_python_dependency_fields(pyproject_data, "pyproject.toml", facts.warnings):
+        pyproject_data = {}
     setup_cfg_package = setup_cfg_exists and setup_cfg_has_package_metadata(_safe_read(setup_cfg))
     package_metadata = has_python_package_metadata(pyproject_data) or setup_py_exists or setup_cfg_package
     has_python_sources = _has_files(root, {".py", ".ipynb"}, ignored_paths)
