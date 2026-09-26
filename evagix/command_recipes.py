@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from evagix.command_analysis import analyze_command
-from evagix.command_shell import basename, executable_index, normalize_command, tokenize
+from evagix.command_shell import basename, executable_index, split_shell_segments, tokenize, wrapper_payload
 from evagix.core.io import is_safe_repo_path, safe_read_text_result
 from evagix.core.paths import repo_relative as _safe_relative
 from evagix.evidence import Finding
@@ -14,12 +14,14 @@ from evagix.scanner_utils import TraversalDiagnostics, _iter_named_files
 from evagix.text_diagnostics import invalid_utf8_finding
 
 MAX_MANIFEST_CHARS = 400_000
+MAX_SCRIPT_REFERENCES = 100
 
 
 def scan_package_script_dangers(root: Path) -> list[Finding]:
     """Detect dangerous shell fragments hidden behind package-manager scripts."""
 
     findings: list[Finding] = []
+    inspected: set[str] = set()
     package_files, diagnostics = _iter_package_json_files(root)
     for package_json in package_files:
         relative = _safe_relative(root, package_json)
@@ -65,6 +67,15 @@ def scan_package_script_dangers(root: Path) -> list[Finding]:
                     recipe_kind="package.json script",
                 )
             )
+        findings.extend(
+            scan_referenced_script_dangers(
+                root,
+                {name: value for name, value in scripts.items() if isinstance(value, str)},
+                sources={name: relative for name in scripts},
+                cwd=package_json.parent,
+                _inspected=inspected,
+            )
+        )
     if diagnostics.incomplete:
         findings.append(_manifest_discovery_truncated_finding(diagnostics))
     return findings
@@ -74,6 +85,7 @@ def scan_task_recipe_dangers(root: Path) -> list[Finding]:
     """Detect dangerous commands hidden behind supported Makefile and justfile targets."""
 
     findings: list[Finding] = []
+    inspected: set[str] = set()
     for filename, parser, kind in (
         ("Makefile", _parse_makefile_recipes, "Makefile target"),
         ("justfile", _parse_justfile_recipes, "justfile recipe"),
@@ -103,7 +115,24 @@ def scan_task_recipe_dangers(root: Path) -> list[Finding]:
         if read_result.truncated:
             findings.append(_manifest_truncated_finding(filename))
             continue
-        for recipe_name, recipe_value, source_line in parser(read_result.text):
+        try:
+            recipes = parser(read_result.text)
+        except ValueError:
+            findings.append(_reference_incomplete_finding(filename, "Unsupported Make recipe syntax."))
+            continue
+        uncertain_cwd = bool(
+            filename == "Makefile"
+            and re.search(r"(?m)^\s*\.ONESHELL\s*:", read_result.text)
+            and any(
+                re.search(r"(?:^|[\s;&|])(?:cd|pushd|popd|source|eval|\.)(?:\s|$)", " ".join(tokenize(value)))
+                or "$" in value
+                or "`" in value
+                for _, value, _ in recipes
+            )
+        )
+        if uncertain_cwd:
+            findings.append(_reference_incomplete_finding(filename, ".ONESHELL directory changes are not modeled."))
+        for recipe_name, recipe_value, source_line in recipes:
             findings.extend(
                 _recipe_findings(
                     relative=filename,
@@ -113,6 +142,15 @@ def scan_task_recipe_dangers(root: Path) -> list[Finding]:
                     recipe_kind=kind,
                 )
             )
+            if filename == "Makefile" and not uncertain_cwd:
+                findings.extend(
+                    scan_referenced_script_dangers(
+                        root,
+                        {recipe_name: recipe_value},
+                        sources={recipe_name: filename},
+                        _inspected=inspected,
+                    )
+                )
     return findings
 
 
@@ -121,20 +159,36 @@ def scan_referenced_script_dangers(
     commands: dict[str, str],
     *,
     sources: dict[str, str] | None = None,
+    cwd: Path | None = None,
+    _inspected: set[str] | None = None,
 ) -> list[Finding]:
     """Inspect local shell scripts referenced by commands emitted to agents."""
 
     findings: list[Finding] = []
     source_map = sources or {}
-    inspected: set[str] = set()
+    inspected = _inspected if _inspected is not None else set()
     for command_name, command in sorted(commands.items()):
-        relative = _referenced_shell_script(command)
-        if relative is None or relative in inspected:
-            continue
-        inspected.add(relative)
-        path = root / relative
+        source = source_map.get(command_name, "detected command")
         try:
-            if not path.is_file() or not is_safe_repo_path(root, path):
+            reference = _referenced_shell_script(command)
+        except ValueError:
+            findings.append(_reference_incomplete_finding(source, "Complex or unresolved local script reference."))
+            continue
+        if reference is None:
+            continue
+        path = (cwd if cwd is not None else root) / reference
+        relative = _safe_relative(root, path)
+        if relative in inspected:
+            continue
+        if len(inspected) >= MAX_SCRIPT_REFERENCES:
+            findings.append(_reference_incomplete_finding(source, "Local script inspection budget exhausted."))
+            break
+        inspected.add(relative)
+        try:
+            if not is_safe_repo_path(root, path) or not path.is_file():
+                findings.append(
+                    _reference_incomplete_finding(source, "Local script is missing or outside path policy.")
+                )
                 continue
             read_result = safe_read_text_result(
                 path,
@@ -161,6 +215,14 @@ def scan_referenced_script_dangers(
             candidate = line.strip()
             if not candidate or candidate.startswith(("#", "::", "rem ")):
                 continue
+            try:
+                nested_reference = _referenced_shell_script(candidate)
+            except ValueError:
+                nested_reference = candidate
+            if nested_reference is not None:
+                findings.append(
+                    _reference_incomplete_finding(relative, "Nested local script references are not modeled.")
+                )
             for risk in analyze_command(candidate):
                 source = source_map.get(command_name, relative)
                 findings.append(
@@ -188,18 +250,56 @@ def scan_referenced_script_dangers(
     return findings
 
 
-def _referenced_shell_script(command: str) -> str | None:
-    tokens = tokenize(normalize_command(command))
+def _referenced_shell_script(command: str, *, _depth: int = 0) -> str | None:
+    # Deliberately support only direct invocations, never interpret shell flow.
+    if _depth > 3 or len(command) > 65_536:
+        raise ValueError("Reference command exceeds the analysis limit")
+    if "\x00" in command:
+        raise ValueError("NUL in a script reference")
+    tokens = tokenize(command, strict=True)
     index = executable_index(tokens)
     if index is None:
         return None
     executable = basename(tokens[index])
+    if executable == "exec":
+        raise ValueError("exec wrappers are not modeled")
     args = tokens[index + 1 :]
+    shells = {"bash", "sh", "zsh", "pwsh", "powershell", "cmd", "source"}
+    suffixes = (".sh", ".ps1", ".cmd", ".bat")
+    cmd_script = (
+        executable == "cmd"
+        and len(args) == 2
+        and args[0].casefold() == "/c"
+        and args[1].lower().endswith((".cmd", ".bat"))
+    )
+    payload = wrapper_payload(tokens)
+    if payload is not None and not cmd_script:
+        if _referenced_shell_script(payload, _depth=_depth + 1) is not None or any(
+            basename(token) in shells or token.lower().endswith(suffixes) for token in args if token != payload
+        ):
+            raise ValueError("Wrapped local references are unsupported")
+        return None
+    reference_tokens: list[str] = []
+    for segment in split_shell_segments(command):
+        segment_tokens = tokenize(segment)
+        segment_index = executable_index(segment_tokens)
+        if segment_index is not None and basename(segment_tokens[segment_index]) in {"echo", "printf"}:
+            # Printing arguments are data; later command segments still need inspection.
+            continue
+        reference_tokens.extend(segment_tokens)
+    looks_local = executable == "." or any(
+        basename(token) in shells or token.lower().endswith(suffixes) or token.startswith(("./", "../"))
+        for token in reference_tokens
+    )
+    if looks_local and (re.search(r"[\r\n;&|<>\x60^()]|(?:^|\s)#", command) or "\\" in command):
+        raise ValueError("Compound script references are unsupported")
     candidate: str | None = None
-    if executable in {"bash", "sh", "zsh"}:
-        if any(arg.casefold() in {"-c", "--command"} for arg in args):
-            return None
-        candidate = next((arg for arg in args if not arg.startswith("-")), None)
+    if executable in {"bash", "sh", "zsh", "source", "."}:
+        if args and args[0] == "--":
+            args = args[1:]
+        if args and args[0].startswith(("-", "+")):
+            raise ValueError("Unsupported shell option before a script reference")
+        candidate = args[0] if args else None
     elif executable in {"pwsh", "powershell"}:
         for position, arg in enumerate(args):
             if arg.casefold() in {"-file", "/file"} and position + 1 < len(args):
@@ -207,20 +307,39 @@ def _referenced_shell_script(command: str) -> str | None:
                 break
         if candidate is None:
             candidate = next((arg for arg in args if arg.lower().endswith(".ps1")), None)
-    elif executable == "cmd":
-        candidate = next((arg for arg in args if arg.lower().endswith((".cmd", ".bat"))), None)
-    elif tokens[index].lower().endswith((".sh", ".ps1", ".cmd", ".bat")):
+    elif cmd_script:
+        candidate = args[1]
+    elif tokens[index].lower().endswith(suffixes):
+        if "/" not in tokens[index] and "\\" not in tokens[index]:
+            raise ValueError("PATH-based script resolution is unsupported")
         candidate = tokens[index]
-    if candidate is None or any(marker in candidate for marker in ("$", "%", "`")):
+    elif tokens[index].startswith(("./", "../", "$", "%")):
+        raise ValueError("Unresolved local executable")
+    if candidate is None:
         return None
-    normalized = candidate.strip("\"'").replace("\\", "/")
-    if normalized.startswith("./"):
-        normalized = normalized[2:]
-    if not normalized or Path(normalized).is_absolute() or ".." in Path(normalized).parts:
-        return None
-    if Path(normalized).suffix.lower() not in {".sh", ".ps1", ".cmd", ".bat"}:
-        return None
+    if any(marker in candidate for marker in ("$", "%", "`", "*", "?", "~")):
+        raise ValueError("Dynamic script path")
+    normalized = candidate.replace("\\", "/")
+    if normalized.startswith("/") or re.match(r"^[A-Za-z]:", normalized) or ".." in Path(normalized).parts:
+        raise ValueError("Non-local script path")
     return Path(normalized).as_posix()
+
+
+def _reference_incomplete_finding(source: str, reason: str) -> Finding:
+    return Finding(
+        id="command-safety.scan-truncated",
+        title="Local recipe analysis was incomplete",
+        category="command_safety",
+        severity="high",
+        status="incomplete",
+        source=source,
+        source_file=source,
+        evidence=[reason],
+        risk="A local recipe or script reference could not be inspected confidently.",
+        recommendation="Use a direct, repository-local script reference with a fixed invoking directory.",
+        confidence="high",
+        root_cause=f"local-reference-incomplete:{source}:{reason}",
+    )
 
 
 def _recipe_findings(
@@ -260,9 +379,31 @@ def _parse_makefile_recipes(raw: str) -> list[tuple[str, str, int]]:
     recipes: list[tuple[str, str, int]] = []
     current_target: str | None = None
     for line_number, line in enumerate(raw.splitlines(), start=1):
-        target_match = re.match(r"^([A-Za-z0-9_.-]+)\s*:(?![=])", line)
+        line = line.lstrip(" ")
+        if line.startswith(".RECIPEPREFIX"):
+            raise ValueError("Custom Make recipe prefixes are unsupported")
+        target_match = re.match(r"^((?:\\.|[A-Za-z0-9_.%/-])+)\s*::?(?![:=])", line)
         if target_match:
             current_target = target_match.group(1)
+            remainder = line[target_match.end() :].lstrip()
+            assignment = re.match(
+                r"(?:(?:private|override|export|unexport)\s+)*[^\s:=+?!]+\s*(:::=|::?=|[?+!]?=)", remainder
+            )
+            if assignment:
+                if assignment.group(1) == "!=" or re.search(r"\$[({]\s*(?:shell|eval)\b", remainder):
+                    raise ValueError("Executable Make variable assignment")
+                continue
+            header, separator, command = remainder.partition(";")
+            if re.search(r"(?<!\\)(?:\\\\)*#", header):
+                continue
+            if header.rstrip().endswith("\\"):
+                raise ValueError("Continued Make prerequisite headers are unsupported")
+            if separator:
+                if re.search(r"\\(?!#)", header) or "$" in header:
+                    raise ValueError("Ambiguous Make prerequisite separator")
+                command = command.strip().lstrip("@-+").strip()
+                if command:
+                    recipes.append((current_target, command, line_number))
             continue
         if current_target and line.startswith("\t"):
             command = line.lstrip("\t@-+").strip()
@@ -270,6 +411,8 @@ def _parse_makefile_recipes(raw: str) -> list[tuple[str, str, int]]:
                 recipes.append((current_target, command, line_number))
             continue
         if line and not line[0].isspace() and not line.lstrip().startswith("#"):
+            if ":" in line and ";" in line and not re.match(r"^[^:=]+(?:::?=|:::=|[?+!]?=)", line):
+                raise ValueError("Unsupported inline Make target")
             current_target = None
     return recipes
 
