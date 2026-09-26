@@ -84,10 +84,11 @@ class TraversalDiagnostics:
     truncated: bool = False
     result_limit_reached: bool = False
     read_errors: int = 0
+    size_excluded_files: int = 0
 
     @property
     def incomplete(self) -> bool:
-        return self.truncated or self.result_limit_reached or self.read_errors > 0
+        return self.truncated or self.result_limit_reached or self.read_errors > 0 or self.size_excluded_files > 0
 
     def warning(self, scope: str) -> str:
         reasons: list[str] = []
@@ -98,6 +99,11 @@ class TraversalDiagnostics:
         if self.read_errors:
             reasons.append(
                 f"{self.read_errors} filesystem entr{'y' if self.read_errors == 1 else 'ies'} could not be inspected"
+            )
+        if self.size_excluded_files:
+            reasons.append(
+                f"{self.size_excluded_files} relevant file(s) exceeded the file-size limit "
+                "and were excluded without inspection"
             )
         reason = " and ".join(reasons) or "a configured scan limit was reached"
         state = "incomplete" if self.read_errors else "truncated"

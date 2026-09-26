@@ -194,7 +194,8 @@ def _agent_and_doc_files(root: Path) -> tuple[list[Path], TraversalDiagnostics]:
                 break
             seen.add(relative)
             files.append(path)
-        if diagnostics.incomplete:
+        # Size exclusions do not exhaust the traversal budget for later directories.
+        if diagnostics.truncated or diagnostics.result_limit_reached or diagnostics.read_errors:
             break
     return sorted(files), diagnostics
 
@@ -206,14 +207,19 @@ def _is_context_text_candidate(
     diagnostics: TraversalDiagnostics | None = None,
 ) -> bool:
     try:
-        return (
+        if not (
             is_safe_repo_path(root, path)
             and not path.is_symlink()
             and not is_sensitive_file_name(path.name)
             and path.is_file()
             and path.suffix.lower() in TEXT_SUFFIXES
-            and path.stat().st_size <= MAX_CONTEXT_TEXT_BYTES
-        )
+        ):
+            return False
+        if path.stat().st_size > MAX_CONTEXT_TEXT_BYTES:
+            if diagnostics is not None:
+                diagnostics.size_excluded_files += 1
+            return False
+        return True
     except OSError:
         if diagnostics is not None:
             diagnostics.read_errors += 1

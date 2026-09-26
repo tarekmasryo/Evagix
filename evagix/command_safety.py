@@ -382,7 +382,10 @@ def _iter_text_files_with_diagnostics(root: Path) -> tuple[list[Path], Traversal
         if is_sensitive_file_name(path.name):
             continue
         try:
-            if path.suffix.lower() in TEXT_SUFFIXES and path.stat().st_size <= 500_000:
+            if path.suffix.lower() in TEXT_SUFFIXES:
+                if path.stat().st_size > 500_000:
+                    diagnostics.size_excluded_files += 1
+                    continue
                 if len(files) >= MAX_TEXT_FILES:
                     diagnostics.result_limit_reached = True
                     break
