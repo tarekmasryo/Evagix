@@ -141,7 +141,7 @@ CLI_SECRET_FLAG: Final[re.Pattern[str]] = re.compile(
     r"access-token|auth-token|secret|secret-key)(?:\s*=\s*|\s+))"
     # Serialized double quotes must survive the final text-redaction boundary.
     r'(?P<value>\\"(?:\\\\(?:\\[^\r\n]|[^"\\\r\n])|\\[^"\\\r\n]|[^"\\\r\n])+\\"'
-    r"""|"(?:\\[^\r\n]|[^"\\\r\n])+"|'[^'\r\n]+'|(?!\\["'])[^\s"']+)""",
+    r"""|"(?:\\[\s\S]|[^"\\])+"|'[^']+'|(?!\\["'])[^\s"']+)""",
     re.IGNORECASE,
 )
 

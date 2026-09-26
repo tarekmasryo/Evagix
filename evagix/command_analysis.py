@@ -89,10 +89,23 @@ def analyze_command(command: str) -> list[CommandRisk]:
     return _analyze_command(command, depth=0)
 
 
+def _incomplete_command() -> CommandRisk:
+    return CommandRisk(
+        "command-safety.scan-truncated",
+        "Command syntax or nesting exceeds the supported static analysis subset.",
+        status="incomplete",
+    )
+
+
 def _analyze_command(command: str, *, depth: int) -> list[CommandRisk]:
+    if depth > 3 or len(command) > 65_536:
+        return [_incomplete_command()]
     normalized = normalize_command(command)
-    if not normalized or depth > 3:
+    if not normalized:
         return []
+    # Keep the existing detectors intact. Never infer safety from normalization
+    # when physical boundaries, expansions, or unsupported shell syntax were lost.
+    uncertain = bool(re.search(r"""[\r\n`^()]|\$['"]|(?<!&)&(?!&)|(?:^|\s)#""", command))
     risks: list[CommandRisk] = []
     risks.extend(_remote_execution_risks(normalized))
     risks.extend(_environment_pipeline_risks(normalized))
@@ -109,11 +122,27 @@ def _analyze_command(command: str, *, depth: int) -> list[CommandRisk]:
                 )
             )
         payload = wrapper_payload(tokens)
+        index = _executable_index(tokens)
+        if index is not None:
+            executable = _basename(tokens[index])
+            uncertain |= index > 0 and tokens[index].startswith(("-", "+"))
+            if executable in {"bash", "sh", "zsh"}:
+                uncertain |= payload is None and (index + 1 == len(tokens) or tokens[index + 1].startswith(("-", "+")))
+                uncertain |= sum(arg.casefold() in {"-c", "--command", "-lc"} for arg in tokens[index + 1 :]) > 1
+            if executable in {"cmd", "powershell", "pwsh"}:
+                uncertain |= payload is None or any(char in segment for char in ("'", '"', "\\"))
         if payload:
             risks.extend(_analyze_command(payload, depth=depth + 1))
         risks.extend(_destructive_command_risks(tokens, segment))
         risks.extend(_environment_risks(tokens, segment))
-    return _dedupe_risks(risks)
+    if not risks:
+        try:
+            _tokenize(normalized, strict=True)
+        except ValueError:
+            uncertain = True
+        if uncertain:
+            risks.append(_incomplete_command())
+    return _dedupe_risks([risk for risk in risks if risk.status == "unsafe"] or risks)
 
 
 def _remote_execution_risks(command: str) -> list[CommandRisk]:

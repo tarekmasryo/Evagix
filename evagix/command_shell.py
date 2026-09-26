@@ -26,10 +26,12 @@ def split_pipeline(command: str) -> list[str]:
     return [segment.strip() for segment in re.split(r"(?<!\|)\|(?!\|)", command) if segment.strip()]
 
 
-def tokenize(command: str) -> list[str]:
+def tokenize(command: str, *, strict: bool = False) -> list[str]:
     try:
         return shlex.split(command, posix=True)
     except ValueError:
+        if strict:
+            raise
         return re.findall(r'"[^"]*"|\'[^\']*\'|\S+', command)
 
 
@@ -42,6 +44,8 @@ def executable_index(tokens: list[str]) -> int | None:
         executable = basename(tokens[index])
         if executable in {"sudo", "command", "env"}:
             index += 1
+            while executable == "sudo" and index < len(tokens) and tokens[index] == "-n":
+                index += 1
             while index < len(tokens) and "=" in tokens[index] and not tokens[index].startswith(("/", "./")):
                 index += 1
             continue
@@ -56,7 +60,10 @@ def contains_executable(tokens: list[str], names: set[str] | frozenset[str]) -> 
 def prints_environment(tokens: list[str]) -> bool:
     index = 0
     while index < len(tokens) and basename(tokens[index]) in {"sudo", "command"}:
+        executable = basename(tokens[index])
         index += 1
+        while executable == "sudo" and index < len(tokens) and tokens[index] == "-n":
+            index += 1
     if index >= len(tokens):
         return False
     executable = basename(tokens[index])
@@ -136,7 +143,7 @@ def wrapper_payload(tokens: list[str]) -> str | None:
     executable = basename(tokens[index])
     args = tokens[index + 1 :]
     if executable in {"bash", "sh", "zsh"}:
-        return _payload_after_flag(args, {"-c", "--command"})
+        return _payload_after_flag(args, {"-c", "--command", "-lc"})
     if executable == "cmd":
         return _payload_after_flag(args, {"/c", "-c"}, join_remaining=True)
     if executable in {"pwsh", "powershell"}:

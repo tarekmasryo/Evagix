@@ -160,6 +160,20 @@ def scan_dangerous_commands(root: Path, *, paths: list[Path] | None = None) -> l
                 if _is_protective_command_context(line, match_start=match_start):
                     continue
                 for risk in risks:
+                    # Inline code can be API names or prose, not shell input.
+                    if (
+                        risk.status == "incomplete"
+                        and path.suffix.lower() in {".md", ".txt"}
+                        and not (
+                            _looks_like_command_line(command)
+                            or re.search(
+                                r"\b(?:(?:run|execute)(?:\s+(?:the|shell|command))*|command(?:\s+is)?)\s*$",
+                                line[:match_start],
+                                re.IGNORECASE,
+                            )
+                        )
+                    ):
+                        continue
                     if risk.rule_id == "dangerous-command.print-env" and _is_print_env_prose(command):
                         continue
                     findings.append(
@@ -207,9 +221,13 @@ def _looks_like_command_line(line: str) -> bool:
         return False
     cleaned = re.sub(r"^(?:[-*]\s+|[$>]\s*)", "", line).strip()
     tokens = _tokenize(cleaned)
+    if tokens and _basename(tokens[0]) in {"sudo", "env", "command"}:
+        return True
     executable_index = _executable_index(tokens)
     first = _basename(tokens[executable_index]) if executable_index is not None else ""
     return first in {
+        "echo",
+        "printf",
         "rm",
         "sudo",
         "curl",
