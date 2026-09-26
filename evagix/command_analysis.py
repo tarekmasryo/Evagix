@@ -34,7 +34,7 @@ from evagix.command_shell import (
     tokenize as _tokenize,
 )
 from evagix.security.labels import is_secret_label
-from evagix.security.redaction import REDACTION_MARKER
+from evagix.security.redaction import CLI_SECRET_FLAG, REDACTION_MARKER
 
 
 @dataclass(frozen=True)
@@ -278,14 +278,9 @@ def _environment_risks(tokens: list[str], segment: str) -> list[CommandRisk]:
 
 
 def _literal_secret_flag(command: str) -> str | None:
-    long_flag = re.search(
-        r"(?<![\w-])--(?P<name>password|passwd|pwd|token|api-key|apikey|client-secret|access-token|auth-token|secret|secret-key)"
-        r"(?:\s*=\s*|\s+)(?P<quote>[\"']?)(?P<value>[^\s\"']+)(?P=quote)",
-        command,
-        re.IGNORECASE,
-    )
-    if long_flag and _is_literal_secret(long_flag.group("value")):
-        return long_flag.group("name")
+    for long_flag in CLI_SECRET_FLAG.finditer(command):
+        if _is_literal_secret(long_flag.group("value")):
+            return long_flag.group("name")
     docker_short = re.search(
         r"\bdocker\s+login\b[^\r\n]*(?:^|\s)-p(?:\s+|=)(?P<value>[^\s]+)",
         command,

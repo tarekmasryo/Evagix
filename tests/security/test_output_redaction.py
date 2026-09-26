@@ -9,7 +9,7 @@ from pytest import CaptureFixture
 from evagix.cli import main
 from evagix.evidence import Finding
 from evagix.model import RepoFacts
-from evagix.renderers import render_all
+from evagix.renderers import TARGETS, render_all
 from evagix.report_models import DoctorFinding, DoctorReport
 from evagix.reports.context_pack import render_context_pack
 from evagix.security.output import execute_with_redacted_output
@@ -406,3 +406,110 @@ def test_postgres_password_assignment_never_leaves_eval_or_evidence_outputs(
     evidence_output = capsys.readouterr()
     assert secret not in evidence_output.out + evidence_output.err
     assert REDACTION_MARKER in evidence_output.out
+
+
+@pytest.mark.parametrize(
+    "argument",
+    [
+        '--password "baseline dummy password"',
+        "--password 'baseline dummy password'",
+        '--password="baseline dummy password"',
+    ],
+)
+@pytest.mark.parametrize("output_format", ["json", "text"])
+def test_scan_redacts_quoted_cli_secret(
+    tmp_path: Path, capsys: CaptureFixture[str], argument: str, output_format: str
+) -> None:
+    command = f"tool {argument} --output result.json"
+    (tmp_path / "evagix.toml").write_text(f"[commands]\ntest={json.dumps(command)}\n", encoding="utf-8")
+
+    assert main(["scan", str(tmp_path), "--format", output_format]) == 0
+    output = capsys.readouterr()
+    assert "baseline dummy password" not in output.out + output.err
+    assert REDACTION_MARKER in output.out
+    assert "result.json" in output.out
+    if output_format == "json":
+        payload = json.loads(output.out)
+        assert payload["commands"]["test"] == redact_sensitive_text(command)
+
+
+@pytest.mark.parametrize("quote", ['"', "'"])
+def test_quoted_cli_secret_never_leaves_renderers(tmp_path: Path, quote: str) -> None:
+    secret = "baseline dummy password"
+    command = f"tool --password {quote}{secret}{quote} --output result.json"
+    facts = RepoFacts(root_name="demo", commands={"test": command})
+    report = DoctorReport(
+        score=75,
+        findings=[DoctorFinding(severity="error", code="test-secret", message=command, penalty=25)],
+        maturity_level="needs-attention",
+    )
+    generated = render_all(facts, target_keys=list(TARGETS))
+    doctor_json = render_doctor_json(facts, report)
+    sarif = render_sarif(tmp_path, facts, report)
+    outputs = [
+        *generated.values(),
+        render_context_pack(tmp_path, facts),
+        render_static_audit_markdown(tmp_path, facts),
+        doctor_json,
+        render_doctor_markdown(tmp_path, facts, report),
+        sarif,
+        render_github_annotations(report),
+        render_pr_comment(facts, report),
+    ]
+
+    assert all(secret not in output for output in outputs)
+    assert any(REDACTION_MARKER in output for output in outputs)
+    for path, content in generated.items():
+        if path.endswith(".json"):
+            json.loads(content)
+    json.loads(doctor_json)
+    json.loads(sarif)
+
+
+@pytest.mark.parametrize("structured", [False, True])
+@pytest.mark.parametrize(
+    "command",
+    [
+        'tool --password "baseline dummy password" --output result.json',
+        r'tool --password "baseline \"dummy\" password" --output result.json',
+        r'tool --password "baseline \\dummy password" --output result.json',
+    ],
+)
+def test_final_output_boundary_redacts_quoted_cli_secret(
+    capsys: CaptureFixture[str], structured: bool, command: str
+) -> None:
+    import sys
+
+    expected = 'tool --password "[REDACTED]" --output result.json'
+    payload = {"command": command, "safe": "keep this value"}
+    text = json.dumps(payload) if structured else command
+
+    def emit() -> None:
+        print(text)
+        print(text, file=sys.stderr)
+
+    execute_with_redacted_output(emit)
+    output = capsys.readouterr()
+    for stream in [output.out, output.err]:
+        assert "baseline" not in stream
+        assert "dummy" not in stream
+        assert REDACTION_MARKER in stream
+        if structured:
+            assert json.loads(stream) == {"command": expected, "safe": "keep this value"}
+        else:
+            assert stream.strip() == expected
+        assert redact_sensitive_text(stream) == stream
+
+
+def test_exception_boundary_redacts_quoted_cli_secret() -> None:
+    command = 'tool --password "baseline dummy password"'
+
+    def fail() -> None:
+        error = RuntimeError(command)
+        error.add_note(command)
+        raise error
+
+    with pytest.raises(RuntimeError) as captured:
+        execute_with_redacted_output(fail)
+    assert str(captured.value) == 'tool --password "[REDACTED]"'
+    assert captured.value.__notes__ == ['tool --password "[REDACTED]"']
