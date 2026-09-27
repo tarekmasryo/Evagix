@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from evagix.model import RepoFacts
+from evagix.safety import quote_command_path
 from evagix.scanner_utils import _has_files, _is_ignored_path, _is_safe_repo_path, _iter_files, _safe_read
 from evagix.scanning.base import _is_available, _read_toml
 from evagix.scanning.shared import (
@@ -117,7 +118,7 @@ def _scan_python(root: Path, facts: RepoFacts, ignored_paths: set[str]) -> None:
         _set_command(
             facts,
             "install",
-            f"python -m pip install -r {first}",
+            f"python -m pip install -r {quote_command_path(first)}",
             first,
             "requirements file detected",
             "high",
@@ -144,7 +145,7 @@ def _python_editable_install_command(
     )
     if dev_requirements is not None:
         return (
-            f"python -m pip install -e . -r {dev_requirements.name}",
+            f"python -m pip install -e . -r {quote_command_path(dev_requirements.name)}",
             f"editable Python project with {dev_requirements.name} detected",
             f"pyproject.toml + {dev_requirements.name}",
             "high",

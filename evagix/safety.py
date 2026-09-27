@@ -13,13 +13,18 @@ class EvagixSafetyError(ValueError):
     """Raised when user-provided paths or workflow inputs are unsafe."""
 
 
+def quote_command_path(path: str, *, description: str = "path") -> str:
+    """Represent a literal path in the shared CMD/POSIX subset, or fail before emitting a command."""
+    if not re.fullmatch(r"[\w ./@+=:,'-]+", path):
+        raise EvagixSafetyError(
+            f"Unsupported command {description} {path!r}: shell-specific escaping would be required."
+        )
+    return f'"{path}"' if " " in path or "'" in path else path
+
+
 def quote_command_directory(directory: str) -> str:
     """Quote a literal directory in the shared CMD/POSIX subset, without shell-specific escaping."""
-    if not re.fullmatch(r"[\w ./@+=:,'-]+", directory):
-        raise EvagixSafetyError(
-            f"Unsupported command directory {directory!r}: shell-specific escaping would be required."
-        )
-    return f'"{directory}"' if " " in directory or "'" in directory else directory
+    return quote_command_path(directory, description="directory")
 
 
 @dataclass(frozen=True)
