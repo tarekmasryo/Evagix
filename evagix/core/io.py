@@ -7,6 +7,8 @@ from contextlib import suppress
 from dataclasses import dataclass
 from pathlib import Path
 
+from evagix.core.paths import output_path_key, validate_output_path_syntax
+
 DEFAULT_MAX_TEXT_CHARS = 1_000_000
 
 
@@ -191,12 +193,24 @@ def build_write_plan(root: Path, outputs: dict[str, str], *, force: bool = False
     root = root.resolve(strict=False)
     files: list[PlannedFile] = []
     conflicts: list[str] = []
+    paths: set[str] = set()
     for relative_path, content in sorted(outputs.items()):
+        validate_output_path_syntax(relative_path)
         path = validate_repo_path(root, root / relative_path)
+        key = output_path_key(path)
+        if key in paths:
+            raise WriteConflictError(f"duplicate generated output path: {relative_path}")
+        paths.add(key)
         if path.exists() and not force:
             conflicts.append(relative_path)
             continue
         files.append(PlannedFile(relative_path=relative_path, path=path, content=content))
+    for key in sorted(paths):
+        for parent in Path(key).parents:
+            if str(parent) in paths:
+                raise WriteConflictError(
+                    f"file/directory conflict: {parent} is both an output and a required directory for {key}"
+                )
     return WritePlan(root=root, files=tuple(files), conflicts=tuple(conflicts))
 
 

@@ -5,6 +5,8 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
+from evagix.core.paths import output_path_key
+from evagix.safety import EvagixSafetyError
 from evagix.utils import normalize_generated_content, sha256_text, stable_json
 
 CONTENT_DIGEST_PREFIX = "evagix:content-digest="
@@ -25,6 +27,8 @@ class IntegrityManifest:
 def with_integrity_manifest(outputs: dict[str, str], source_fingerprint: str) -> dict[str, str]:
     """Return generated outputs plus a sidecar manifest of last-generation digests."""
 
+    if any(output_path_key(path) == output_path_key(INTEGRITY_MANIFEST_PATH) for path in outputs):
+        raise EvagixSafetyError(f"Output collides with reserved generated output path: {INTEGRITY_MANIFEST_PATH}")
     managed = dict(outputs)
     target_digests = {
         path: generated_content_digest(content)
