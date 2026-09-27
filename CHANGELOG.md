@@ -2,6 +2,19 @@
 
 All notable user-facing changes to Evagix are documented here.
 
+## [0.1.2]
+
+### Fixed
+
+- Redacted quoted CLI secrets and rejected unsafe multiline commands, shell wrappers, referenced scripts, and inline Make recipes.
+- Aligned generated-context evaluation with integrity checks and configured custom targets.
+- Corrected Python dependency-file risk classification and diagnosed malformed dependency metadata without crashes.
+- Quoted generated command paths containing spaces and respected configured doctor thresholds in the pre-commit hook.
+- Reported truncated configuration and oversized discovered files as incomplete.
+- Kept custom context generation fresh on the first run and stable across repeated generation.
+- Safely handled supported repository-derived paths in generated command arguments and rejected unsupported shell-sensitive path characters before publication.
+- Reserved built-in and integrity output paths, rejected conflicting or duplicate custom targets, and validated all output paths before writing to prevent silent overwrites or partial generation from invalid configuration.
+
 ## [0.1.1]
 
 Backward-compatible CLI presentation and terminal UX patch.
@@ -35,5 +48,6 @@ First public release.
 - Ambiguous evidence is reported for review rather than treated as verified truth.
 - The package supports Python 3.11 through 3.14 and has no runtime dependencies.
 
+[0.1.2]: https://github.com/tarekmasryo/Evagix/releases/tag/v0.1.2
 [0.1.1]: https://github.com/tarekmasryo/Evagix/releases/tag/v0.1.1
 [0.1.0]: https://github.com/tarekmasryo/Evagix/releases/tag/v0.1.0

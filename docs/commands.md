@@ -51,7 +51,7 @@ evagix init-ci . --fail-under 85
 Pin a specific GitHub fork or tag when the package is not installed from PyPI:
 
 ```bash
-evagix init-ci . --install-mode github --repo tarekmasryo/Evagix --ref v0.1.1
+evagix init-ci . --install-mode github --repo tarekmasryo/Evagix --ref v0.1.2
 ```
 
 Use editable installation only for local Evagix development:
@@ -67,7 +67,7 @@ Evagix also provides pre-commit hooks for downstream repositories:
 ```yaml
 repos:
   - repo: https://github.com/tarekmasryo/Evagix
-    rev: v0.1.1
+    rev: v0.1.2
     hooks:
       - id: evagix-check
       - id: evagix-doctor

@@ -312,7 +312,7 @@ Evagix provides hooks for downstream repositories:
 ```yaml
 repos:
   - repo: https://github.com/tarekmasryo/Evagix
-    rev: v0.1.1
+    rev: v0.1.2
     hooks:
       - id: evagix-check
       - id: evagix-doctor
