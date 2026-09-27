@@ -4,7 +4,8 @@ from textwrap import dedent
 from typing import cast
 
 from evagix.config import CustomTarget
-from evagix.generated_integrity import attach_content_digest
+from evagix.core.paths import output_path_key
+from evagix.generated_integrity import INTEGRITY_MANIFEST_PATH, attach_content_digest
 from evagix.model import RepoFacts
 from evagix.rendering.fingerprints import generated_markdown_header
 from evagix.rendering.payloads import _universal_context_payload, render_custom_context
@@ -30,8 +31,9 @@ from evagix.rendering.target_renderers import (
     render_roo_rule,
     render_windsurf_rule,
 )
+from evagix.safety import EvagixSafetyError
 from evagix.security.redaction import redact_sensitive_text
-from evagix.targets import DEFAULT_TARGET_KEYS, TARGET_ADAPTERS, target_paths
+from evagix.targets import DEFAULT_TARGET_KEYS, TARGET_ADAPTERS, builtin_output_paths, target_paths
 from evagix.task_renderers import render_agent_tasks
 from evagix.utils import format_csv, stable_json
 
@@ -66,23 +68,35 @@ def render_all(
         "generic": render_generic_agent_context,
     }
     outputs: dict[str, str] = {}
-    for key in keys:
+    paths: set[str] = set()
+
+    def add_output(path: str, content: str) -> None:
+        key = output_path_key(path)
+        if key in paths:
+            raise EvagixSafetyError(f"duplicate generated output path: {path}")
+        paths.add(key)
+        outputs[path] = attach_content_digest(redact_sensitive_text(content))
+
+    for key in dict.fromkeys(keys):
         renderer = renderers.get(key)
         if renderer is None:
             available = ", ".join(sorted(renderers))
             raise ValueError(f"Unknown render target: {key}. Available targets: {available}")
         rendered = renderer(facts)
         if isinstance(rendered, dict):
-            outputs.update(
-                {
-                    path: attach_content_digest(redact_sensitive_text(content))
-                    for path, content in cast(dict[str, str], rendered).items()
-                }
-            )
+            for path, content in cast(dict[str, str], rendered).items():
+                add_output(path, content)
         else:
-            outputs[TARGET_ADAPTERS[key].path] = attach_content_digest(redact_sensitive_text(cast(str, rendered)))
+            add_output(TARGET_ADAPTERS[key].path, cast(str, rendered))
+    reserved = {output_path_key(path) for path in builtin_output_paths() | {INTEGRITY_MANIFEST_PATH}}
+    names: set[str] = set()
     for target in custom_targets or []:
-        outputs[target.path] = attach_content_digest(redact_sensitive_text(render_custom_context(facts, target)))
+        if target.name.strip() in names:
+            raise EvagixSafetyError(f"duplicate custom target name: {target.name}")
+        names.add(target.name.strip())
+        if output_path_key(target.path) in reserved:
+            raise EvagixSafetyError(f"Custom target collides with reserved generated output path: {target.path}")
+        add_output(target.path, render_custom_context(facts, target))
     return outputs
 
 

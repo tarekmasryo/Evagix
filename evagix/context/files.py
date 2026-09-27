@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -69,8 +70,9 @@ def _unsafe_context_paths(root: Path) -> list[Finding]:
     return findings
 
 
-def _agent_context_files(root: Path) -> list[LoadedAgentContextFile]:
+def _agent_context_files(root: Path, *, extra_paths: Sequence[Path] = ()) -> list[LoadedAgentContextFile]:
     paths, _diagnostics = _candidate_paths(root)
+    paths = sorted(set(paths).union(extra_paths))
     files: list[LoadedAgentContextFile] = []
     for path in paths:
         try:

@@ -157,3 +157,59 @@ def test_all_agent_context_writers_block_dangerous_commands(
     assert "Unsafe validation commands detected" in captured.err
     assert not (tmp_path / ".evagix" / "commands.md").exists()
     assert not (tmp_path / "AGENTS.md").exists()
+
+
+@pytest.mark.parametrize(
+    "argument",
+    [
+        "--password secret",
+        '--token $TOKEN --password "secret with spaces"',
+        '--password "secret"',
+        "--password 'secret'",
+        '--password "secret with spaces"',
+        "--password 'secret with spaces'",
+        '--password="secret with spaces"',
+        '--token "secret with spaces"',
+        '--api-key "secret with spaces"',
+        '--client-secret "secret with spaces"',
+        '--secret "secret with spaces"',
+    ],
+)
+def test_compile_rejects_cli_secret_values_before_writing_context(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], argument: str
+) -> None:
+    _write_minimal_repo(tmp_path, f"tool {argument}")
+    before = {path.relative_to(tmp_path): path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
+
+    assert main(["compile", str(tmp_path)]) == 1
+    output = capsys.readouterr()
+    assert "Unsafe validation commands detected" in output.err
+    assert "secret with spaces" not in output.out + output.err
+    assert "[REDACTED]" in output.err
+    after = {path.relative_to(tmp_path): path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
+    assert after == before
+
+
+@pytest.mark.parametrize("command", [["onboard"], ["scoped"], ["sync"], ["sync", "--plan"]])
+def test_generation_writers_reject_quoted_cli_secret(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], command: list[str]
+) -> None:
+    _write_minimal_repo(tmp_path, 'tool --password "baseline dummy password"')
+
+    assert main([command[0], str(tmp_path), *command[1:]]) == 1
+    output = capsys.readouterr()
+    assert "Unsafe validation commands detected" in output.err
+    assert "baseline dummy password" not in output.out + output.err
+    assert not (tmp_path / "AGENTS.md").exists()
+    assert not (tmp_path / ".evagix").exists()
+
+
+@pytest.mark.parametrize("reference", ["$PASSWORD", "${PASSWORD}", "$env:PASSWORD", "%PASSWORD%"])
+def test_compile_allows_cli_secret_environment_reference(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], reference: str
+) -> None:
+    _write_minimal_repo(tmp_path, f'tool --password "{reference}"')
+
+    assert main(["compile", str(tmp_path)]) == 0
+    assert "Unsafe validation commands detected" not in capsys.readouterr().err
+    assert (tmp_path / "AGENTS.md").exists()

@@ -204,16 +204,16 @@ def _classify_changed_path(path: str) -> ChangedFileRisk:
     lower = normalized.lower()
     if not normalized:
         return ChangedFileRisk(path=path, risk="LOW", reason="empty path")
+    filename = lower.rsplit("/", 1)[-1]
+    high_risk_name = _matches_name(lower, HIGH_RISK_NAMES) or (
+        filename.startswith("requirements") and filename.endswith(".txt")
+    )
     # Non-executable documentation, tests, and examples remain low-risk even
     # when their paths describe sensitive concepts such as auth, migrations,
-    # or deployment. Operational paths are evaluated only after this context.
-    if _matches_prefix(lower, LOW_RISK_PREFIXES) or _matches_suffix(lower, LOW_RISK_SUFFIXES):
+    # or deployment. Known high-risk filenames take precedence over suffixes.
+    if _matches_prefix(lower, LOW_RISK_PREFIXES) or (_matches_suffix(lower, LOW_RISK_SUFFIXES) and not high_risk_name):
         return ChangedFileRisk(path=normalized, risk="LOW", reason="documentation, tests, or examples")
-    if (
-        _matches_prefix(lower, HIGH_RISK_PREFIXES)
-        or _matches_name(lower, HIGH_RISK_NAMES)
-        or _matches_segment(lower, HIGH_RISK_SEGMENTS)
-    ):
+    if _matches_prefix(lower, HIGH_RISK_PREFIXES) or high_risk_name or _matches_segment(lower, HIGH_RISK_SEGMENTS):
         return ChangedFileRisk(path=normalized, risk="HIGH", reason=_high_risk_reason(lower))
     if _matches_suffix(lower, MEDIUM_RISK_SUFFIXES) or _matches_name(lower, MEDIUM_RISK_NAMES):
         return ChangedFileRisk(path=normalized, risk="MEDIUM", reason="project configuration or package metadata")

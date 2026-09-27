@@ -114,7 +114,10 @@ def _redact_unquoted_assignment(match: re.Match[str]) -> str:
 
 
 def _redact_cli_secret_flag(match: re.Match[str]) -> str:
-    quote = match.group("quote") or ""
+    quote = match.groupdict().get("quote")
+    if quote is None:
+        value = match.group("value")
+        quote = next((delimiter for delimiter in ('\\"', '"', "'") if value.startswith(delimiter)), "")
     return f"{match.group('prefix')}{quote}{REDACTION_MARKER}{quote}"
 
 
@@ -130,6 +133,17 @@ def _redact_cmd_set_assignment(match: re.Match[str]) -> str:
 def _redact_mysql_short_password(match: re.Match[str]) -> str:
     separator = match.group("separator") or ""
     return f"{match.group('prefix')}{separator}{REDACTION_MARKER}"
+
+
+# Keep raw credential recognition and output redaction on the same value grammar.
+CLI_SECRET_FLAG: Final[re.Pattern[str]] = re.compile(
+    r"(?P<prefix>(?<![\w-])--(?P<name>password|passwd|pwd|token|api-key|apikey|client-secret|"
+    r"access-token|auth-token|secret|secret-key)(?:\s*=\s*|\s+))"
+    # Serialized double quotes must survive the final text-redaction boundary.
+    r'(?P<value>\\"(?:\\\\(?:\\[^\r\n]|[^"\\\r\n])|\\[^"\\\r\n]|[^"\\\r\n])+\\"'
+    r"""|"(?:\\[\s\S]|[^"\\])+"|'[^']+'|(?!\\["'])[^\s"']+)""",
+    re.IGNORECASE,
+)
 
 
 _RULES: Final[tuple[RedactionRule, ...]] = (
@@ -160,12 +174,7 @@ _RULES: Final[tuple[RedactionRule, ...]] = (
     ),
     RedactionRule(
         "cli-secret-flag",
-        re.compile(
-            r"(?P<prefix>(?<![\w-])--(?:password|passwd|pwd|token|api-key|apikey|client-secret|"
-            r"access-token|auth-token|secret|secret-key)(?:\s*=\s*|\s+))"
-            r"(?P<quote>[\"']?)(?P<value>[^\s\"']+)(?P=quote)",
-            re.IGNORECASE,
-        ),
+        CLI_SECRET_FLAG,
         _redact_cli_secret_flag,
     ),
     RedactionRule(

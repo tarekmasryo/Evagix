@@ -6,6 +6,7 @@ from typing import Protocol, TextIO
 
 from evagix import __version__
 from evagix.commands import core_cli, fix_cli, git_cli, inspect_cli, preview_cli, readiness_cli
+from evagix.safety import EvagixSafetyError
 from evagix.security.output import execute_with_redacted_output
 from evagix.terminal import terminal_style
 
@@ -55,7 +56,11 @@ def _dispatch(argv: list[str] | None = None, *, stdout_target: TextIO | None = N
         no_color=args.no_color,
     )
     for module in COMMAND_MODULES:
-        result = module.dispatch(args)
+        try:
+            result = module.dispatch(args)
+        except EvagixSafetyError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
         if result is not None:
             return result
     return 2

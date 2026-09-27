@@ -3,6 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from evagix.core.paths import output_path_key, validate_output_path_syntax
+from evagix.generated_integrity import INTEGRITY_MANIFEST_PATH
+from evagix.safety import EvagixSafetyError
+from evagix.targets import builtin_output_paths
 from evagix.utils import resolve_output_path
 
 CONFIG_FILENAMES = ("evagix.toml", ".evagix.toml")
@@ -132,6 +136,9 @@ def _validate_custom_targets(value: Any, errors: list[str], root: Path) -> None:
         errors.append("targets.custom must be a list of tables")
         return
     allowed = {"name", "path", "format", "include"}
+    names: set[str] = set()
+    paths: set[str] = set()
+    reserved = {output_path_key(root / path) for path in builtin_output_paths() | {INTEGRITY_MANIFEST_PATH}}
     for index, item in enumerate(value):
         prefix = f"targets.custom[{index}]"
         if not isinstance(item, dict):
@@ -140,12 +147,25 @@ def _validate_custom_targets(value: Any, errors: list[str], root: Path) -> None:
         _unknown_keys(prefix, item, allowed, errors)
         if not isinstance(item.get("name"), str) or not item.get("name", "").strip():
             errors.append(f"{prefix}.name must be a non-empty string")
+        else:
+            name = item["name"].strip()
+            if name in names:
+                errors.append(f"{prefix}.name: duplicate custom target name {name!r}")
+            names.add(name)
         raw_path = item.get("path")
         if not isinstance(raw_path, str) or not raw_path.strip():
             errors.append(f"{prefix}.path must be a non-empty string")
         else:
             try:
-                resolve_output_path(root, raw_path.strip())
+                validate_output_path_syntax(raw_path.strip())
+                path = output_path_key(resolve_output_path(root, raw_path.strip()))
+                if path in reserved:
+                    errors.append(f"{prefix}.path collides with reserved generated output path: {raw_path}")
+                if path in paths:
+                    errors.append(f"{prefix}.path: duplicate generated output path: {raw_path}")
+                paths.add(path)
+            except EvagixSafetyError as exc:
+                errors.append(f"{prefix}.path: {exc}")
             except ValueError:
                 errors.append(f"{prefix}.path must stay inside repository root")
         if "format" in item and item["format"] not in {"markdown", "json"}:

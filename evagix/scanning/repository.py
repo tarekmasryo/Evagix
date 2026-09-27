@@ -22,7 +22,7 @@ from evagix.scanning.project_evidence import (
 from evagix.scanning.python_evidence import _scan_python
 
 
-def scan_repo(root: Path, ignored_paths: list[str] | None = None) -> RepoFacts:
+def scan_repo(root: Path, ignored_paths: list[str] | None = None, *, planned_paths: tuple[Path, ...] = ()) -> RepoFacts:
     """Return repository facts derived from local files and lightweight built-in inference.
 
     This scanner collects filesystem and ecosystem evidence and applies only
@@ -53,5 +53,5 @@ def scan_repo(root: Path, ignored_paths: list[str] | None = None) -> RepoFacts:
     _derive_warnings(facts)
     facts.active_profiles = infer_profiles(facts)
     _apply_config_profiles(root, facts)
-    facts.classification = classify_project(root, facts).to_dict()
+    facts.classification = classify_project(root, facts, planned_paths=planned_paths).to_dict()
     return facts

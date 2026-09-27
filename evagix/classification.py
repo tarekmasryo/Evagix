@@ -6,7 +6,7 @@ from evagix.classification_models import ProjectClassification, ProjectTypeMatch
 from evagix.classification_rules import _is_primary_candidate, _Rule, _rule_priority, _rules
 from evagix.core.io import safe_read_text
 from evagix.model import RepoFacts
-from evagix.scanner_utils import TraversalDiagnostics, _iter_repo_files
+from evagix.scanner_utils import TraversalDiagnostics, _is_safe_repo_path, _iter_repo_files, is_skipped_dir_name
 from evagix.security.output import redacted_text_output
 from evagix.utils import stable_json
 
@@ -24,7 +24,7 @@ def format_primary_classification(classification: object) -> str:
         return str(primary["label"])
 
 
-def classify_project(root: Path, facts: RepoFacts) -> ProjectClassification:
+def classify_project(root: Path, facts: RepoFacts, *, planned_paths: tuple[Path, ...] = ()) -> ProjectClassification:
     """Classify repository shape without executing project code.
 
     The classifier is deliberately heuristic: it reports evidence and confidence,
@@ -33,7 +33,7 @@ def classify_project(root: Path, facts: RepoFacts) -> ProjectClassification:
     """
 
     root = Path(root)
-    signal_index = _signal_index(root, facts)
+    signal_index = _signal_index(root, facts, planned_paths=planned_paths)
     raw_matches = [_match_rule(rule, signal_index) for rule in _rules()]
     matches: list[ProjectTypeMatch] = [match for match in raw_matches if match is not None]
     if facts.languages:
@@ -98,12 +98,19 @@ def _match_rule(rule: _Rule, signals: dict[str, set[str]]) -> ProjectTypeMatch |
     )
 
 
-def _signal_index(root: Path, facts: RepoFacts) -> dict[str, set[str]]:
+def _signal_index(root: Path, facts: RepoFacts, *, planned_paths: tuple[Path, ...] = ()) -> dict[str, set[str]]:
     pyproject_text = _safe_read(root / "pyproject.toml").lower()
     package_json_text = _safe_read(root / "package.json").lower()
     readme_text = _safe_read(root / "README.md").lower()
     diagnostics = TraversalDiagnostics()
     paths = {path.relative_to(root).as_posix().lower() for path in _iter_bounded_files(root, diagnostics=diagnostics)}
+    # Include the file-presence evidence of approved outputs before they are written.
+    # Apply the same path exclusions as the real classification traversal.
+    for path in planned_paths:
+        if _is_safe_repo_path(root, path):
+            relative = path.relative_to(root)
+            if not any(is_skipped_dir_name(part) for part in relative.parts[:-1]):
+                paths.add(relative.as_posix().lower())
     if diagnostics.incomplete:
         warning = diagnostics.warning("Project classification path scan")
         if warning not in facts.warnings:

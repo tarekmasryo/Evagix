@@ -67,3 +67,62 @@ def test_redaction_applies_to_end_to_end_context_output(tmp_path: Path, capsys: 
     output = capsys.readouterr().out
     assert leaked not in output
     assert REDACTION_MARKER in output
+
+
+@pytest.mark.parametrize(
+    ("argument", "expected"),
+    [
+        ("--password secret", "--password [REDACTED]"),
+        ('--token $TOKEN --password "secret with spaces"', '--token [REDACTED] --password "[REDACTED]"'),
+        ('--password "secret"', '--password "[REDACTED]"'),
+        ("--password 'secret'", "--password '[REDACTED]'"),
+        ('--password "secret with spaces"', '--password "[REDACTED]"'),
+        ("--password 'secret with spaces'", "--password '[REDACTED]'"),
+        ('--password="secret with spaces"', '--password="[REDACTED]"'),
+        ('--token "secret with spaces"', '--token "[REDACTED]"'),
+        ('--api-key "secret with spaces"', '--api-key "[REDACTED]"'),
+        ('--client-secret "secret with spaces"', '--client-secret "[REDACTED]"'),
+        ('--secret "secret with spaces"', '--secret "[REDACTED]"'),
+        (r'--password "secret \"quoted\" value"', '--password "[REDACTED]"'),
+        ("--password \"secret with 'apostrophes'\"", '--password "[REDACTED]"'),
+        ('--password "first value" --token "second value"', '--password "[REDACTED]" --token "[REDACTED]"'),
+    ],
+)
+def test_cli_secret_values_are_detected_and_redacted(argument: str, expected: str) -> None:
+    command = f"tool {argument} --output result.json"
+
+    findings = scan_command_values({"test": command})
+    assert [finding.id for finding in findings] == ["dangerous-command.embedded-credential"]
+    redacted = redact_sensitive_text(command)
+    assert redacted == f"tool {expected} --output result.json"
+    assert redact_sensitive_text(redacted) == redacted
+    assert scan_command_values({"test": redacted}) == []
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        'tool --output "safe result.json"',
+        'tool --password-policy "safe policy"',
+        'tool --token-count "two words"',
+        'tool --client-secret-name "credential name"',
+        "tool --password-stdin",
+        "tool --password-file credentials.txt",
+        'tool --password "" --output safe.json',
+        "tool --password",
+    ],
+)
+def test_cli_secret_flag_redaction_preserves_safe_arguments(command: str) -> None:
+    assert redact_sensitive_text(command) == command
+    assert scan_command_values({"test": command}) == []
+
+
+@pytest.mark.parametrize("reference", ["$PASSWORD", "${PASSWORD}", "$env:PASSWORD", "%PASSWORD%"])
+@pytest.mark.parametrize("quote", ["", '"', "'"])
+def test_cli_secret_environment_references_keep_existing_behavior(reference: str, quote: str) -> None:
+    command = f"tool --password {quote}{reference}{quote} --output result.json"
+
+    assert scan_command_values({"test": command}) == []
+    expected = f"tool --password {quote}{REDACTION_MARKER}{quote} --output result.json"
+    assert redact_sensitive_text(command) == expected
+    assert redact_sensitive_text(expected) == expected

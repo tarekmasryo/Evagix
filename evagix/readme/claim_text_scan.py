@@ -48,6 +48,7 @@ def _iter_small_text_files(
             continue
         try:
             if path.stat().st_size > MAX_TEXT_FILE_BYTES:
+                state.size_excluded_files += 1
                 continue
         except (OSError, UnicodeError):
             continue

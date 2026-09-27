@@ -16,7 +16,11 @@ from evagix.ecosystems.utils import (
     _safe_read,
     _scope,
 )
-from evagix.scanning.shared import has_python_package_metadata, setup_cfg_has_package_metadata
+from evagix.scanning.shared import (
+    has_python_package_metadata,
+    setup_cfg_has_package_metadata,
+    valid_python_dependency_fields,
+)
 
 
 def _detect_python(
@@ -39,6 +43,8 @@ def _detect_python(
         evidence.extend(_prefix(rel, name) for name in lockfiles)
         pyproject = directory / "pyproject.toml"
         data = _read_toml(pyproject) if pyproject.exists() else {}
+        if not valid_python_dependency_fields(data, _rel(pyproject, root), warnings):
+            continue
         package_metadata = (
             has_python_package_metadata(data)
             or (directory / "setup.py").exists()

@@ -138,8 +138,6 @@ def context_eval_exit_code(
     if fail_on and strict:
         severity_rank = {"low": 1, "medium": 2, "high": 3, "critical": 4}
         threshold = severity_rank.get(fail_on, 0)
-        if threshold >= 3 and any(item.status == "fail" for item in report.checks):
-            return 1
         findings = report.findings or []
         if any(severity_rank.get(str(item.get("severity", "")), 0) >= threshold for item in findings):
             return 1

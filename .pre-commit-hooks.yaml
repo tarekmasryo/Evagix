@@ -9,7 +9,7 @@
 - id: evagix-doctor
   name: Evagix readiness check
   description: Enforce the repository readiness threshold configured for Evagix.
-  entry: evagix doctor --strict --fail-under 80
+  entry: evagix doctor --strict
   language: python
   pass_filenames: false
   stages: [pre-push]

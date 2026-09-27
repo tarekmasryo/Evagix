@@ -94,7 +94,22 @@ def _cmd_compile(
 
     if not dry_run:
         try:
-            apply_write_plan(build_write_plan(root, dict(planned), force=True))
+            plan = build_write_plan(root, dict(planned), force=True)
+            if config.custom_targets:
+                missing_parents = {item.path.parent for item in plan.files if not item.path.parent.exists()}
+                for parent in sorted(missing_parents):
+                    parent.mkdir(parents=True, exist_ok=True)
+                # Scan the final directories and include planned file-presence evidence.
+                # Render once against that state; no generated-file write/rescan loop is needed.
+                facts, _ = _facts(root, profiles, planned_paths=tuple(item.path for item in plan.files))
+                if reject_unsafe_generated_commands(root, facts):
+                    return 1
+                outputs = with_integrity_manifest(
+                    render_all(facts, target_keys, config.custom_targets),
+                    facts_fingerprint(facts.to_dict()),
+                )
+                plan = build_write_plan(root, outputs, force=True)
+            apply_write_plan(plan)
         except OSError as exc:
             print(f"ERROR: {exc}", file=sys.stderr)
             return 1

@@ -13,7 +13,7 @@ from evagix.ecosystems.utils import (
     _scope,
 )
 from evagix.scanning.node_policy import _node_install_command, _node_package_manager
-from evagix.scanning.shared import is_node_test_placeholder
+from evagix.scanning.shared import is_node_test_placeholder, valid_node_dependency_fields
 
 
 def _detect_node(
@@ -26,7 +26,7 @@ def _detect_node(
         directory = package_json.parent
         rel = _rel(directory, root)
         data = _read_json(package_json)
-        if not data:
+        if not data or not valid_node_dependency_fields(data, _rel(package_json, root), warnings):
             continue
         deps = {}
         for key in ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]:

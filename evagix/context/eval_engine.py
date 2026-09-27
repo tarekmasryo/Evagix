@@ -8,8 +8,10 @@ from evagix.context.eval_models import ContextCheck, ContextEvaluation
 from evagix.context_quality import audit_context_quality
 from evagix.core.io import safe_read_text_result
 from evagix.evidence import Finding
+from evagix.generated_integrity import INTEGRITY_MANIFEST_PATH
 from evagix.model import RepoFacts
 from evagix.renderers import DEFAULT_TARGETS, TARGETS
+from evagix.report_models import CheckResult
 from evagix.scanners.agent_files import discover_agent_files
 from evagix.utils import extract_fingerprint, is_generated
 
@@ -45,12 +47,7 @@ def _finding_dicts(findings: Sequence[Finding]) -> list[dict[str, object]]:
     return [item.to_dict() for item in findings]
 
 
-def _drift_findings(
-    root: Path, facts: RepoFacts, target_keys: list[str] | None, custom_targets: list[CustomTarget] | None
-) -> list[Finding]:
-    from evagix.validators import check_repo
-
-    check = check_repo(root, facts, target_keys=target_keys, custom_targets=custom_targets, fail_on_stale=True)
+def _drift_findings(check: CheckResult) -> list[Finding]:
     findings: list[Finding] = []
     if check.stale_targets:
         findings.append(
@@ -67,19 +64,30 @@ def _drift_findings(
                 metadata={"affected_targets": list(check.stale_targets)},
             )
         )
-    if check.tampered_targets:
+    # A missing manifest is reported only in check.errors, unlike invalid metadata.
+    integrity_errors = [
+        error
+        for error in check.errors
+        if error.startswith(f"Generated integrity manifest is missing: {INTEGRITY_MANIFEST_PATH}.")
+    ]
+    tampered_targets = [*check.tampered_targets, *([INTEGRITY_MANIFEST_PATH] if integrity_errors else [])]
+    if tampered_targets:
         findings.append(
             Finding(
                 id="generated-context-tampered",
-                title="Generated Evagix context was modified manually",
+                title=(
+                    "Generated Evagix integrity metadata is missing"
+                    if integrity_errors
+                    else "Generated Evagix context was modified manually"
+                ),
                 category="agent_context",
                 severity="high",
                 status="fail",
                 source="generated context files",
-                evidence=list(check.tampered_targets),
+                evidence=[*tampered_targets, *integrity_errors],
                 risk="AI agents may follow modified generated instructions that no longer match repository evidence.",
                 recommendation="Run `evagix compile .` or move intentional custom instructions outside generated files.",
-                metadata={"affected_targets": list(check.tampered_targets)},
+                metadata={"affected_targets": tampered_targets},
             )
         )
     if check.unmanaged_targets:
@@ -153,8 +161,10 @@ def evaluate_context(
     target_keys: list[str] | None = None,
     custom_targets: list[CustomTarget] | None = None,
 ) -> ContextEvaluation:
-    present, missing, texts, truncated = _collect_present_generated_targets_with_diagnostics(root)
-    if not present:
+    present, missing, texts, truncated = _collect_present_generated_targets_with_diagnostics(
+        root, target_keys=target_keys, custom_targets=custom_targets
+    )
+    if not present and not target_keys and not custom_targets:
         return _evaluate_external_or_missing_context(root, facts, strict=strict)
     return _evaluate_generated_context(
         root,
@@ -175,13 +185,16 @@ def _collect_present_generated_targets(root: Path) -> tuple[list[str], list[str]
 
 def _collect_present_generated_targets_with_diagnostics(
     root: Path,
+    *,
+    target_keys: list[str] | None = None,
+    custom_targets: list[CustomTarget] | None = None,
 ) -> tuple[list[str], list[str], list[str], list[str]]:
     present: list[str] = []
     missing: list[str] = []
     texts: list[str] = []
     truncated: list[str] = []
-    targets = dict(DEFAULT_TARGETS)
-    for key, target in TARGETS.items():
+    targets = list(DEFAULT_TARGETS.values()) if target_keys is None else [TARGETS[key] for key in target_keys]
+    for target in TARGETS.values() if target_keys is None else ():
         path = root / target
         if not path.exists():
             continue
@@ -194,8 +207,9 @@ def _collect_present_generated_targets_with_diagnostics(
         except (OSError, UnicodeError):
             continue
         if is_generated(read_result.text):
-            targets[key] = target
-    for target in targets.values():
+            targets.append(target)
+    targets.extend(target.path for target in custom_targets or [])
+    for target in dict.fromkeys(targets):
         path = root / target
         if path.exists():
             try:
@@ -274,8 +288,11 @@ def _evaluate_generated_context(
                 "Generated context verification was truncated for: " + ", ".join(truncated),
             )
         )
-    drift_findings = _drift_findings(root, facts, target_keys, custom_targets)
-    strict_findings = audit_context_quality(root, facts, strict=strict) if strict else []
+    from evagix.validators import check_repo
+
+    check = check_repo(root, facts, target_keys=target_keys, custom_targets=custom_targets, fail_on_stale=True)
+    drift_findings = _drift_findings(check)
+    strict_findings = audit_context_quality(root, facts, strict=strict, custom_targets=custom_targets) if strict else []
     all_findings = [*drift_findings, *strict_findings]
     checks.extend(_checks_from_findings(all_findings))
     score = _score_generated_context(missing=missing, checks=checks, findings=all_findings, strict=strict)

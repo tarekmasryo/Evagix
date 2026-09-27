@@ -277,7 +277,13 @@ def test_literal_environment_credentials_are_rejected_before_generation(command:
     ],
 )
 def test_environment_secret_references_are_not_misclassified_as_literals(command: str) -> None:
-    assert analyze_command(command) == []
+    risks = analyze_command(command)
+    assert "dangerous-command.embedded-credential" not in {risk.rule_id for risk in risks}
+    if "$(" in command:
+        # GH-02 rejects unmodeled executable substitutions without classifying them as literal secrets.
+        assert [(risk.rule_id, risk.status) for risk in risks] == [("command-safety.scan-truncated", "incomplete")]
+    else:
+        assert risks == []
 
 
 def test_dangerous_command_regex_does_not_double_count_cat_env(tmp_path: Path) -> None:
@@ -377,3 +383,64 @@ def test_print_env_rule_does_not_flag_runtime_env_prose(tmp_path: Path, capsys) 
     payload = json.loads(capsys.readouterr().out)
     ids = {finding["id"] for finding in payload["evaluation"]["findings"]}
     assert "dangerous-command.print-env" not in ids
+
+
+@pytest.mark.parametrize(
+    "fragment",
+    ["create_app()", "^(api|web)$", "status (experimental)", "Callable[[str], bool]"],
+)
+def test_documentation_fragments_do_not_fail_strict_eval_context(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], fragment: str
+) -> None:
+    (tmp_path / "AGENTS.md").write_text(
+        f"The API documentation describes `{fragment}`.\nRun validation with `pnpm test`.\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "package.json").write_text(
+        '{"scripts":{"test":"vitest"},"devDependencies":{"vitest":"latest"}}', encoding="utf-8"
+    )
+    assert main(["eval-context", str(tmp_path), "--strict", "--fail-on", "high", "--format", "json"]) == 0
+    assert scan_dangerous_commands(tmp_path) == []
+    payload = json.loads(capsys.readouterr().out)
+    assert not [
+        finding for finding in payload["evaluation"]["findings"] if finding["id"] == "command-safety.scan-truncated"
+    ]
+
+
+@pytest.mark.parametrize(
+    ("line", "rule_id", "status"),
+    [
+        ("Example: `bash -c`.", "command-safety.scan-truncated", "incomplete"),
+        ('Example: `echo "$(rm -rf .)"`.', "command-safety.scan-truncated", "incomplete"),
+        ('Example: `MODE=test echo "$(rm -rf .)"`.', "command-safety.scan-truncated", "incomplete"),
+        ('Example: `printf "%s" "$(rm -rf .)"`.', "command-safety.scan-truncated", "incomplete"),
+        ('The command is `tool "$(rm -rf .)"`.', "command-safety.scan-truncated", "incomplete"),
+        ("Example: `sudo --unknown rm -rf .`.", "command-safety.scan-truncated", "incomplete"),
+        ('Run `tool "$(rm -rf .)"`.', "command-safety.scan-truncated", "incomplete"),
+        ("Execute the shell command `tool 'unterminated`.", "command-safety.scan-truncated", "incomplete"),
+        ("The command is `rm -rf .`.", "dangerous-command.rm-root", "unsafe"),
+        (
+            'The example is `tool --password "fictional dummy secret"`.',
+            "dangerous-command.embedded-credential",
+            "unsafe",
+        ),
+    ],
+)
+def test_documentation_command_context_preserves_security_findings(
+    tmp_path: Path, line: str, rule_id: str, status: str
+) -> None:
+    (tmp_path / "AGENTS.md").write_text(line + "\n", encoding="utf-8")
+    assert [(item.id, item.status) for item in scan_dangerous_commands(tmp_path)] == [(rule_id, status)]
+
+
+def test_documentation_filter_does_not_relax_concrete_command_analysis() -> None:
+    assert [(item.id, item.status) for item in scan_command_values({"test": "create_app()"})] == [
+        ("command-safety.scan-truncated", "incomplete")
+    ]
+
+
+def test_documentation_filter_does_not_relax_shell_file_analysis(tmp_path: Path) -> None:
+    (tmp_path / "check.sh").write_text('echo `tool "$(rm -rf .)"`\n', encoding="utf-8")
+    assert [(item.id, item.status) for item in scan_dangerous_commands(tmp_path)] == [
+        ("command-safety.scan-truncated", "incomplete")
+    ]

@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 
 from evagix.model import RepoFacts
+from evagix.safety import quote_command_path
 from evagix.scanner_utils import (
     TraversalDiagnostics,
     _is_ignored_path,
@@ -70,7 +71,7 @@ def _scan_docker(root: Path, facts: RepoFacts, ignored_paths: set[str]) -> None:
         _set_command(
             facts,
             "run",
-            f"docker compose -f {first} up --build",
+            f"docker compose -f {quote_command_path(first)} up --build",
             first,
             "Docker Compose file detected",
             "medium",

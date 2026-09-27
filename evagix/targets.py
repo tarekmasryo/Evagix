@@ -14,6 +14,7 @@ class TargetAdapter:
     renderer: str
     default_enabled: bool = True
     category: str = "context-export"
+    additional_paths: tuple[str, ...] = ()
 
 
 TARGET_ADAPTERS: dict[str, TargetAdapter] = {
@@ -66,6 +67,13 @@ TARGET_ADAPTERS: dict[str, TargetAdapter] = {
         label="Agent Task Templates",
         description="Optional task templates with allowed files, forbidden files, validation commands, stop conditions, and human review triggers.",
         renderer="agent_tasks",
+        additional_paths=(
+            ".agent_tasks/bugfix.md",
+            ".agent_tasks/refactor.md",
+            ".agent_tasks/add-feature.md",
+            ".agent_tasks/write-tests.md",
+            ".agent_tasks/security-review.md",
+        ),
         default_enabled=False,
         category="universal-context",
     ),
@@ -188,6 +196,10 @@ ALL_TARGET_KEYS: tuple[str, ...] = tuple(TARGET_ADAPTERS)
 def target_paths(*, default_only: bool = False) -> dict[str, str]:
     names = DEFAULT_TARGET_KEYS if default_only else ALL_TARGET_KEYS
     return {name: TARGET_ADAPTERS[name].path for name in names}
+
+
+def builtin_output_paths() -> set[str]:
+    return {path for adapter in TARGET_ADAPTERS.values() for path in (adapter.path, *adapter.additional_paths)}
 
 
 def target_adapter(name: str) -> TargetAdapter:
