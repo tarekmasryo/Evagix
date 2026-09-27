@@ -41,13 +41,15 @@ def _resolve_cli_output_path(root: Path, output: str) -> Path:
         raise SystemExit(1) from exc
 
 
-def _facts(root: Path, profiles: list[str] | None = None) -> tuple[RepoFacts, EvagixConfig]:
+def _facts(
+    root: Path, profiles: list[str] | None = None, *, planned_paths: tuple[Path, ...] = ()
+) -> tuple[RepoFacts, EvagixConfig]:
     root = _normalize_existing_root(root)
     config = load_config(root)
     if config.parse_error:
         print(f"ERROR: Invalid Evagix config at {config.path}: {config.parse_error}", file=sys.stderr)
         raise SystemExit(1)
-    facts = scan_repo(root, ignored_paths=config.ignored_paths)
+    facts = scan_repo(root, ignored_paths=config.ignored_paths, planned_paths=planned_paths)
     try:
         effective_profiles = normalize_profiles(merge_profiles(config, profiles))
     except ValueError as exc:
