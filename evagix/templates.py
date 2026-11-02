@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 CHECKOUT_ACTION = "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1"
-SETUP_PYTHON_ACTION = "actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0"
+SETUP_PYTHON_ACTION = "actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0"
 CODEQL_UPLOAD_SARIF_ACTION = "github/codeql-action/upload-sarif@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # v4.36.0"
 
 EVAGIX_CONFIG_TEMPLATE = """# Evagix config

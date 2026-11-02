@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=83,<85", "wheel>=0.47,<1"]
+requires = ["setuptools>=84.1,<85", "wheel>=0.47,<1"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -40,7 +40,7 @@ Security = "https://github.com/tarekmasryo/Evagix/blob/main/SECURITY.md"
 
 [project.optional-dependencies]
 dev = [
-  "setuptools==83.0.0",
+  "setuptools==84.2.1",
   "wheel==0.47.0",
   "pytest==9.1.1",
   "pytest-cov==7.1.0",
