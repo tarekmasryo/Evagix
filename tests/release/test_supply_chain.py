@@ -15,11 +15,11 @@ HTML_LINK = re.compile(r"<(?:a|img)\b[^>]*\b(?:href|src)=[\"']([^\"']+)[\"']", r
 PORTABLE_PREFIXES = ("https://", "http://", "#", "mailto:")
 EXPECTED_ACTIONS = {
     "actions/checkout": ("3d3c42e5aac5ba805825da76410c181273ba90b1", "v7.0.1"),
-    "actions/setup-python": ("5fda3b95a4ea91299a34e894583c3862153e4b97", "v7.0.0"),
-    "actions/upload-artifact": ("043fb46d1a93c77aae656e7c1c64a875d1fc6a0a", "v7.0.1"),
-    "actions/download-artifact": ("3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c", "v8.0.1"),
+    "actions/setup-python": ("6d4fd22b20465ccc0f7354476588e8df7c9ca0e0", "v7.1.0"),
+    "actions/upload-artifact": ("cf430e030ddbb5b0abf93d22962f4752f3646cd9", "v7.0.2"),
+    "actions/download-artifact": ("9000827ccba6bdab643e8b6fd33ac0654aef8333", "v8.0.2"),
     "github/codeql-action/upload-sarif": ("7211b7c8077ea37d8641b6271f6a365a22a5fbfa", "v4.36.0"),
-    "pypa/gh-action-pypi-publish": ("dc37677b2e1c63e2034f94d8a5b11f265b73ba33", "v1.14.2"),
+    "pypa/gh-action-pypi-publish": ("7245906fb61fa33a13554f9d5fb856fe61758086", "v1.14.3"),
 }
 
 
@@ -123,11 +123,11 @@ def test_readme_links_are_portable_to_pypi() -> None:
 
 def test_release_build_backend_is_compatible_and_ci_toolchain_is_exact() -> None:
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    assert 'requires = ["setuptools>=83,<85", "wheel>=0.47,<1"]' in pyproject
+    assert 'requires = ["setuptools>=84.1,<85", "wheel>=0.47,<1"]' in pyproject
 
     constraints = (ROOT / "constraints-release.txt").read_text(encoding="utf-8").splitlines()
     assert "pip==26.2" in constraints
-    assert "setuptools==83.0.0" in constraints
+    assert "setuptools==84.2.1" in constraints
     assert "wheel==0.47.0" in constraints
     assert "build==1.5.0" in constraints
     assert "twine==6.2.0" in constraints
