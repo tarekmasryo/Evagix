@@ -20,16 +20,23 @@ Evagix emits stable, machine-readable JSON for CI, dashboards, and automation. T
 | `evagix/schemas/readme-audit.schema.json` | `evagix readme-audit --format json` reports. |
 | `evagix/schemas/scan-facts.schema.json` | `evagix scan --format json` repository facts. |
 
-## Preview Python contract
+## Preview evidence contracts
 
 `evagix/schemas/check-verification.schema.json` describes the redacted result of
 `evagix.verification.evaluate_check`. Its `$defs/request` and `$defs/batch` describe
-the JSON inputs; source assessment is a separate in-process input. This preview
-has no CLI command and does not change the stable contracts above. See the
+the JSON inputs; source assessment is a separate in-process input. The optional
+`verify-check --format json` command emits this same result after live collection.
+It does not change the stable contracts above. See the
 [check verification contract](guides/check-verification-contract.md) for trust
 boundaries and acceptance rules. Runtime parsers also enforce strict Python types
 (for example, rejecting `1.0` as an attempt). Display identities can grow during
 redaction and must not be reused as raw evidence.
+
+`evagix/schemas/github-pr-checks.schema.json` describes the redacted
+`pr-checks --format json` report. It keeps head and test-merge inventories separate;
+`completeness` covers endpoint pagination, and `policy_decision` remains
+`not_evaluated`. Its preview CLI contract tests validate the actual rendered output.
+See the [PR check guide](guides/pull-request-checks.md) for exit codes and limits.
 
 ## Stability policy
 

@@ -8,6 +8,9 @@ Existing CLI commands, schemas, and default scans are unchanged.
 An imported batch has no `SourceAssessment`. Evaluating it without a separately
 verified source returns `unverified`, even when a job reports `success`.
 
+For explicit network collection, see [Collecting a GitHub check result](github-check-collection.md).
+That separate adapter does not change this importer's offline trust boundary.
+
 ## Supported snapshot
 
 Import `GitHubActionsScope` and `normalize_actions_attempt` from
@@ -94,9 +97,10 @@ or its digest. Validation errors never include supplied values. The batch digest
 binds the normalized contract fields; it is not a hash of the original HTTP
 response and does not authenticate that response.
 
-A future collector must establish provenance and applicability separately. Do not
-create a verified assessment merely because this import succeeds. Offline data
-may be internally consistent and still be fabricated or stale.
+The optional live collector authenticates the source of GitHub metadata, with the
+execution limits above. Do not create a verified assessment merely because this
+import succeeds. Offline data may be internally consistent and still be fabricated
+or stale.
 
 ## Python example
 

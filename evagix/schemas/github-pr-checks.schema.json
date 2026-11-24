@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evagix.dev/schemas/github-pr-checks.schema.json",
+  "title": "Evagix GitHub pull request checks",
+  "description": "Redacted GitHub-reported check inventories for head and an available test-merge revision. Completeness describes collected endpoint inventories, not required-check policy or merge authorization.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "repository",
+    "repository_id",
+    "pull_request",
+    "state",
+    "base_sha",
+    "head_sha",
+    "test_merge_status",
+    "completeness",
+    "policy_decision",
+    "required_checks",
+    "revisions"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "kind": { "const": "github_pr_checks" },
+    "repository": { "$ref": "#/$defs/displayText" },
+    "repository_id": { "$ref": "#/$defs/id" },
+    "pull_request": { "$ref": "#/$defs/id" },
+    "state": { "enum": ["open", "closed"] },
+    "base_sha": { "$ref": "#/$defs/sha" },
+    "head_sha": { "$ref": "#/$defs/sha" },
+    "test_merge_status": { "enum": ["available", "unavailable", "not_applicable"] },
+    "completeness": { "$ref": "#/$defs/completeness" },
+    "policy_decision": { "const": "not_evaluated" },
+    "required_checks": { "const": "unknown" },
+    "revisions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2,
+      "prefixItems": [
+        {
+          "allOf": [
+            { "$ref": "#/$defs/revision" },
+            { "properties": { "kind": { "const": "head" } } }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/$defs/revision" },
+            { "properties": { "kind": { "const": "test_merge" } } }
+          ]
+        }
+      ],
+      "items": false
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "test_merge_status": { "const": "available" } } },
+      "then": {
+        "properties": {
+          "state": { "const": "open" },
+          "revisions": { "minItems": 2 }
+        }
+      },
+      "else": { "properties": { "revisions": { "maxItems": 1 } } }
+    },
+    {
+      "if": { "properties": { "state": { "const": "closed" } } },
+      "then": { "properties": { "test_merge_status": { "const": "not_applicable" } } },
+      "else": { "properties": { "test_merge_status": { "enum": ["available", "unavailable"] } } }
+    }
+  ],
+  "$defs": {
+    "displayText": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Display text after central redaction, which can expand a bounded provider value."
+    },
+    "nullableText": {
+      "anyOf": [
+        { "$ref": "#/$defs/displayText" },
+        { "type": "null" }
+      ]
+    },
+    "id": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9223372036854775807
+    },
+    "sha": {
+      "type": "string",
+      "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})(?![\\s\\S])"
+    },
+    "completeness": { "enum": ["complete", "incomplete"] },
+    "revision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "sha", "completeness", "checks"],
+      "properties": {
+        "kind": { "enum": ["head", "test_merge"] },
+        "sha": { "$ref": "#/$defs/sha" },
+        "completeness": { "$ref": "#/$defs/completeness" },
+        "checks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/check" }
+        }
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind", "id", "name", "producer", "producer_id", "status", "conclusion", "result", "url"
+      ],
+      "properties": {
+        "kind": { "enum": ["check_run", "commit_status"] },
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "$ref": "#/$defs/displayText" },
+        "producer": { "$ref": "#/$defs/nullableText" },
+        "producer_id": {
+          "anyOf": [
+            { "$ref": "#/$defs/id" },
+            { "type": "null" }
+          ]
+        },
+        "status": { "$ref": "#/$defs/displayText" },
+        "conclusion": { "$ref": "#/$defs/nullableText" },
+        "result": { "enum": ["passed", "failed", "pending", "other", "unknown"] },
+        "url": { "$ref": "#/$defs/nullableText" }
+      }
+    }
+  }
+}

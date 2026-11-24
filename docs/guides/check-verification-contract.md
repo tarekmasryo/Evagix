@@ -48,10 +48,11 @@ then encode the complete batch payload. Hash the prefix
 Reordering is immaterial, while
 changing a record or collection metadata invalidates the binding. A digest proves
 content equality, not authenticity. `caller_verified` means that the supplied
-assessment is marked `verified` and bound to this batch; Evagix has not authenticated the source itself.
-Both CI and local sources require the same assessment. A future adapter must bind
-its assessment to the bytes it actually collected and authenticate the producer
-and collection scope before marking them verified.
+assessment is marked `verified` and bound to this batch; the evaluator itself does
+not authenticate the source. Both CI and local sources require the same assessment.
+The optional [GitHub collector](github-check-collection.md) authenticates the origin
+of provider metadata and binds an assessment to its normalized batch. This does
+not establish which code was actually tested or authenticate required-check policy.
 
 ## Result and decision rules
 
@@ -153,7 +154,8 @@ Use `parse_request(dict)` and `parse_batch(dict)` for JSON-decoded inputs.
 Constructing `SourceAssessment(batch.digest(), "verified", verifier_id)` is a
 trusted caller's assertion, not a way to authenticate an imported file. The caller
 must independently establish the producer, subject, selected run and attempt, and
-collection completeness. This preview includes no such adapter.
+collection completeness. For live GitHub.com metadata, use the separately invoked
+[collector](github-check-collection.md); importing an arbitrary file remains unverified.
 
 Use `result.to_dict()` for the centrally redacted report. Raw model fields are for
 internal comparison, not logging; model representations omit their field values.

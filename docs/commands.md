@@ -27,6 +27,40 @@ Human-readable terminal styling is enabled on supported interactive terminals. D
 | Preview and experimental | `evagix agents`, `evagix prepare`, `evagix context-pack`, `evagix mcp` |
 | Git-aware review | `evagix changed`, `evagix pr-risk` |
 | Remediation | `evagix fix` |
+| Explicit GitHub evidence (preview, network required) | `evagix pr-checks`, `evagix verify-check` |
+
+## Pull request check report (preview)
+
+```bash
+evagix pr-checks https://github.com/owner/repository/pull/123
+```
+
+Start from a PR URL to see reported failures, pending checks, other outcomes, and
+detail links, with head and test-merge inventories kept separate. No request JSON
+or local checkout is needed. `--all` includes passed text rows; `--format json`
+includes every collected row. Network/authentication is explicit, using only
+`EVAGIX_GITHUB_TOKEN` when set. See the [PR check guide](guides/pull-request-checks.md).
+
+**This command is a report, not a CI acceptance gate.** Exit `0` means complete
+collection, even when checks failed; `1` means incomplete inventory, and `2` means
+invalid input or collection failure. Required-check policy and merge readiness
+are not evaluated. The JSON shape is defined in `github-pr-checks.schema.json`.
+
+## Selected GitHub check (preview)
+
+```bash
+evagix verify-check --request check-request.json --github-repo owner/repository --format json
+```
+
+This development-version command collects GitHub.com metadata for one explicitly
+selected `push` job execution. It uses `EVAGIX_GITHUB_TOKEN` only when set; public
+metadata can be read anonymously. It does not run repository commands or change
+existing scans. See [request format, permissions, limits, and evidence meaning](guides/github-check-collection.md).
+
+Its exit codes are `0` for supported provider-reported success, `1` for a
+contradicted/unverified claim, and `2` for invalid input or an operational failure.
+JSON uses the existing check-verification schema; expected errors go to stderr.
+The result does not evaluate a merge policy or prove test execution on the claimed code.
 
 ## CI gate
 
@@ -110,7 +144,8 @@ External or missing agent context is deliberately unscored. JSON reports use `sc
 
 ## Exit-code contract
 
-Evagix uses a small, stable process-exit contract for automation:
+Existing repository commands use the following process-exit contract for automation.
+The explicit GitHub commands use their separate contracts documented above.
 
 | Code | Meaning |
 | --- | --- |

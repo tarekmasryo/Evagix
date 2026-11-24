@@ -68,6 +68,8 @@ nav:
   - Guides:
       - Configuration: configuration.md
       - CI Integration: guides/ci.md
+      - Pull Request Checks: guides/pull-request-checks.md
+      - Selected Check Evidence: guides/github-check-collection.md
   - Reference:
       - CLI Reference: commands.md
       - Rules: rules.md
