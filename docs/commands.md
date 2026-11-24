@@ -27,6 +27,23 @@ Human-readable terminal styling is enabled on supported interactive terminals. D
 | Preview and experimental | `evagix agents`, `evagix prepare`, `evagix context-pack`, `evagix mcp` |
 | Git-aware review | `evagix changed`, `evagix pr-risk` |
 | Remediation | `evagix fix` |
+| Explicit GitHub evidence (preview, network required) | `evagix verify-check` |
+
+## Selected GitHub check (preview)
+
+```bash
+evagix verify-check --request check-request.json --github-repo owner/repository --format json
+```
+
+This development-version command collects GitHub.com metadata for one explicitly
+selected `push` job execution. It uses `EVAGIX_GITHUB_TOKEN` only when set; public
+metadata can be read anonymously. It does not run repository commands or change
+existing scans. See [request format, permissions, limits, and evidence meaning](guides/github-check-collection.md).
+
+Its exit codes are `0` for supported provider-reported success, `1` for a
+contradicted/unverified claim, and `2` for invalid input or an operational failure.
+JSON uses the existing check-verification schema; expected errors go to stderr.
+The result does not evaluate a merge policy or prove test execution on the claimed code.
 
 ## CI gate
 
@@ -110,7 +127,8 @@ External or missing agent context is deliberately unscored. JSON reports use `sc
 
 ## Exit-code contract
 
-Evagix uses a small, stable process-exit contract for automation:
+Existing repository commands use the following process-exit contract for automation.
+The explicit `verify-check` command uses the separate contract documented above.
 
 | Code | Meaning |
 | --- | --- |

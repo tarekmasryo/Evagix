@@ -6,6 +6,7 @@ All notable user-facing changes to Evagix are documented here.
 
 ### Added
 
+- Preview `verify-check` command and optional GitHub.com collector for an explicitly selected push job execution. Collection verifies the provider endpoint, attempt scope, pagination, and observed run stability; results describe provider-reported outcomes, not checkout/test provenance or merge approval. Existing scans stay offline, and no runtime dependency or existing report schema changes.
 - Preview Python contract for verifying a specified check against supplied execution evidence and a separate caller assessment, with redacted results, a packaged schema, and a reproducible synthetic evaluation. It does not authenticate CI sources or change existing CLI behavior.
 
 ### Fixed
