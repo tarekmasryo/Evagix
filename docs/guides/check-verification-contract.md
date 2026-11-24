@@ -111,7 +111,7 @@ binding, missing and conflicting evidence, retries, source-kind independence,
 redaction, and unchanged existing CLI/schema behavior. No runtime dependency is
 needed; JSON Schema validation is a development-time check.
 
-A separate, frozen, specification-based synthetic case set must evaluate the same
+A separate, frozen, specification-based synthetic case set evaluates the same
 call path. Its fixture assessment simulates a trusted caller and does not test
 authentication. Record the case-set digest, implementation digest, disagreements,
 false support decisions, and counts by segment. Require no disagreements and no
@@ -156,3 +156,25 @@ internal comparison, not logging; model representations omit their field values.
 The packaged JSON Schema validates the report and defines request and batch inputs
 under `$defs`. Invalid input raises `ContractError` with a value-free message. The
 API is stateless, synchronous, and performs no I/O; callers own reading and writing.
+
+## Reproducing the contract evaluation
+
+From a development checkout, after the acceptance tests pass:
+
+```bash
+python -m pytest tests/verification --no-cov
+python -m scripts.evaluate_check_verification --output check-evaluation.json
+```
+
+The evaluation utility reads the frozen corpus only when explicitly invoked. It
+checks the manifest digest, case count, and unique IDs, then reports each expected
+and actual result, counts by segment, and an implementation fingerprint covering
+the preview engine, redaction modules, schema, and runner. Exit codes are `0` for
+agreement on all cases, `1` for a disagreement, and `2` for invalid evaluation
+inputs or an operational failure. Output files are created exclusively; use a new
+filename for each run to preserve earlier results. Acceptance tests use separate
+development cases and never load the frozen corpus.
+
+The [fixture notes](../../tests/fixtures/check-verification/README.md) describe
+provenance and reuse restrictions. The fingerprint identifies inspected source
+content; it does not authenticate the evaluator or record its Python environment.

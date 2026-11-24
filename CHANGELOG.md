@@ -6,7 +6,7 @@ All notable user-facing changes to Evagix are documented here.
 
 ### Added
 
-- Preview Python contract for verifying a specified check against supplied execution evidence and a separate caller assessment, with redacted results and a packaged schema. It does not authenticate CI sources or change existing CLI behavior.
+- Preview Python contract for verifying a specified check against supplied execution evidence and a separate caller assessment, with redacted results, a packaged schema, and a reproducible synthetic evaluation. It does not authenticate CI sources or change existing CLI behavior.
 
 ### Fixed
 

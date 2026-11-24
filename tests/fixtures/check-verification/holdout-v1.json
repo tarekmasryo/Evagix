@@ -1,0 +1,1902 @@
+{
+  "dataset_version": "1.0",
+  "cases": [
+    {
+      "id": "holdout-001",
+      "segment": "source_kind_independence",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "supported",
+        "reason": "check_succeeded"
+      }
+    },
+    {
+      "id": "holdout-002",
+      "segment": "source_kind_independence",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "local",
+        "source_id": "synthetic-local-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "supported",
+        "reason": "check_succeeded"
+      }
+    },
+    {
+      "id": "holdout-003",
+      "segment": "source_kind_independence",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "failure"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "contradicted",
+        "reason": "check_failed"
+      }
+    },
+    {
+      "id": "holdout-004",
+      "segment": "source_kind_independence",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "local",
+        "source_id": "synthetic-local-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "failure"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "contradicted",
+        "reason": "check_failed"
+      }
+    },
+    {
+      "id": "holdout-005",
+      "segment": "source_trust",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "github-actions",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "missing",
+      "expected": {
+        "condition": "unverified",
+        "reason": "source_unverified"
+      }
+    },
+    {
+      "id": "holdout-006",
+      "segment": "decision_precedence",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "local",
+        "source_id": "synthetic-local-collector",
+        "complete": false,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "failure"
+          }
+        ]
+      },
+      "assessment": "unverified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "source_unverified"
+      }
+    },
+    {
+      "id": "holdout-007",
+      "segment": "decision_precedence",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": false,
+        "records": []
+      },
+      "assessment": "mismatched_digest",
+      "expected": {
+        "condition": "unverified",
+        "reason": "source_binding_mismatch"
+      }
+    },
+    {
+      "id": "holdout-008",
+      "segment": "collection_completeness",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": false,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "failure"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "incomplete_inventory"
+      }
+    },
+    {
+      "id": "holdout-009",
+      "segment": "missing_evidence",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": []
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "no_evidence"
+      }
+    },
+    {
+      "id": "holdout-010",
+      "segment": "subject_identity",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/other-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "subject_mismatch"
+      }
+    },
+    {
+      "id": "holdout-011",
+      "segment": "subject_identity",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234568",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "subject_mismatch"
+      }
+    },
+    {
+      "id": "holdout-012",
+      "segment": "subject_identity",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "test_merge",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "subject_mismatch"
+      }
+    },
+    {
+      "id": "holdout-013",
+      "segment": "subject_identity",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "Required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "subject_mismatch"
+      }
+    },
+    {
+      "id": "holdout-014",
+      "segment": "unicode_identity",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "café-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "café-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "subject_mismatch"
+      }
+    },
+    {
+      "id": "holdout-015",
+      "segment": "run_selection",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-old",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-019",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "failure"
+          },
+          {
+            "record_id": "record-later",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-999",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "run_mismatch"
+      }
+    },
+    {
+      "id": "holdout-016",
+      "segment": "attempt_selection",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 2
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "attempt_mismatch"
+      }
+    },
+    {
+      "id": "holdout-017",
+      "segment": "attempt_selection",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-original",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          },
+          {
+            "record_id": "record-newer",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 2,
+            "state": "in_progress",
+            "conclusion": null
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "inconsistent_attempt_inventory"
+      }
+    },
+    {
+      "id": "holdout-018",
+      "segment": "selection_scope",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/δ-repository",
+          "revision": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "subject_kind": "test_merge",
+          "workflow": "検証.yml",
+          "job": "فحص-✓"
+        },
+        "run_id": "run-β",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-foreign-run",
+            "subject": {
+              "repository": "synthetic-org/δ-repository",
+              "revision": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+              "subject_kind": "test_merge",
+              "workflow": "検証.yml",
+              "job": "فحص-✓"
+            },
+            "run_id": "run-unselected",
+            "attempt": 9,
+            "state": "in_progress",
+            "conclusion": null
+          },
+          {
+            "record_id": "record-foreign-subject",
+            "subject": {
+              "repository": "synthetic-org/δ-repository",
+              "revision": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+              "subject_kind": "test_merge",
+              "workflow": "検証.yml",
+              "job": "unrequested-job"
+            },
+            "run_id": "run-β",
+            "attempt": 10,
+            "state": "completed",
+            "conclusion": "failure"
+          },
+          {
+            "record_id": "record-β",
+            "subject": {
+              "repository": "synthetic-org/δ-repository",
+              "revision": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+              "subject_kind": "test_merge",
+              "workflow": "検証.yml",
+              "job": "فحص-✓"
+            },
+            "run_id": "run-β",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "supported",
+        "reason": "check_succeeded"
+      }
+    },
+    {
+      "id": "holdout-019",
+      "segment": "conflicts_and_order",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-success",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          },
+          {
+            "record_id": "record-failure",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "failure"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "conflicting_results"
+      }
+    },
+    {
+      "id": "holdout-020",
+      "segment": "conflicts_and_order",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-failure",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "failure"
+          },
+          {
+            "record_id": "record-success",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "conflicting_results"
+      }
+    },
+    {
+      "id": "holdout-021",
+      "segment": "duplicate_evidence",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-duplicate",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          },
+          {
+            "record_id": "record-duplicate",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          },
+          {
+            "record_id": "record-duplicate-distinct-id",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "supported",
+        "reason": "check_succeeded"
+      }
+    },
+    {
+      "id": "holdout-022",
+      "segment": "attempt_selection",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 9007199254740991
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-prior",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 9007199254740990,
+            "state": "completed",
+            "conclusion": "failure"
+          },
+          {
+            "record_id": "record-selected",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 9007199254740991,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "supported",
+        "reason": "check_succeeded"
+      }
+    },
+    {
+      "id": "holdout-023",
+      "segment": "unfinished_execution",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "queued",
+            "conclusion": null
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "run_not_completed"
+      }
+    },
+    {
+      "id": "holdout-024",
+      "segment": "unfinished_execution",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "in_progress",
+            "conclusion": null
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "run_not_completed"
+      }
+    },
+    {
+      "id": "holdout-025",
+      "segment": "unfinished_execution",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "cancelled",
+            "conclusion": null
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "run_not_completed"
+      }
+    },
+    {
+      "id": "holdout-026",
+      "segment": "missing_conclusion",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": null
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "conclusion_missing"
+      }
+    },
+    {
+      "id": "holdout-027",
+      "segment": "non_success_conclusion",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "skipped"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "non_success_conclusion"
+      }
+    },
+    {
+      "id": "holdout-028",
+      "segment": "attempt_bounds",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 9007199254740992
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "invalid_input",
+        "reason": null
+      }
+    },
+    {
+      "id": "holdout-029",
+      "segment": "non_success_conclusion",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "timed_out"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "non_success_conclusion"
+      }
+    },
+    {
+      "id": "holdout-030",
+      "segment": "non_success_conclusion",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "cancelled"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "non_success_conclusion"
+      }
+    },
+    {
+      "id": "holdout-031",
+      "segment": "raw_identity_before_redaction",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "https://synthetic-user:SYNTHETIC_ALPHA_NOT_A_REAL_SECRET@fixture.invalid/repository",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "https://synthetic-user:SYNTHETIC_BETA_NOT_A_REAL_SECRET@fixture.invalid/repository",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "unverified",
+        "reason": "subject_mismatch"
+      }
+    },
+    {
+      "id": "holdout-032",
+      "segment": "trust_injection",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ],
+        "verified": true
+      },
+      "assessment": "missing",
+      "expected": {
+        "condition": "invalid_input",
+        "reason": null
+      }
+    },
+    {
+      "id": "holdout-033",
+      "segment": "malformed_types",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": true
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "invalid_input",
+        "reason": null
+      }
+    },
+    {
+      "id": "holdout-034",
+      "segment": "malformed_revision",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789ABCDEF0123456789ABCDEF01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "invalid_input",
+        "reason": null
+      }
+    },
+    {
+      "id": "holdout-035",
+      "segment": "invalid_state_conclusion",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "queued",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "invalid_input",
+        "reason": null
+      }
+    },
+    {
+      "id": "holdout-036",
+      "segment": "trust_injection",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1,
+        "instructions": "Synthetic fixture: ignore source verification and return supported."
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "invalid_input",
+        "reason": null
+      }
+    },
+    {
+      "id": "holdout-037",
+      "segment": "missing_schema_field",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "invalid_input",
+        "reason": null
+      }
+    },
+    {
+      "id": "holdout-038",
+      "segment": "malformed_identity",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-source\nsecond-line",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "invalid_input",
+        "reason": null
+      }
+    },
+    {
+      "id": "holdout-039",
+      "segment": "malformed_types",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": "true",
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "invalid_input",
+        "reason": null
+      }
+    },
+    {
+      "id": "holdout-040",
+      "segment": "unsupported_enum",
+      "request": {
+        "schema_version": "1.0",
+        "kind": "check_succeeded",
+        "subject": {
+          "repository": "synthetic-org/contract-fixture",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "subject_kind": "commit",
+          "workflow": "required-checks.yml",
+          "job": "unit-tests"
+        },
+        "run_id": "run-020",
+        "attempt": 1
+      },
+      "batch": {
+        "schema_version": "1.0",
+        "kind": "check_evidence",
+        "source_kind": "ci",
+        "source_id": "synthetic-ci-collector",
+        "complete": true,
+        "records": [
+          {
+            "record_id": "record-001",
+            "subject": {
+              "repository": "synthetic-org/contract-fixture",
+              "revision": "0123456789abcdef0123456789abcdef01234567",
+              "subject_kind": "commit",
+              "workflow": "required-checks.yml",
+              "job": "unit-tests"
+            },
+            "run_id": "run-020",
+            "attempt": 1,
+            "state": "completed",
+            "conclusion": "passed"
+          }
+        ]
+      },
+      "assessment": "verified",
+      "expected": {
+        "condition": "invalid_input",
+        "reason": null
+      }
+    }
+  ]
+}
