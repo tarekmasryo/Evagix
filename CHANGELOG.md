@@ -2,6 +2,12 @@
 
 All notable user-facing changes to Evagix are documented here.
 
+## [Unreleased]
+
+### Fixed
+
+- Detect supported `.env` reads with relative paths, options, multiple arguments, and PowerShell `Get-Content` / `gc`, including bare commands in agent instructions. Environment templates remain excluded.
+
 ## [0.1.2]
 
 ### Fixed

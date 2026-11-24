@@ -250,6 +250,8 @@ def _looks_like_command_line(line: str) -> bool:
         "printenv",
         "cat",
         "type",
+        "get-content",
+        "gc",
         "bash",
         "sh",
         "zsh",

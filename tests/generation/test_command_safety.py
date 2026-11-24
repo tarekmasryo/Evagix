@@ -213,3 +213,36 @@ def test_compile_allows_cli_secret_environment_reference(
     assert main(["compile", str(tmp_path)]) == 0
     assert "Unsafe validation commands detected" not in capsys.readouterr().err
     assert (tmp_path / "AGENTS.md").exists()
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "cat ./.env",
+        "cat -- .env",
+        "cat .env.production",
+        r"type .\.env",
+        "Get-Content .env",
+        "Get-Content -LiteralPath .env",
+    ],
+)
+def test_compile_rejects_environment_file_reads_before_any_write(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], command: str
+) -> None:
+    _write_minimal_repo(tmp_path, command)
+    before = {path.relative_to(tmp_path): path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
+
+    assert main(["compile", str(tmp_path)]) == 1
+    assert "Unsafe validation commands detected" in capsys.readouterr().err
+    after = {path.relative_to(tmp_path): path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
+    assert after == before
+
+
+@pytest.mark.parametrize(
+    "command", ["cat -- ./.env.example", r"type .\.env.template", "Get-Content -LiteralPath .env.sample"]
+)
+def test_compile_preserves_environment_template_commands(tmp_path: Path, command: str) -> None:
+    _write_minimal_repo(tmp_path, command)
+
+    assert main(["compile", str(tmp_path)]) == 0
+    assert command in (tmp_path / "AGENTS.md").read_text(encoding="utf-8")

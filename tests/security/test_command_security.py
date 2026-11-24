@@ -368,6 +368,37 @@ def test_dangerous_command_detector_allows_env_example(tmp_path: Path) -> None:
     assert "dangerous-command.cat-env" not in ids
 
 
+@pytest.mark.parametrize(
+    "command",
+    ["Get-Content .env", r"Get-Content -LiteralPath .\.env", "gc -Raw .env.production"],
+)
+def test_bare_powershell_file_reads_in_agent_context_are_detected(tmp_path: Path, command: str) -> None:
+    (tmp_path / "AGENTS.md").write_text(f"# Validation\n\n{command}\n", encoding="utf-8")
+
+    findings = scan_dangerous_commands(tmp_path)
+
+    assert [(item.id, item.source_file, item.source_line) for item in findings] == [
+        ("dangerous-command.cat-env", "AGENTS.md", 3)
+    ]
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "Get-Content .env.example",
+        r"gc -LiteralPath .\.env.template",
+        "Never run `Get-Content .env`.",
+        "Do not execute `gc -Raw .env`.",
+        "Never run Get-Content .env.",
+        "Avoid running gc .env.",
+    ],
+)
+def test_powershell_templates_and_protective_agent_guidance_remain_allowed(tmp_path: Path, line: str) -> None:
+    (tmp_path / "AGENTS.md").write_text(line + "\n", encoding="utf-8")
+
+    assert scan_dangerous_commands(tmp_path) == []
+
+
 def test_print_env_rule_does_not_flag_runtime_env_prose(tmp_path: Path, capsys) -> None:
     import json
 
