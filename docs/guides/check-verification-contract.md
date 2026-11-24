@@ -175,6 +175,6 @@ inputs or an operational failure. Output files are created exclusively; use a ne
 filename for each run to preserve earlier results. Acceptance tests use separate
 development cases and never load the frozen corpus.
 
-The [fixture notes](../../tests/fixtures/check-verification/README.md) describe
+The [fixture notes](https://github.com/tarekmasryo/Evagix/blob/9da38d431618d506e9a79be097273dc6d678c217/tests/fixtures/check-verification/README.md) describe
 provenance and reuse restrictions. The fingerprint identifies inspected source
 content; it does not authenticate the evaluator or record its Python environment.
