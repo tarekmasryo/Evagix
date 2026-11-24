@@ -26,14 +26,27 @@ from evagix.model import RepoFacts
 from evagix.prompt_injection import scan_context_poisoning
 
 
+def audit_context_safety(root: Path, *, custom_targets: list[CustomTarget] | None = None) -> list[Finding]:
+    """Inspect bounded agent context for unsafe guidance without style checks."""
+    files = _agent_context_files(root, extra_paths=[root / target.path for target in custom_targets or []])
+    return _context_safety_findings(root, files)
+
+
+def _context_safety_findings(root: Path, files: list[LoadedAgentContextFile]) -> list[Finding]:
+    findings = _unsafe_context_paths(root)
+    findings.extend(invalid_agent_context_findings(root, files))
+    findings.extend(truncated_agent_context_findings(files))
+    readable_paths = [item.path for item in files if not item.invalid_encoding and not item.read_error]
+    findings.extend(scan_dangerous_commands(root, paths=readable_paths))
+    findings.extend(scan_context_poisoning(root, paths=readable_paths))
+    return findings
+
+
 def audit_context_quality(
     root: Path, facts: RepoFacts, *, strict: bool = False, custom_targets: list[CustomTarget] | None = None
 ) -> list[Finding]:
     files = _agent_context_files(root, extra_paths=[root / target.path for target in custom_targets or []])
-    findings: list[Finding] = []
-    findings.extend(_unsafe_context_paths(root))
-    findings.extend(invalid_agent_context_findings(root, files))
-    findings.extend(truncated_agent_context_findings(files))
+    findings = _context_safety_findings(root, files)
     readable_files = [item for item in files if not item.invalid_encoding and not item.read_error]
     if not readable_files:
         if findings:
@@ -59,11 +72,9 @@ def audit_context_quality(
     findings.extend(_stale_or_tampered_generated(readable_files, facts))
     findings.extend(_duplicated_instructions(readable_files))
     findings.extend(_oversized_context(readable_files))
-    findings.extend(scan_dangerous_commands(root, paths=[item.path for item in readable_files]))
     findings.extend(scan_package_script_dangers(root))
     findings.extend(scan_task_recipe_dangers(root))
-    findings.extend(scan_context_poisoning(root, paths=[item.path for item in readable_files]))
     return findings
 
 
-__all__ = ["LoadedAgentContextFile", "audit_context_quality"]
+__all__ = ["LoadedAgentContextFile", "audit_context_quality", "audit_context_safety"]

@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from evagix.command_safety import scan_package_script_dangers, scan_task_recipe_dangers
+from evagix.config import CustomTarget
 from evagix.context_quality import audit_context_quality
 from evagix.ecosystems import ecosystem_payload
 from evagix.evidence import Finding, evidence_payload, finding_to_doctor_message
@@ -24,7 +25,7 @@ SEVERITY_TO_DOCTOR = {
 SEVERITY_TO_PENALTY = {severity: penalty for severity, penalty in STRICT_SEVERITY_WEIGHTS.items() if severity != "info"}
 
 
-def strict_findings(root: Path, facts: RepoFacts) -> list[Finding]:
+def strict_findings(root: Path, facts: RepoFacts, *, custom_targets: list[CustomTarget] | None = None) -> list[Finding]:
     readme_report = audit_readme(root, facts, strict=True)
     findings: list[Finding] = list(readme_report.findings)
     for claim in readme_report.claims:
@@ -54,7 +55,7 @@ def strict_findings(root: Path, facts: RepoFacts) -> list[Finding]:
                 recommendation=claim.suggestion,
             )
         )
-    findings.extend(audit_context_quality(root, facts, strict=True))
+    findings.extend(audit_context_quality(root, facts, strict=True, custom_targets=custom_targets))
     findings.extend(scan_package_script_dangers(root))
     findings.extend(scan_task_recipe_dangers(root))
     return _dedupe_findings(findings)

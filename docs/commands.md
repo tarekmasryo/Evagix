@@ -92,6 +92,14 @@ evagix readme-audit . --strict --fail-on unsupported
 evagix eval-context . --strict --fail-on high
 ```
 
+### Doctor agent-context safety
+
+`doctor` inspects discovered agent-context files and configured custom targets for dangerous-command and prompt-injection indicators by default. It reports unsafe paths, invalid UTF-8, and incomplete reads within that scope. Scanning never executes the documented commands.
+
+`--strict` still enables the additional context-quality and repository-evidence checks; default safety checks do not require missing setup, test, or style sections to be reported. Strict mode includes the same context-safety checks without scanning them twice.
+
+**Upgrade impact:** repositories previously accepted by default `doctor` can receive new findings and lower scores. The existing exit policy is unchanged: `doctor` exits `1` for error-level findings or a score below its configured threshold. Warning-level findings alone need not produce a nonzero exit. Review the new findings and your existing `--fail-under` policy before upgrading CI; no new flag, schema, or exit code is required.
+
 ### `--strict` versus failure policy
 
 `--strict` enables stricter evaluation. It does not always fail CI by itself. Use `--fail-under` or `--fail-on` to define the failure policy explicitly.

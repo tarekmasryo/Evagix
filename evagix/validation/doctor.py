@@ -4,6 +4,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from evagix.config import CustomTarget, EvagixConfig
+from evagix.context_quality import audit_context_safety
 from evagix.model import RepoFacts
 from evagix.report_models import DoctorFinding, DoctorReport
 from evagix.repository_intent import is_docs_or_education_repo
@@ -182,7 +183,10 @@ def doctor_repo(
         add("info", "dev-tools-undetected", "No developer tools were classified.", 5)
 
     if strict:
-        findings.extend(doctor_findings_from_evidence(strict_findings(root, facts)))
+        evidence_findings = strict_findings(root, facts, custom_targets=custom_targets)
+    else:
+        evidence_findings = audit_context_safety(root, custom_targets=custom_targets)
+    findings.extend(doctor_findings_from_evidence(evidence_findings))
 
     return _score_report(findings)
 

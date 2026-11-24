@@ -6,7 +6,12 @@ All notable user-facing changes to Evagix are documented here.
 
 ### Fixed
 
+- Inspect agent-context command safety, prompt-injection indicators, and incomplete reads in default `doctor`, including configured custom targets. Strict mode retains its additional checks without duplicating context safety findings.
 - Detect supported `.env` reads with relative paths, options, multiple arguments, and PowerShell `Get-Content` / `gc`, including bare commands in agent instructions. Environment templates remain excluded.
+
+### Compatibility
+
+- Default `doctor` can now report additional findings and lower scores. Existing thresholds and error-level findings still determine its exit status. Review CI expectations before upgrading; CLI flags, JSON schemas, and exit-code values are unchanged.
 
 ## [0.1.2]
 
