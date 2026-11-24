@@ -273,6 +273,8 @@ evagix eval-context . --strict --fail-on high
 
 `--strict` enables stricter evaluation. It does not replace command-specific failure policy.
 
+`doctor` checks discovered and configured agent-context files for dangerous commands and prompt-injection indicators even without `--strict`. It also reports unreadable or truncated context. These additional findings can lower readiness scores or fail an existing gate; see the [command semantics](https://github.com/tarekmasryo/Evagix/blob/main/docs/commands.md#doctor-agent-context-safety) before upgrading CI.
+
 Thresholds such as `--fail-under` and selectors such as `--fail-on` determine when a configured gate fails.
 
 This allows teams to inspect a repository first and introduce enforcement only after the expected policy is clear.

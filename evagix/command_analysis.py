@@ -291,14 +291,28 @@ def _environment_risks(tokens: list[str], segment: str) -> list[CommandRisk]:
     executable = _basename(tokens[executable_index])
     args = tokens[executable_index + 1 :]
     lower = segment.casefold()
-    if executable in {"cat", "type"} and args:
-        candidate = args[0].casefold()
-        if re.fullmatch(r"\.env(?:\.[a-z0-9_-]+)?", candidate) and not re.search(
-            r"\.(?:example|sample|template|dist)$", candidate
-        ):
-            return [CommandRisk("dangerous-command.cat-env", "Reading local .env files can expose secrets.")]
-        if re.search(r"(?:^|/)\.ssh/(?:id_rsa|id_ed25519|config)$", candidate):
-            return [CommandRisk("dangerous-command.ssh-key", "Reading SSH keys or config can expose credentials.")]
+    if executable in {"cat", "type", "get-content", "gc"}:
+        read_args = list(args)
+        if "\\" in segment:
+            # POSIX tokenization consumes unquoted Windows path separators.
+            # Inspect both interpretations because commands have no shell tag.
+            windows_tokens = _tokenize(segment.replace("\\", "/"))
+            windows_index = _executable_index(windows_tokens)
+            if windows_index is not None:
+                read_args.extend(windows_tokens[windows_index + 1 :])
+        for argument in read_args:
+            candidate = argument.casefold().replace("\\", "/")
+            if executable in {"get-content", "gc"}:
+                candidate = re.sub(r"^-(?:literalpath|path):", "", candidate)
+            if candidate.startswith("-"):
+                continue
+            filename = candidate.rsplit("/", 1)[-1]
+            if re.fullmatch(r"\.env(?:\.[a-z0-9_-]+)*", filename) and not re.search(
+                r"\.(?:example|sample|template|dist)$", filename
+            ):
+                return [CommandRisk("dangerous-command.cat-env", "Reading local .env files can expose secrets.")]
+            if re.search(r"(?:^|/)\.ssh/(?:id_rsa|id_ed25519|config)$", candidate):
+                return [CommandRisk("dangerous-command.ssh-key", "Reading SSH keys or config can expose credentials.")]
     if executable == "printenv":
         if re.search(r"\|[^\r\n]*(?:curl|wget|nc|netcat)\b", lower):
             return [CommandRisk("dangerous-command.env-exfiltration", "Environment data is piped to a network tool.")]

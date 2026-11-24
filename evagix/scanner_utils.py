@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from itertools import islice
 from pathlib import Path
@@ -179,6 +179,7 @@ def _iter_repo_files(
     max_depth: int | None = None,
     extra_skip_dir_names: set[str] | None = None,
     allow_package_dirs_in_skipped_paths: bool = False,
+    file_filter: Callable[[Path], bool] | None = None,
 ) -> Iterator[Path]:
     """Yield safe repository files with hard traversal bounds.
 
@@ -189,6 +190,10 @@ def _iter_repo_files(
     ``allow_package_dirs_in_skipped_paths`` is reserved for package metadata
     discovery that must inspect importable packages even when a parent folder
     would normally be treated as low-signal fixture/example content.
+
+    ``file_filter`` rejects irrelevant filenames before boundary validation.
+    Rejected files still consume the traversal budget and diagnostic counts;
+    every yielded file receives the same repository-boundary validation.
     """
     ignored = ignored_paths or set()
     if max_visited_entries is not None:
@@ -270,6 +275,8 @@ def _iter_repo_files(
                 state.read_errors += 1
                 continue
             state.visited_files += 1
+            if file_filter is not None and not file_filter(path):
+                continue
             if _is_safe_repo_path(root, path) and not _is_ignored_path(root, path, ignored):
                 yield path
         if directory_truncated:
@@ -297,9 +304,8 @@ def _iter_named_files(
         max_visited_entries=max_visited_entries,
         max_depth=max_depth,
         extra_skip_dir_names=extra_skip_dir_names,
+        file_filter=lambda path: path.name in names,
     ):
-        if path.name not in names:
-            continue
         if len(results) >= limit:
             if diagnostics is not None:
                 diagnostics.result_limit_reached = True
@@ -327,9 +333,8 @@ def _iter_files(
         max_visited_entries=max_visited_entries,
         max_depth=max_depth,
         extra_skip_dir_names=extra_skip_dir_names,
+        file_filter=lambda path: path.suffix in suffixes,
     ):
-        if path.suffix not in suffixes:
-            continue
         if len(results) >= limit:
             if diagnostics is not None:
                 diagnostics.result_limit_reached = True
