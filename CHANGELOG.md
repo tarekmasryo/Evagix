@@ -8,6 +8,7 @@ All notable user-facing changes to Evagix are documented here.
 
 - Inspect agent-context command safety, prompt-injection indicators, and incomplete reads in default `doctor`, including configured custom targets. Strict mode retains its additional checks without duplicating context safety findings.
 - Detect supported `.env` reads with relative paths, options, multiple arguments, and PowerShell `Get-Content` / `gc`, including bare commands in agent instructions. Environment templates remain excluded.
+- Filter nonmatching filenames before repository-boundary resolution during named-file and suffix discovery, while preserving traversal budgets and validation for returned files.
 
 ### Compatibility
 
