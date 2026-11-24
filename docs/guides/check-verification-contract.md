@@ -111,6 +111,10 @@ binding, missing and conflicting evidence, retries, source-kind independence,
 redaction, and unchanged existing CLI/schema behavior. No runtime dependency is
 needed; JSON Schema validation is a development-time check.
 
+The [GitHub Actions snapshot importer](github-actions-evidence.md) supplies a
+bounded offline normalization path. It does not authenticate imported evidence
+or change this contract's source-assessment requirements.
+
 A separate, frozen, specification-based synthetic case set evaluates the same
 call path. Its fixture assessment simulates a trusted caller and does not test
 authentication. Record the case-set digest, implementation digest, disagreements,
