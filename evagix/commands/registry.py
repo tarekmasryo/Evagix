@@ -5,7 +5,16 @@ import sys
 from typing import Protocol, TextIO
 
 from evagix import __version__
-from evagix.commands import core_cli, fix_cli, git_cli, inspect_cli, preview_cli, readiness_cli, verification_cli
+from evagix.commands import (
+    core_cli,
+    fix_cli,
+    git_cli,
+    inspect_cli,
+    pr_checks_cli,
+    preview_cli,
+    readiness_cli,
+    verification_cli,
+)
 from evagix.safety import EvagixSafetyError
 from evagix.security.output import execute_with_redacted_output
 from evagix.terminal import terminal_style
@@ -25,6 +34,7 @@ COMMAND_MODULES: tuple[CommandModule, ...] = (
     git_cli,
     fix_cli,
     verification_cli,
+    pr_checks_cli,
 )
 
 

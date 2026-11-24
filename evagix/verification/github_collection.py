@@ -28,6 +28,8 @@ _MAX_PAGES = 10
 _PAGE_SIZE = 100
 _CHUNK_SIZE = 65_536
 _ERRORS = {
+    "invalid_pull_request": "Use a GitHub pull request URL: https://github.com/owner/repository/pull/number.",
+    "pr_changed": "The pull request changed during collection; collect again.",
     "invalid_repository": "Use an explicit GitHub owner/repository name.",
     "invalid_token": "The optional GitHub credential has an invalid format.",
     "request_limit": "GitHub collection exceeded its request limit.",
@@ -97,8 +99,11 @@ def _http_error(status: int, headers: Any) -> GitHubCollectionError:
 
 
 class _Client:
-    def __init__(self, token: str | None) -> None:
+    def __init__(self, token: str | None, *, api_version: str = _API_VERSION) -> None:
         _validate_token(token)
+        if api_version not in {"2022-11-28", "2026-03-10"}:
+            raise ValueError("Unsupported GitHub API version")
+        self._api_version = api_version
         self._token = token
         self._deadline = time.monotonic() + _ELAPSED_BUDGET
         self._requests = 0
@@ -122,7 +127,7 @@ class _Client:
                 "Accept": "application/vnd.github+json",
                 "Accept-Encoding": "identity",
                 "User-Agent": f"Evagix/{__version__}",
-                "X-GitHub-Api-Version": _API_VERSION,
+                "X-GitHub-Api-Version": self._api_version,
                 "Cache-Control": "no-cache",
             },
             method="GET",
@@ -177,7 +182,7 @@ class _Client:
             raise GitHubCollectionError("invalid_response") from None
 
 
-def _has_next(header: str, path: str, next_page: int) -> bool:
+def _has_next(header: str, path: str, next_page: int, *, filters: dict[str, str] | None = None) -> bool:
     found = False
     if not header:
         return False
@@ -195,13 +200,14 @@ def _has_next(header: str, path: str, next_page: int) -> bool:
             query = parse_qsl(url.query, strict_parsing=True)
         except ValueError:
             raise GitHubCollectionError("pagination_mismatch") from None
+        expected = {"per_page": str(_PAGE_SIZE), "page": str(next_page), **(filters or {})}
         if (
             url.scheme != "https"
             or url.netloc != "api.github.com"
             or url.path.lower() != path.lower()
             or url.fragment
-            or len(query) != 2
-            or dict(query) != {"per_page": str(_PAGE_SIZE), "page": str(next_page)}
+            or len(query) != len(expected)
+            or dict(query) != expected
         ):
             raise GitHubCollectionError("pagination_mismatch")
     return found

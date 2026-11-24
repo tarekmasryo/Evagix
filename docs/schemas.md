@@ -32,6 +32,12 @@ boundaries and acceptance rules. Runtime parsers also enforce strict Python type
 (for example, rejecting `1.0` as an attempt). Display identities can grow during
 redaction and must not be reused as raw evidence.
 
+`evagix/schemas/github-pr-checks.schema.json` describes the redacted
+`pr-checks --format json` report. It keeps head and test-merge inventories separate;
+`completeness` covers endpoint pagination, and `policy_decision` remains
+`not_evaluated`. Its preview CLI contract tests validate the actual rendered output.
+See the [PR check guide](guides/pull-request-checks.md) for exit codes and limits.
+
 ## Stability policy
 
 - Schema additions should be backward-compatible where possible.

@@ -263,6 +263,17 @@ For the complete command inventory, flags, advanced workflows, and exit-code sem
 
 ### Optional GitHub evidence (development preview)
 
+Start from a PR URL to see reported check outcomes and links that need attention:
+
+```bash
+evagix pr-checks https://github.com/owner/repository/pull/123
+```
+
+No request file or local checkout is needed. The report separates head and
+test-merge results and hides passed rows unless `--all` is set. It is advisory:
+exit `0` means complete collection, not successful checks or merge approval.
+See the [PR check guide](https://github.com/tarekmasryo/Evagix/blob/main/docs/guides/pull-request-checks.md).
+
 `evagix verify-check --request check-request.json --github-repo owner/repository`
 collects live GitHub.com metadata for one explicitly selected job execution and
 reports whether its success claim is supported. This command uses the network;

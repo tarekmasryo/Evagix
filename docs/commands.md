@@ -27,7 +27,24 @@ Human-readable terminal styling is enabled on supported interactive terminals. D
 | Preview and experimental | `evagix agents`, `evagix prepare`, `evagix context-pack`, `evagix mcp` |
 | Git-aware review | `evagix changed`, `evagix pr-risk` |
 | Remediation | `evagix fix` |
-| Explicit GitHub evidence (preview, network required) | `evagix verify-check` |
+| Explicit GitHub evidence (preview, network required) | `evagix pr-checks`, `evagix verify-check` |
+
+## Pull request check report (preview)
+
+```bash
+evagix pr-checks https://github.com/owner/repository/pull/123
+```
+
+Start from a PR URL to see reported failures, pending checks, other outcomes, and
+detail links, with head and test-merge inventories kept separate. No request JSON
+or local checkout is needed. `--all` includes passed text rows; `--format json`
+includes every collected row. Network/authentication is explicit, using only
+`EVAGIX_GITHUB_TOKEN` when set. See the [PR check guide](guides/pull-request-checks.md).
+
+**This command is a report, not a CI acceptance gate.** Exit `0` means complete
+collection, even when checks failed; `1` means incomplete inventory, and `2` means
+invalid input or collection failure. Required-check policy and merge readiness
+are not evaluated. The JSON shape is defined in `github-pr-checks.schema.json`.
 
 ## Selected GitHub check (preview)
 
@@ -128,7 +145,7 @@ External or missing agent context is deliberately unscored. JSON reports use `sc
 ## Exit-code contract
 
 Existing repository commands use the following process-exit contract for automation.
-The explicit `verify-check` command uses the separate contract documented above.
+The explicit GitHub commands use their separate contracts documented above.
 
 | Code | Meaning |
 | --- | --- |

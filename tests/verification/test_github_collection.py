@@ -174,6 +174,20 @@ def test_private_opener_ignores_proxies_and_requires_verified_tls(monkeypatch):
     assert any(isinstance(h, collection._NoRedirect) for h in transport.handlers)
 
 
+def test_pr_api_version_is_explicit_without_changing_default_transport(monkeypatch):
+    transport = install(monkeypatch, [Response({}), Response({})])
+    collection._Client(None, api_version="2022-11-28").get("/repos/example/project")
+    collection._Client(None).get("/repos/example/project")
+    assert [req.headers["X-github-api-version"] for req, _ in transport.requests] == ["2022-11-28", "2026-03-10"]
+
+
+def test_transport_rejects_unsupported_api_versions_before_network(monkeypatch):
+    transport = install(monkeypatch, [])
+    with pytest.raises(ValueError, match="Unsupported GitHub API version"):
+        collection._Client(None, api_version="unsupported")
+    assert transport.requests == []
+
+
 @pytest.mark.parametrize("status", [301, 302, 303, 307, 308])
 @pytest.mark.parametrize("destination", ["http://outside.invalid/", "https://outside.invalid/", BASE])
 def test_redirect_handler_never_opens_a_replacement_request(monkeypatch, status, destination):
