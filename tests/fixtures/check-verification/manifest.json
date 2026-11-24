@@ -1,0 +1,13 @@
+{
+  "dataset_version": "1.0",
+  "file": "holdout-v1.json",
+  "sha256": "6c40e428569a326bc777948aeb9adbfcd2d89315806e3109b6040b94b9c2cd57",
+  "case_count": 40,
+  "provenance": "specification-based synthetic cases",
+  "limitations": [
+    "No real repository or field sampling.",
+    "Fixture assessments simulate the trusted caller; they do not prove source authentication or CI provenance.",
+    "No external human review or independent field annotation.",
+    "No production precision, recall, or user-value claim."
+  ]
+}

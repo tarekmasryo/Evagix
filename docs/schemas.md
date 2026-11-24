@@ -20,6 +20,17 @@ Evagix emits stable, machine-readable JSON for CI, dashboards, and automation. T
 | `evagix/schemas/readme-audit.schema.json` | `evagix readme-audit --format json` reports. |
 | `evagix/schemas/scan-facts.schema.json` | `evagix scan --format json` repository facts. |
 
+## Preview Python contract
+
+`evagix/schemas/check-verification.schema.json` describes the redacted result of
+`evagix.verification.evaluate_check`. Its `$defs/request` and `$defs/batch` describe
+the JSON inputs; source assessment is a separate in-process input. This preview
+has no CLI command and does not change the stable contracts above. See the
+[check verification contract](guides/check-verification-contract.md) for trust
+boundaries and acceptance rules. Runtime parsers also enforce strict Python types
+(for example, rejecting `1.0` as an attempt). Display identities can grow during
+redaction and must not be reused as raw evidence.
+
 ## Stability policy
 
 - Schema additions should be backward-compatible where possible.

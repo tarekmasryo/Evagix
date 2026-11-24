@@ -4,6 +4,10 @@ All notable user-facing changes to Evagix are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- Preview Python contract for verifying a specified check against supplied execution evidence and a separate caller assessment, with redacted results, a packaged schema, and a reproducible synthetic evaluation. It does not authenticate CI sources or change existing CLI behavior.
+
 ### Fixed
 
 - Inspect agent-context command safety, prompt-injection indicators, and incomplete reads in default `doctor`, including configured custom targets. Strict mode retains its additional checks without duplicating context safety findings.
