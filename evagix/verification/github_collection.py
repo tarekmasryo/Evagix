@@ -17,7 +17,6 @@ from evagix.verification._json import decode_object
 from evagix.verification.contracts import ContractError, EvidenceBatch, SourceAssessment
 from evagix.verification.github_actions import GitHubActionsScope, normalize_actions_attempt
 
-_ORIGIN = "https://api.github.com"
 _API_VERSION = "2026-03-10"
 _SOCKET_TIMEOUT = 10.0
 _ELAPSED_BUDGET = 30.0
@@ -122,7 +121,7 @@ class _Client:
         remaining = self._remaining()
         self._requests += 1
         request = Request(
-            _ORIGIN + path,
+            f"https://api.github.com{path}",
             headers={
                 "Accept": "application/vnd.github+json",
                 "Accept-Encoding": "identity",
