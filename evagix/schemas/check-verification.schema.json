@@ -1,0 +1,509 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evagix.dev/schemas/check-verification.schema.json",
+  "title": "Evagix preview check verification",
+  "description": "Redacted result for an explicitly selected check. Caller assessment is not source authentication. No CLI or policy verdict.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "request",
+    "source_kind",
+    "source_id",
+    "batch_digest",
+    "verifier",
+    "condition",
+    "source_verification",
+    "completeness",
+    "evidence_match",
+    "run_state",
+    "conclusion",
+    "reason",
+    "evidence_ids",
+    "engine_status",
+    "policy_decision"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "kind": {
+      "const": "check_verification"
+    },
+    "request": {
+      "$ref": "#/$defs/displayRequest"
+    },
+    "source_kind": {
+      "$ref": "#/$defs/sourceKind"
+    },
+    "source_id": {
+      "$ref": "#/$defs/displayText"
+    },
+    "batch_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+    },
+    "verifier": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/displayText"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "condition": {
+      "enum": [
+        "supported",
+        "contradicted",
+        "unverified"
+      ]
+    },
+    "source_verification": {
+      "enum": [
+        "caller_verified",
+        "unverified",
+        "binding_mismatch"
+      ]
+    },
+    "completeness": {
+      "enum": [
+        "complete",
+        "incomplete"
+      ]
+    },
+    "evidence_match": {
+      "enum": [
+        "match",
+        "mismatch",
+        "unknown"
+      ]
+    },
+    "run_state": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/state"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "conclusion": {
+      "$ref": "#/$defs/conclusion"
+    },
+    "reason": {
+      "enum": [
+        "source_binding_mismatch",
+        "source_unverified",
+        "incomplete_inventory",
+        "no_evidence",
+        "subject_mismatch",
+        "run_mismatch",
+        "inconsistent_attempt_inventory",
+        "attempt_mismatch",
+        "conflicting_results",
+        "run_not_completed",
+        "conclusion_missing",
+        "check_succeeded",
+        "check_failed",
+        "non_success_conclusion"
+      ]
+    },
+    "evidence_ids": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {
+        "$ref": "#/$defs/displayText"
+      }
+    },
+    "engine_status": {
+      "const": "completed"
+    },
+    "policy_decision": {
+      "const": "not_evaluated"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "condition": {
+            "const": "supported"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "source_verification": {
+            "const": "caller_verified"
+          },
+          "completeness": {
+            "const": "complete"
+          },
+          "evidence_match": {
+            "const": "match"
+          },
+          "run_state": {
+            "const": "completed"
+          },
+          "conclusion": {
+            "const": "success"
+          },
+          "reason": {
+            "const": "check_succeeded"
+          },
+          "evidence_ids": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "condition": {
+            "const": "contradicted"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "source_verification": {
+            "const": "caller_verified"
+          },
+          "completeness": {
+            "const": "complete"
+          },
+          "evidence_match": {
+            "const": "match"
+          },
+          "run_state": {
+            "const": "completed"
+          },
+          "conclusion": {
+            "const": "failure"
+          },
+          "reason": {
+            "const": "check_failed"
+          },
+          "evidence_ids": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "condition": {
+            "const": "unverified"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "reason": {
+            "not": {
+              "enum": [
+                "check_succeeded",
+                "check_failed"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "source_verification": {
+            "not": {
+              "const": "unverified"
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "verifier": {
+            "$ref": "#/$defs/displayText"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "run_state": {
+            "not": {
+              "const": "completed"
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "conclusion": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "identity": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^(?!\\s)(?![\\s\\S]*\\s$)[^\\u0000-\\u001f\\u007f-\\u009f\\u2028\\u2029\\ud800-\\udfff]+$"
+    },
+    "displayText": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Redaction can expand or collapse input identities. Display text is not a replayable identity."
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})(?![\\s\\S])"
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "sourceKind": {
+      "enum": [
+        "ci",
+        "local"
+      ]
+    },
+    "state": {
+      "enum": [
+        "queued",
+        "in_progress",
+        "completed",
+        "cancelled"
+      ]
+    },
+    "conclusion": {
+      "enum": [
+        null,
+        "success",
+        "failure",
+        "skipped",
+        "neutral",
+        "cancelled",
+        "timed_out"
+      ]
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "revision",
+        "subject_kind",
+        "workflow",
+        "job"
+      ],
+      "properties": {
+        "repository": {
+          "$ref": "#/$defs/identity"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "subject_kind": {
+          "enum": [
+            "commit",
+            "test_merge"
+          ]
+        },
+        "workflow": {
+          "$ref": "#/$defs/identity"
+        },
+        "job": {
+          "$ref": "#/$defs/identity"
+        }
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "subject",
+        "run_id",
+        "attempt"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "1.0"
+        },
+        "kind": {
+          "const": "check_succeeded"
+        },
+        "subject": {
+          "$ref": "#/$defs/subject"
+        },
+        "run_id": {
+          "$ref": "#/$defs/identity"
+        },
+        "attempt": {
+          "$ref": "#/$defs/attempt"
+        }
+      }
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_id",
+        "subject",
+        "run_id",
+        "attempt",
+        "state",
+        "conclusion"
+      ],
+      "properties": {
+        "record_id": {
+          "$ref": "#/$defs/identity"
+        },
+        "subject": {
+          "$ref": "#/$defs/subject"
+        },
+        "run_id": {
+          "$ref": "#/$defs/identity"
+        },
+        "attempt": {
+          "$ref": "#/$defs/attempt"
+        },
+        "state": {
+          "$ref": "#/$defs/state"
+        },
+        "conclusion": {
+          "$ref": "#/$defs/conclusion"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "not": {
+                  "const": "completed"
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "conclusion": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "batch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "source_kind",
+        "source_id",
+        "complete",
+        "records"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "1.0"
+        },
+        "kind": {
+          "const": "check_evidence"
+        },
+        "source_kind": {
+          "$ref": "#/$defs/sourceKind"
+        },
+        "source_id": {
+          "$ref": "#/$defs/identity"
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "records": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "$ref": "#/$defs/record"
+          }
+        }
+      }
+    },
+    "displaySubject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "revision",
+        "subject_kind",
+        "workflow",
+        "job"
+      ],
+      "properties": {
+        "repository": {
+          "$ref": "#/$defs/displayText"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "subject_kind": {
+          "enum": [
+            "commit",
+            "test_merge"
+          ]
+        },
+        "workflow": {
+          "$ref": "#/$defs/displayText"
+        },
+        "job": {
+          "$ref": "#/$defs/displayText"
+        }
+      }
+    },
+    "displayRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "subject",
+        "run_id",
+        "attempt"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "1.0"
+        },
+        "kind": {
+          "const": "check_succeeded"
+        },
+        "subject": {
+          "$ref": "#/$defs/displaySubject"
+        },
+        "run_id": {
+          "$ref": "#/$defs/displayText"
+        },
+        "attempt": {
+          "$ref": "#/$defs/attempt"
+        }
+      }
+    }
+  }
+}
