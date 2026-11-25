@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from evagix.commands.git_cmds import _cmd_changed, _cmd_pr_risk
+from evagix.commands.reference_drift import _cmd_reference_drift
 
 
 def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
@@ -15,6 +16,11 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
     changed_parser.add_argument("--base", default="main", help="Git ref used as the comparison base. Default: main.")
     changed_parser.add_argument("--head", default="HEAD", help="Git ref used as the comparison head. Default: HEAD.")
     changed_parser.add_argument("--format", choices=["text", "json", "github-annotations"], default="text")
+    changed_parser.add_argument(
+        "--references",
+        action="store_true",
+        help="Report explicit Markdown links broken by committed file deletions (preview; advisory).",
+    )
 
     pr_risk_parser = subparsers.add_parser(
         "pr-risk", help="Review PR-level repository risk and return merge/review/block guidance."
@@ -28,6 +34,14 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
 
 def dispatch(args: Any) -> int | None:
     if args.command == "changed":
+        if args.references:
+            return _cmd_reference_drift(
+                Path(args.path),
+                base=args.base,
+                head=args.head,
+                output_format=args.format,
+                style=args.terminal_style,
+            )
         return _cmd_changed(
             Path(args.path),
             base=args.base,

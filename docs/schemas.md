@@ -38,6 +38,13 @@ redaction and must not be reused as raw evidence.
 `not_evaluated`. Its preview CLI contract tests validate the actual rendered output.
 See the [PR check guide](guides/pull-request-checks.md) for exit codes and limits.
 
+`evagix/schemas/reference-drift.schema.json` describes the preview
+`evagix changed --references --format json` report. It records immutable Git
+revisions, the inspected scope, completeness, and advisory source locations for
+references to files deleted since the merge base. It does not change the stable
+`changed-report.schema.json` contract used without `--references`. See the
+[deleted-reference guide](guides/deleted-references.md).
+
 ## Stability policy
 
 - Schema additions should be backward-compatible where possible.

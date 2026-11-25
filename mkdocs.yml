@@ -70,6 +70,7 @@ nav:
       - CI Integration: guides/ci.md
       - Pull Request Checks: guides/pull-request-checks.md
       - Selected Check Evidence: guides/github-check-collection.md
+      - Deleted File References: guides/deleted-references.md
   - Reference:
       - CLI Reference: commands.md
       - Rules: rules.md

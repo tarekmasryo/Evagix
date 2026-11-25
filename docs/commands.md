@@ -62,6 +62,20 @@ contradicted/unverified claim, and `2` for invalid input or an operational failu
 JSON uses the existing check-verification schema; expected errors go to stderr.
 The result does not evaluate a merge policy or prove test execution on the claimed code.
 
+## Deleted file references (preview)
+
+```bash
+evagix changed . --references --base main --head HEAD
+```
+
+This opt-in mode reports explicit local Markdown links in root `README.md` and
+`AGENTS.md` whose regular-file targets existed at the merge base and are absent
+at the committed head. Working-tree changes are excluded. Findings are advisory;
+exit `0` means complete inspection, `1` incomplete inspection, and `2` an input
+or operational error. JSON uses the separate `reference-drift.schema.json`
+preview contract. Without this flag, `changed` keeps its existing behavior.
+See [supported links, comparison rules, and limitations](guides/deleted-references.md).
+
 ## CI gate
 
 ```bash
