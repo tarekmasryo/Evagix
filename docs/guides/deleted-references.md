@@ -79,4 +79,5 @@ images or HTML. Markdown output is limited to 450,000 UTF-8 bytes; exceeding
 the limit returns exit `2` without partial stdout. Use JSON for the full report.
 
 The [optional PR summary recipe](pr-review-summary.md) combines these findings
-with expected-check results for the same immutable base/head revisions.
+with observed checks or an explicit expected-check comparison for the same
+immutable base/head revisions.

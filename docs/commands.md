@@ -58,6 +58,10 @@ See the [expectations format and trust boundaries](guides/pull-request-checks.md
 values and explicit revision/collection scope. Oversized Markdown returns `2`
 without partial stdout. The [optional CI summary recipe](guides/pr-review-summary.md)
 combines checks and reference findings for the same immutable base/head pair.
+The `evagix.pr_summary` module needs no expectations file: it reports observed
+checks with required-check coverage explicitly unknown. Its optional
+`--expectations` path is read only from the requested base commit; an invalid
+explicit file fails rather than falling back to inventory mode.
 
 ## Selected GitHub check (preview)
 
