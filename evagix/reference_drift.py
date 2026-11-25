@@ -7,6 +7,7 @@ from pathlib import Path
 
 from evagix.core.text import escape_github_command_value
 from evagix.reference_links import extract_local_links
+from evagix.reports.safe_markdown import bounded_markdown, markdown_code
 from evagix.scanning.git_snapshot import GitSnapshot
 from evagix.security.output import redacted_text_output
 from evagix.security.redaction import redact_sensitive_text
@@ -114,6 +115,53 @@ def render_reference_drift_text(report: ReferenceDriftReport) -> str:
     lines.extend(f"  Limit: {item}" for item in report.limitations)
     lines.append("Review the reference; this report does not decide merge readiness or select a replacement.")
     return "\n".join(lines) + "\n"
+
+
+def render_reference_drift_markdown(report: ReferenceDriftReport) -> str:
+    lines = [
+        "## Deleted-file reference review",
+        "",
+        "Advisory inspection of root `README.md` and `AGENTS.md`; explicit local Markdown links only. "
+        "Working-tree changes are excluded.",
+        "",
+        f"**Inspection:** {'complete' if report.complete else 'incomplete'} within this scope. "
+        f"**Findings:** {len(report.findings)}.",
+        "",
+        f"- Base: {markdown_code(report.base)}",
+        f"- Head: {markdown_code(report.head)}",
+        f"- Merge base: {markdown_code(report.merge_base)}",
+        "- Inspected documents: " + (", ".join(markdown_code(item) for item in report.inspected_documents) or "none"),
+        "",
+        "### Findings",
+        "",
+    ]
+    for item in report.findings:
+        lines.extend(
+            (
+                f"- Source: {markdown_code(f'{item.document}:{item.line}:{item.column}')}",
+                f"  - Deleted target: {markdown_code(item.target)}",
+                "  - The target existed at the merge base and is absent at the head.",
+            )
+        )
+    if not report.findings:
+        lines.append("No deleted-file references found in the inspected documents.")
+    if report.limitations:
+        lines.extend(("", "### Inspection limits", ""))
+        lines.extend(f"- {markdown_code(item)}" for item in report.limitations)
+        next_action = "Complete the missing inspection before relying on this report; review any findings above."
+    elif report.findings:
+        next_action = "Review the affected links and update their targets or remove obsolete references."
+    else:
+        next_action = "Review the remaining project requirements; this inspection covers only the declared references."
+    lines.extend(
+        (
+            "",
+            f"**Next:** {next_action}",
+            "",
+            "This report does not decide merge readiness or select a replacement file.",
+        )
+    )
+    return bounded_markdown("\n".join(lines) + "\n")
 
 
 @redacted_text_output

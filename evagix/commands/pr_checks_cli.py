@@ -3,7 +3,11 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from evagix.commands.verification_cli import _output_format
+
+def _output_format(value: str) -> str:
+    if value not in {"text", "json", "markdown"}:
+        raise argparse.ArgumentTypeError("Output format must be text, json, or markdown.")
+    return value
 
 
 def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
@@ -19,12 +23,12 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
     )
     parser.add_argument("url", metavar="PR_URL", help="https://github.com/OWNER/REPO/pull/N")
     parser.add_argument(
-        "--format", type=_output_format, choices=["text", "json"], default="text", help="Output format."
+        "--format", type=_output_format, choices=["text", "json", "markdown"], default="text", help="Output format."
     )
     parser.add_argument(
         "--all",
         action="store_true",
-        help="Include passed rows in text output; JSON always includes every collected row.",
+        help="Include passed rows in text/Markdown output; JSON always includes every collected row.",
     )
     parser.add_argument(
         "--expectations",
