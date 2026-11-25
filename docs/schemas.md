@@ -45,6 +45,13 @@ candidates. Expectations remain caller-supplied and the policy is not evaluated.
 The existing PR-report schema is unchanged when this option is absent. See the
 [expectations guide](guides/pull-request-checks.md#compare-caller-supplied-expectations).
 
+`evagix/schemas/reference-drift.schema.json` describes the preview
+`evagix changed --references --format json` report. It records immutable Git
+revisions, the inspected scope, completeness, and advisory source locations for
+references to files deleted since the merge base. It does not change the stable
+`changed-report.schema.json` contract used without `--references`. See the
+[deleted-reference guide](guides/deleted-references.md).
+
 ## Stability policy
 
 - Schema additions should be backward-compatible where possible.
