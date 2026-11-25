@@ -46,6 +46,14 @@ collection, even when checks failed; `1` means incomplete inventory, and `2` mea
 invalid input or collection failure. Required-check policy and merge readiness
 are not evaluated. The JSON shape is defined in `github-pr-checks.schema.json`.
 
+Add `--expectations checks.json` to compare this inventory with explicit expected
+revision scopes, check names, kinds, and producer IDs. This mode reports passed,
+failed, pending, missing, or unverified expectations using the separate preview
+`github-pr-expectations.schema.json` contract. The supplied list is not treated
+as authenticated repository policy. Exit codes still describe collection, not
+acceptance: missing or failed expectations can appear in an exit-`0` report.
+See the [expectations format and trust boundaries](guides/pull-request-checks.md#compare-caller-supplied-expectations).
+
 ## Selected GitHub check (preview)
 
 ```bash

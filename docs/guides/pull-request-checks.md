@@ -58,6 +58,71 @@ command remains available for an explicitly selected push job claim.
 Do not use exit `0` as a merge condition. Expected operational errors produce
 no JSON report on stdout. Default repository scans and their exit codes are unchanged.
 
+## Compare caller-supplied expectations
+
+The optional `--expectations` flag compares the same collected inventory with a
+small explicit list. It does not discover required checks or authenticate a
+repository acceptance policy.
+
+```bash
+evagix pr-checks https://github.com/owner/repository/pull/123 --expectations checks.json
+evagix pr-checks https://github.com/owner/repository/pull/123 --expectations checks.json --all --format json
+```
+
+Example file with **synthetic identifiers**, which must be replaced with the
+repository and producer IDs you intend to inspect:
+
+```json
+{
+  "schema_version": "1.0",
+  "repository_id": 17,
+  "checks": [
+    {"revision": "head", "kind": "check_run", "name": "Tests", "producer_id": 42},
+    {"revision": "test_merge", "kind": "commit_status", "name": "integration", "producer_id": 73}
+  ]
+}
+```
+
+For `check_run`, `producer_id` is the GitHub App ID; for `commit_status`, it is
+the status creator's user ID. Names match exactly, including case and whitespace.
+The repository ID must match the collected PR repository. These selectors do not
+establish workflow identity, checkout provenance, or the authority of the person
+who wrote the file. Keep expectations in a source you trust; a PR can otherwise
+change its own list to omit checks.
+
+The UTF-8 file is limited to 65,536 characters and 1-100 unique selectors. Unknown
+fields, duplicate JSON keys, noninteger IDs, and malformed selectors are rejected
+before any network request. The file is read as data; no commands or external
+schema references are executed or fetched.
+
+The comparison payload and rendered output are bounded to 8,000,000 UTF-8 bytes
+each. Exceeding either limit returns exit `2` with a size-limit error instead of
+truncating the report or emitting partial JSON. Narrow the expectations list if
+many selectors retain the same candidate records.
+
+Each expectation has an outcome:
+
+| Outcome | Meaning |
+| --- | --- |
+| `passed`, `failed`, `pending` | One matching producer/name/kind was found in a complete revision inventory with that provider-reported outcome. |
+| `missing` | A complete revision inventory contains no matching expected identity; same-name checks from another known producer do not satisfy it. |
+| `unverified` | The revision is unavailable, inventory is incomplete, the producer is unknown, matching records are ambiguous, or the conclusion does not establish success/failure/pending. |
+
+Skipped or neutral checks do not become a pass. Multiple records for the same
+expected identity remain ambiguous even if one passed. The report retains same-kind,
+same-name candidates to explain mismatches; its digest identifies the supplied
+expectations, not their authority. Text hides passed expectations unless `--all`
+is set, while JSON includes every expectation and its observed candidates.
+
+This mode follows the separate preview `github-pr-expectations.schema.json`
+contract. **Exit codes still describe collection:** a complete report returns
+`0` even for missing, failed, or unverified expectations; incomplete collection
+returns `1`; invalid input, repository mismatch, or collection failure returns
+`2`. The comparison remains advisory, with `expectations_authority` set to
+`caller_supplied` and `policy_decision` set to `not_evaluated`.
+
+Without `--expectations`, the existing report, JSON schema, and exits are unchanged.
+
 ## Network access and permissions
 
 The command explicitly contacts `https://api.github.com`. Public data is read

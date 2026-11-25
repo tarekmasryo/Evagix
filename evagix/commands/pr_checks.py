@@ -7,12 +7,17 @@ import os
 import sys
 import unicodedata
 from collections import Counter
+from pathlib import Path
 from typing import Any
 
+from evagix.core.io import safe_read_text_result
 from evagix.security.redaction import redact_sensitive_text
 from evagix.utils import stable_json
+from evagix.verification._json import decode_object
+from evagix.verification.contracts import ContractError
 from evagix.verification.github_collection import GitHubCollectionError
 from evagix.verification.github_pr_checks import collect_pr_checks
+from evagix.verification.pr_expectations import CheckExpectations, compare_pr_checks, parse_expectations
 
 _RESULT_LABELS = {
     "passed": "passed",
@@ -21,6 +26,7 @@ _RESULT_LABELS = {
     "other": "other outcomes",
     "unknown": "unknown",
 }
+_MAX_EXPECTATIONS_OUTPUT_BYTES = 8_000_000
 
 
 def _escape_invisible(value: str, *, json_text: bool = False) -> str:
@@ -99,15 +105,98 @@ def _render_text(payload: dict[str, Any], *, show_all: bool) -> str:
     return "\n".join(lines)
 
 
-def _cmd_pr_checks(url: str, output_format: str, *, show_all: bool = False) -> int:
+def _load_expectations(path: Path) -> CheckExpectations:
+    try:
+        contents = safe_read_text_result(path, max_chars=65_536)
+    except (OSError, UnicodeError, ValueError):
+        raise ContractError("Unable to read expectations as UTF-8.") from None
+    if contents.truncated:
+        raise ContractError("Expectations file exceeds 65536 characters.")
+    return parse_expectations(decode_object(contents.text))
+
+
+def _render_expectations(payload: dict[str, Any], *, show_all: bool) -> str:
+    results = payload["results"]
+    counts = Counter(item["outcome"] for item in results)
+    lines = [
+        "Caller-supplied pull request check expectations",
+        f"Repository: {_display(payload['repository'])}; PR: #{payload['pull_request']}",
+        f"Report inventory: {payload['completeness']}",
+        "Expected: "
+        + ", ".join(f"{state}={counts[state]}" for state in ("passed", "failed", "pending", "missing", "unverified")),
+    ]
+    for item in results:
+        if item["outcome"] == "passed" and not show_all:
+            continue
+        expected = item["expected"]
+        lines.append(
+            f"  [{item['outcome']}] {_display(expected['name'])} "
+            f"({expected['revision']}; {expected['kind']}; producer ID: {expected['producer_id']})"
+        )
+        lines.append(f"    Revision: {_display(item['revision_sha']) if item['revision_sha'] else 'unavailable'}")
+        lines.append(f"    Inventory: {item['inventory']}; reason: {item['reason']}")
+        for observed in item["observed"]:
+            producer = observed["producer_id"] if observed["producer_id"] is not None else "unknown"
+            lines.append(f"    Observed ID: {observed['id']}; producer ID: {producer}; result: {observed['result']}")
+            if observed["url"] is not None:
+                lines.append(f"      {_display(observed['url'])}")
+    if not show_all and counts["passed"]:
+        lines.append(f"Passed expectations hidden: {counts['passed']}; use --all to show them.")
+    if counts["failed"] or counts["missing"]:
+        action = "Review failed or missing expected checks and confirm the expected producer and revision."
+    elif counts["pending"]:
+        action = "Wait for pending checks, then collect again."
+    elif counts["unverified"]:
+        action = "Resolve unavailable, incomplete, or ambiguous evidence before relying on these results."
+    else:
+        action = "Review whether these caller-supplied expectations cover the project's acceptance requirements."
+    lines.extend(
+        (
+            "",
+            f"Next: {action}",
+            "Expectations authority: caller_supplied; policy decision: not_evaluated.",
+            "Advisory provider metadata only; this report does not prove test execution or decide merge readiness.",
+        )
+    )
+    return "\n".join(lines)
+
+
+def _cmd_pr_checks(
+    url: str, output_format: str, *, show_all: bool = False, expectations_path: Path | None = None
+) -> int:
+    expectations = None
+    if expectations_path is not None:
+        try:
+            expectations = _load_expectations(expectations_path)
+        except ContractError:
+            print("ERROR: Expectations must be a valid bounded UTF-8 check expectations file.", file=sys.stderr)
+            return 2
     try:
         report = collect_pr_checks(url, token=os.environ.get("EVAGIX_GITHUB_TOKEN"))
     except GitHubCollectionError as exc:
         print(f"ERROR: {exc} ({exc.code})", file=sys.stderr)
         return 2
-    payload = report.to_dict()
-    if output_format == "json":
-        print(_escape_invisible(stable_json(payload, redact=False), json_text=True))
+    if expectations is not None:
+        try:
+            payload = compare_pr_checks(report, expectations).to_dict()
+        except ContractError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 2
     else:
-        print(_render_text(payload, show_all=show_all))
+        payload = report.to_dict()
+    if output_format == "json":
+        output = _escape_invisible(stable_json(payload, redact=False), json_text=True)
+    else:
+        output = (
+            _render_expectations(payload, show_all=show_all)
+            if expectations is not None
+            else _render_text(payload, show_all=show_all)
+        )
+    if expectations is not None and len((output + "\n").encode("utf-8")) > _MAX_EXPECTATIONS_OUTPUT_BYTES:
+        print(
+            f"ERROR: Expectations report exceeds the {_MAX_EXPECTATIONS_OUTPUT_BYTES}-byte output limit.",
+            file=sys.stderr,
+        )
+        return 2
+    print(output)
     return 0 if report.complete else 1
