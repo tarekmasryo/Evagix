@@ -15,6 +15,7 @@ include them. Detail links let you inspect the provider's logs or workflow.
 ```bash
 evagix pr-checks https://github.com/owner/repository/pull/123 --all
 evagix pr-checks https://github.com/owner/repository/pull/123 --format json
+evagix pr-checks https://github.com/owner/repository/pull/123 --format markdown
 ```
 
 Use the PR's main URL, without `/files`, query parameters, or fragments. JSON
@@ -122,6 +123,28 @@ returns `1`; invalid input, repository mismatch, or collection failure returns
 `caller_supplied` and `policy_decision` set to `not_evaluated`.
 
 Without `--expectations`, the existing report, JSON schema, and exits are unchanged.
+
+## Markdown summaries
+
+`--format markdown` renders either report for a GitHub job summary. `--all`
+includes passed rows; otherwise the counts include them but their details are
+hidden. Base/head revisions, test-merge availability, collection completeness,
+and advisory boundaries remain visible. An empty or incomplete inventory does
+not establish test success.
+
+Provider text is redacted before rendering as literal code, including names
+containing Markdown, HTML, or mentions. Control and direction-formatting
+characters are escaped; ordinary Arabic remains readable. HTTPS detail links
+use fixed labels and encoded delimiters. Unsafe or redacted URLs are displayed
+as text rather than active links.
+
+Markdown is limited to 450,000 UTF-8 bytes per report. A larger report returns
+exit `2` with an error on stderr and no partial stdout; use JSON for the complete
+data. This display limit does not change evidence completeness or JSON limits.
+
+For a combined report with reference findings, use the
+[optional PR summary recipe](pr-review-summary.md). It matches both reports to
+the same explicit base/head pair instead of concatenating unrelated snapshots.
 
 ## Network access and permissions
 

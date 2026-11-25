@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +16,12 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
     changed_parser.add_argument("path", nargs="?", default=".")
     changed_parser.add_argument("--base", default="main", help="Git ref used as the comparison base. Default: main.")
     changed_parser.add_argument("--head", default="HEAD", help="Git ref used as the comparison head. Default: HEAD.")
-    changed_parser.add_argument("--format", choices=["text", "json", "github-annotations"], default="text")
+    changed_parser.add_argument(
+        "--format",
+        choices=["text", "json", "github-annotations", "markdown"],
+        default="text",
+        help="Output format. Markdown requires --references.",
+    )
     changed_parser.add_argument(
         "--references",
         action="store_true",
@@ -42,6 +48,9 @@ def dispatch(args: Any) -> int | None:
                 output_format=args.format,
                 style=args.terminal_style,
             )
+        if args.format == "markdown":
+            print("ERROR: Markdown output requires changed --references.", file=sys.stderr)
+            return 2
         return _cmd_changed(
             Path(args.path),
             base=args.base,

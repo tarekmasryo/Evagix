@@ -9,6 +9,7 @@ from evagix.reference_drift import (
     build_reference_drift_report,
     render_reference_drift_github_annotations,
     render_reference_drift_json,
+    render_reference_drift_markdown,
     render_reference_drift_text,
 )
 from evagix.safety import REPOSITORY_PATH_POLICY
@@ -29,6 +30,13 @@ def _cmd_reference_drift(
         return 2
     if output_format == "json":
         print(render_reference_drift_json(report), end="")
+    elif output_format == "markdown":
+        try:
+            output = render_reference_drift_markdown(report)
+        except ValueError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 2
+        print(output, end="")
     elif output_format == "github-annotations":
         print(render_reference_drift_github_annotations(report), end="")
     else:

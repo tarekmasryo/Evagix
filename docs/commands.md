@@ -37,7 +37,7 @@ evagix pr-checks https://github.com/owner/repository/pull/123
 
 Start from a PR URL to see reported failures, pending checks, other outcomes, and
 detail links, with head and test-merge inventories kept separate. No request JSON
-or local checkout is needed. `--all` includes passed text rows; `--format json`
+or local checkout is needed. `--all` includes passed text/Markdown rows; `--format json`
 includes every collected row. Network/authentication is explicit, using only
 `EVAGIX_GITHUB_TOKEN` when set. See the [PR check guide](guides/pull-request-checks.md).
 
@@ -53,6 +53,11 @@ failed, pending, missing, or unverified expectations using the separate preview
 as authenticated repository policy. Exit codes still describe collection, not
 acceptance: missing or failed expectations can appear in an exit-`0` report.
 See the [expectations format and trust boundaries](guides/pull-request-checks.md#compare-caller-supplied-expectations).
+
+`--format markdown` renders either mode for job summaries, with redacted literal
+values and explicit revision/collection scope. Oversized Markdown returns `2`
+without partial stdout. The [optional CI summary recipe](guides/pr-review-summary.md)
+combines checks and reference findings for the same immutable base/head pair.
 
 ## Selected GitHub check (preview)
 
@@ -83,6 +88,9 @@ exit `0` means complete inspection, `1` incomplete inspection, and `2` an input
 or operational error. JSON uses the separate `reference-drift.schema.json`
 preview contract. Without this flag, `changed` keeps its existing behavior.
 See [supported links, comparison rules, and limitations](guides/deleted-references.md).
+
+`--format markdown` is available with `--references` only. It preserves advisory
+exit semantics and refuses oversized output rather than silently truncating it.
 
 ## CI gate
 

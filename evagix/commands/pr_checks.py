@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from evagix.core.io import safe_read_text_result
+from evagix.reports.pr_checks import render_pr_checks_markdown
 from evagix.security.redaction import redact_sensitive_text
 from evagix.utils import stable_json
 from evagix.verification._json import decode_object
@@ -184,7 +185,13 @@ def _cmd_pr_checks(
             return 2
     else:
         payload = report.to_dict()
-    if output_format == "json":
+    if output_format == "markdown":
+        try:
+            output = render_pr_checks_markdown(payload, show_all=show_all).rstrip("\n")
+        except ValueError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 2
+    elif output_format == "json":
         output = _escape_invisible(stable_json(payload, redact=False), json_text=True)
     else:
         output = (
