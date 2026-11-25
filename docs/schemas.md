@@ -38,6 +38,13 @@ redaction and must not be reused as raw evidence.
 `not_evaluated`. Its preview CLI contract tests validate the actual rendered output.
 See the [PR check guide](guides/pull-request-checks.md) for exit codes and limits.
 
+`evagix/schemas/github-pr-expectations.schema.json` describes the redacted
+`pr-checks --expectations PATH --format json` report. Each explicit expected
+identity has its revision, inventory completeness, outcome, reason, and observed
+candidates. Expectations remain caller-supplied and the policy is not evaluated.
+The existing PR-report schema is unchanged when this option is absent. See the
+[expectations guide](guides/pull-request-checks.md#compare-caller-supplied-expectations).
+
 `evagix/schemas/reference-drift.schema.json` describes the preview
 `evagix changed --references --format json` report. It records immutable Git
 revisions, the inspected scope, completeness, and advisory source locations for

@@ -1,0 +1,260 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evagix.dev/schemas/github-pr-expectations.schema.json",
+  "title": "Evagix Caller-Supplied PR Check Expectations",
+  "description": "Advisory comparison with explicit caller-supplied expectations. No required-check policy or merge authorization is inferred.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "repository",
+    "repository_id",
+    "pull_request",
+    "base_sha",
+    "head_sha",
+    "test_merge_status",
+    "completeness",
+    "policy_decision",
+    "kind",
+    "expectations_digest",
+    "expectations_authority",
+    "results"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "repository": {
+      "$ref": "#/$defs/displayText"
+    },
+    "repository_id": {
+      "$ref": "#/$defs/id"
+    },
+    "pull_request": {
+      "$ref": "#/$defs/id"
+    },
+    "base_sha": {
+      "$ref": "#/$defs/sha"
+    },
+    "head_sha": {
+      "$ref": "#/$defs/sha"
+    },
+    "test_merge_status": {
+      "enum": [
+        "available",
+        "unavailable",
+        "not_applicable"
+      ]
+    },
+    "completeness": {
+      "$ref": "#/$defs/completeness"
+    },
+    "policy_decision": {
+      "const": "not_evaluated"
+    },
+    "kind": {
+      "const": "github_pr_expectations"
+    },
+    "expectations_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+    },
+    "expectations_authority": {
+      "const": "caller_supplied"
+    },
+    "results": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "$ref": "#/$defs/expectationResult"
+      }
+    }
+  },
+  "$defs": {
+    "displayText": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Display text after central redaction, which can expand a bounded provider value."
+    },
+    "nullableText": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/displayText"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "id": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9223372036854775807
+    },
+    "sha": {
+      "type": "string",
+      "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})(?![\\s\\S])"
+    },
+    "completeness": {
+      "enum": [
+        "complete",
+        "incomplete"
+      ]
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "name",
+        "producer",
+        "producer_id",
+        "status",
+        "conclusion",
+        "result",
+        "url"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "check_run",
+            "commit_status"
+          ]
+        },
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "$ref": "#/$defs/displayText"
+        },
+        "producer": {
+          "$ref": "#/$defs/nullableText"
+        },
+        "producer_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "status": {
+          "$ref": "#/$defs/displayText"
+        },
+        "conclusion": {
+          "$ref": "#/$defs/nullableText"
+        },
+        "result": {
+          "enum": [
+            "passed",
+            "failed",
+            "pending",
+            "other",
+            "unknown"
+          ]
+        },
+        "url": {
+          "$ref": "#/$defs/nullableText"
+        }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "revision",
+        "kind",
+        "name",
+        "producer_id"
+      ],
+      "properties": {
+        "revision": {
+          "enum": [
+            "head",
+            "test_merge"
+          ]
+        },
+        "kind": {
+          "enum": [
+            "check_run",
+            "commit_status"
+          ]
+        },
+        "name": {
+          "$ref": "#/$defs/displayText"
+        },
+        "producer_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "expectationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expected",
+        "revision_sha",
+        "inventory",
+        "outcome",
+        "reason",
+        "observed"
+      ],
+      "properties": {
+        "expected": {
+          "$ref": "#/$defs/expected"
+        },
+        "revision_sha": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "inventory": {
+          "enum": [
+            "complete",
+            "incomplete",
+            "unavailable"
+          ]
+        },
+        "outcome": {
+          "enum": [
+            "passed",
+            "failed",
+            "pending",
+            "missing",
+            "unverified"
+          ]
+        },
+        "reason": {
+          "enum": [
+            "reported_success",
+            "reported_failure",
+            "reported_pending",
+            "not_observed",
+            "producer_mismatch",
+            "revision_unavailable",
+            "incomplete_inventory",
+            "producer_unknown",
+            "ambiguous_matches",
+            "non_success_conclusion",
+            "unknown_outcome"
+          ]
+        },
+        "observed": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/check"
+          }
+        }
+      }
+    }
+  }
+}

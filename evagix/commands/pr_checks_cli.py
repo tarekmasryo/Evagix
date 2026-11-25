@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 from evagix.commands.verification_cli import _output_format
 
@@ -25,6 +26,12 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         action="store_true",
         help="Include passed rows in text output; JSON always includes every collected row.",
     )
+    parser.add_argument(
+        "--expectations",
+        type=Path,
+        metavar="PATH",
+        help="Compare collected checks with explicit caller-supplied expectations (advisory, not a merge gate).",
+    )
 
 
 def dispatch(args: argparse.Namespace) -> int | None:
@@ -32,4 +39,6 @@ def dispatch(args: argparse.Namespace) -> int | None:
         return None
     from evagix.commands.pr_checks import _cmd_pr_checks
 
+    if args.expectations is not None:
+        return _cmd_pr_checks(args.url, args.format, show_all=args.all, expectations_path=args.expectations)
     return _cmd_pr_checks(args.url, args.format, show_all=args.all)
