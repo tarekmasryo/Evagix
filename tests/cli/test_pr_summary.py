@@ -64,11 +64,12 @@ def _repository(
     include_expectations: bool = True,
     symlink_expectations: bool = False,
     invalid_document: bool = False,
+    context_text: str = "Use the [test script](scripts/test.sh).\n",
 ) -> _Repository:
     _git(root, "init", "-b", "main")
     (root / ".github").mkdir()
     (root / "scripts").mkdir()
-    (root / "AGENTS.md").write_text("Use the [test script](scripts/test.sh).\n", encoding="utf-8")
+    (root / "AGENTS.md").write_text(context_text, encoding="utf-8")
     (root / "scripts/test.sh").write_text("#!/bin/sh\ntouch SHOULD_NOT_RUN\n", encoding="utf-8")
     if include_expectations:
         contents = expectations_bytes if expectations_bytes is not None else json.dumps(_expectations()).encode("utf-8")
@@ -183,6 +184,19 @@ def test_inventory_mode_does_not_read_or_infer_expectations(
     assert "scripts/test.sh" in captured.out and "AGENTS.md:1:23" in captured.out
     assert _git(tmp_path, "status", "--porcelain") == before
     assert not (tmp_path / "SHOULD_NOT_RUN").exists()
+
+
+def test_inventory_summary_reports_deleted_link_in_unchanged_list_paragraph(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    repo = _repository(tmp_path, context_text="*   Verify changes with\n    [test script](scripts/test.sh).\n")
+    monkeypatch.setattr(pr_summary, "collect_pr_checks", lambda *a, **k: PullRequestChecks(_payload(repo)))
+    assert _git(tmp_path, "diff", repo.base, repo.head, "--", "AGENTS.md") == ""
+    assert pr_summary.main(repo.args(expectations=False)) == 0
+    captured = capsys.readouterr()
+    assert captured.err == "" and "**Findings:** 1" in captured.out
+    assert "AGENTS.md:2:19" in captured.out and "scripts/test.sh" in captured.out
+    assert "does not decide merge readiness" in captured.out
 
 
 @pytest.mark.parametrize("use_expectations", [True, False])

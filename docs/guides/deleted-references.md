@@ -39,6 +39,11 @@ prove which replacement path is appropriate. No automatic fix is applied.
   link definitions, URLs, and dynamic paths are not interpreted.
 - Code fences and HTML comments are excluded. This is a conservative extractor,
   not a full Markdown parser or a natural-language instruction checker.
+- Plain top-level list paragraphs can continue onto adjacent lines at the
+  item's content indentation plus up to three spaces. Blank-separated paragraphs,
+  nested lists, tabs, deeper continuations, and paragraphs containing backticks
+  are outside this support; they
+  are not automatically treated as live references instead of code examples.
 - Directories and nonregular Git entries are not ordinary file targets. The
   command does not follow filesystem links or read files outside the repository.
 - Missing documents are inapplicable. Documents that cannot be safely inspected

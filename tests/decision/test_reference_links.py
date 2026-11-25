@@ -164,3 +164,70 @@ def test_inline_html_does_not_hide_markdown_links() -> None:
 def test_large_malformed_markup_preserves_following_link() -> None:
     text = "[" * 500_000 + "\n<span" + " " * 500_000 + "\n[live](live.py)\n"
     assert extract_local_links(text) == [LocalLink("live.py", 3, 8)]
+
+
+@pytest.mark.parametrize("prefix", ["*   ", "-   ", "+   ", "1.  ", "42. ", "- "])
+@pytest.mark.parametrize("extra_indent", [0, 1, 3])
+def test_contiguous_list_paragraph_links_keep_original_positions(prefix: str, extra_indent: int) -> None:
+    indent = " " * (len(prefix) + extra_indent)
+    text = f"{prefix}Build tools with\n{indent}[guide](docs/old.md).\n{indent}Also [next](docs/next.md).\n"
+    assert extract_local_links(text) == [
+        LocalLink("docs/old.md", 2, len(indent) + 9),
+        LocalLink("docs/next.md", 3, len(indent) + 13),
+    ]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "*   Text\n\n        [example](old.md)\n",
+        "*   Text\n    ~~~md\n    [example](old.md)\n    ~~~\n",
+        "*   Text\n    ```md\n    [example](old.md)\n    ```\n",
+        "*   Text\n    - ~~~\n      [example](old.md)\n      ~~~\n",
+        "*   Text\n    > [example](old.md)\n    [continued](old.md)\n",
+        "*   Text\n    <div>\n    [example](old.md)\n    </div>\n",
+        "*   ~~~md\n    [example](old.md)\n    ~~~\n",
+        "*   # Heading\n        [example](old.md)\n",
+        "*   Text\n    ---\n        [example](old.md)\n",
+        "*   Text\n\t[example](old.md)\n",
+        "*   Text\n\n    [unsupported paragraph](old.md)\n",
+        "*   Text\n    - Nested paragraph\n      [unsupported nested link](old.md)\n",
+        "*   Text\n        [unsupported deep continuation](old.md)\n",
+        "*   Text\n<!-- removed -->\n    [unsupported continuation](old.md)\n",
+        '*   [reference]: target.md\n    "[example](old.md)"\n',
+        "*   [reference]:\n    [example](old.md)\n",
+    ],
+)
+def test_list_paragraph_support_does_not_expose_examples_or_unsupported_containers(text: str) -> None:
+    assert extract_local_links(text) == []
+
+
+@pytest.mark.parametrize("ticks", ["`", "``"])
+def test_list_continuations_preserve_multiline_inline_code_exclusion(ticks: str) -> None:
+    text = f"*   Example {ticks}code\n    [example](old.md)\n    {ticks}\n    [live](live.md)\n"
+    # Inline code ends the conservative continuation support, even after the
+    # span closes; this does not change extraction from existing visible lines.
+    assert extract_local_links(text) == []
+
+
+@pytest.mark.parametrize("ending", ["        end`", "\tend`", "    [ref]: target.md\n    end`"])
+def test_list_code_closer_on_excluded_line_does_not_expose_earlier_link(ending: str) -> None:
+    assert extract_local_links(f"*   Example `code\n    [example](old.md)\n{ending}\n") == []
+
+
+@pytest.mark.parametrize("code", ["`value`", "``a ` value``", r"\`value", "`a``b`"])
+def test_list_paragraph_with_inline_code_keeps_continuations_outside_scope(code: str) -> None:
+    assert extract_local_links(f"*   Use {code}\n    [guide](live.md)\n") == []
+
+
+def test_backticks_in_list_continuations_do_not_hide_prior_visible_links() -> None:
+    text = "unclosed ` [live](live.md)\n\n*   Text\n    `code`\n"
+    assert extract_local_links(text) == [LocalLink("live.md", 1, 19)]
+
+
+@pytest.mark.parametrize("newline", ["\r", "\n", "\r\n"])
+def test_list_continuations_preserve_line_endings_and_reset_between_items(newline: str) -> None:
+    text = newline.join(
+        ["*   First", "    [one](one.md)", "", "    [unsupported](old.md)", "+   Second", "    [two](two.md)"]
+    )
+    assert extract_local_links(text) == [LocalLink("one.md", 2, 11), LocalLink("two.md", 6, 11)]
