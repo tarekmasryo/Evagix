@@ -44,6 +44,10 @@ Editable installation is intended for local Evagix development rather than downs
 evagix init-ci . --install-mode editable --fail-under 85
 ```
 
+For advisory expected-check and deleted-reference summaries, see the separate
+[PR review summary recipe](pr-review-summary.md). It does not replace this
+readiness workflow or change `init-ci`.
+
 ## Pre-commit
 
 Evagix exposes downstream pre-commit hooks:

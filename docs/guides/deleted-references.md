@@ -7,6 +7,7 @@ Markdown links in the repository-root `README.md` and `AGENTS.md`.
 evagix changed . --references --base main --head HEAD
 evagix changed . --references --base main --head HEAD --format json
 evagix changed . --references --base main --head HEAD --format github-annotations
+evagix changed . --references --base main --head HEAD --format markdown
 ```
 
 For example, a PR deletes `scripts/test.sh` while `AGENTS.md` still contains
@@ -64,3 +65,18 @@ claim that all repository references or task requirements are correct.
 
 Without `--references`, `changed` retains its existing changed-file risk report,
 schema, working-tree behavior, and exit codes. `pr-risk` is unchanged.
+
+## Markdown summaries
+
+`--format markdown` is supported only with `--references`; it is not a new
+output format for the existing changed-file risk report. The summary records
+base, head, merge base, inspected documents, completeness, finding locations,
+limitations, and a suggested next action. Findings remain advisory.
+
+Repository text is redacted and rendered as literal code, with control and
+direction-formatting characters escaped. It cannot introduce active Markdown
+images or HTML. Markdown output is limited to 450,000 UTF-8 bytes; exceeding
+the limit returns exit `2` without partial stdout. Use JSON for the full report.
+
+The [optional PR summary recipe](pr-review-summary.md) combines these findings
+with expected-check results for the same immutable base/head revisions.

@@ -1,0 +1,175 @@
+# Combine advisory PR reports in a job summary
+
+The development-version `evagix.pr_summary` module combines expected-check
+comparison and deleted-file reference inspection in one Markdown report. It
+collects GitHub metadata once and requires that its base and head commits match
+the explicit commits supplied by the caller. The reference scan uses that same
+pair. Existing commands, JSON schemas, and exit codes are unchanged.
+
+This preview module is not included in the published `0.1.2` release. Install a
+reviewed commit containing it, or a later release that explicitly documents the
+feature. Do not install the inspected PR's code as the verification tool.
+
+## Local invocation
+
+Run from outside the inspected checkout using an independently installed Evagix:
+
+```bash
+python -I -m evagix.pr_summary https://github.com/owner/repository/pull/123 \
+  --repo /path/to/checkout \
+  --base FULL_BASE_COMMIT \
+  --head FULL_HEAD_COMMIT \
+  --expectations .github/evagix-checks.json
+```
+
+Replace the commit placeholders with full lowercase commit IDs. Branch names,
+abbreviations, and tag-object IDs are rejected. Both commits and their required
+Git objects must already exist locally; the module never fetches them.
+
+`--expectations` is a repository-relative Git path, read from the requested base
+commit. It must identify a regular tracked file containing valid UTF-8 JSON no
+larger than 65,536 bytes, following the
+[expectations format](pull-request-checks.md#compare-caller-supplied-expectations).
+Edits or deletions to that file in the PR or working tree do not replace the base
+version. A missing, nonregular, oversized, or malformed base file fails before
+network collection. The supplied base remains a caller-selected snapshot, not
+proof that a protected acceptance policy authorized its contents.
+
+Only `EVAGIX_GITHUB_TOKEN` supplies optional authentication. The module uses the
+existing [GitHub collector boundary](github-check-collection.md#authentication-and-network-boundary).
+It does not read credential files or infer credentials from GitHub CLI.
+
+## Interpret the result
+
+| Exit | Meaning |
+| --- | --- |
+| `0` | Both inspections completed within their stated scopes. Missing or failed expected checks can still be present. |
+| `1` | At least one report is incomplete; both sections describe their available evidence. |
+| `2` | Invalid input, unavailable local objects, collection failure, changed PR revisions, comparison failure, or output limit. No combined report is written to stdout. |
+
+The summary is advisory. It does not prove test execution, enforce required-check
+policy, approve merging, or validate all task requirements. A missing check means
+that it was not observed in the collected snapshot; it may not have started yet.
+Unavailable test-merge data and insufficient API permissions must not be
+interpreted as missing checks. Recollect after pending checks finish.
+
+Each Markdown section is bounded to 450,000 UTF-8 bytes. The combined summary is
+bounded to 950,000 bytes after redaction, below GitHub's per-step summary limit.
+Excess output is rejected rather than silently truncated. Use the individual
+JSON commands when a complete machine-readable report is needed.
+
+## Optional job for an existing pull-request workflow
+
+The following job is a recipe to add to a workflow that already uses
+`pull_request`. Replace `tests` in `needs` with the test job IDs from that
+workflow. It runs after those jobs finish, including when they fail; unrelated
+provider checks can still be pending.
+
+Before enabling the job:
+
+1. Add the expectations file to the base branch through normal review.
+2. Set the repository variable `EVAGIX_TOOL_SHA` to a reviewed full commit ID from
+   `tarekmasryo/Evagix` containing this module. A missing or invalid value fails
+   installation. Do not use the inspected PR's head, a moving branch, or `v0.1.2`.
+3. Keep this reporting job out of its own expectations list: it cannot observe
+   itself as completed while it is generating the report.
+
+```yaml
+jobs:
+  evagix-review:
+    name: Evagix advisory PR review
+    needs: [tests]
+    if: ${{ always() && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+      checks: read
+      statuses: read
+    steps:
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.11'
+
+      - name: Install reviewed verification tool
+        working-directory: ${{ runner.temp }}
+        env:
+          EVAGIX_TOOL_SHA: ${{ vars.EVAGIX_TOOL_SHA }}
+        run: |
+          if [[ ! "$EVAGIX_TOOL_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo 'Set EVAGIX_TOOL_SHA to a reviewed full tool commit.' >&2
+            exit 2
+          fi
+          python -I -m venv "$RUNNER_TEMP/evagix-summary-env"
+          "$RUNNER_TEMP/evagix-summary-env/bin/python" -I -m pip install \
+            "evagix @ git+https://github.com/tarekmasryo/Evagix.git@$EVAGIX_TOOL_SHA"
+
+      - name: Fetch inspected commits as data
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+          submodules: false
+          lfs: false
+          path: inspected
+
+      - name: Publish advisory review summary
+        if: ${{ always() }}
+        working-directory: ${{ runner.temp }}
+        env:
+          PR_URL: https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EVAGIX_GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          report="$RUNNER_TEMP/evagix-pr-review.md"
+          set +e
+          "$RUNNER_TEMP/evagix-summary-env/bin/python" -I -m evagix.pr_summary \
+            "$PR_URL" --repo "$GITHUB_WORKSPACE/inspected" \
+            --base "$BASE_SHA" --head "$HEAD_SHA" \
+            --expectations .github/evagix-checks.json > "$report"
+          review_status=$?
+          set -e
+          case "$review_status" in
+            0|1)
+              cat "$report" >> "$GITHUB_STEP_SUMMARY"
+              exit "$review_status"
+              ;;
+            *)
+              printf '%s\n' '## Evagix review unavailable' '' \
+                'The review could not inspect matching committed inputs and GitHub evidence. See the operational error; no clean result is implied.' \
+                >> "$GITHUB_STEP_SUMMARY"
+              exit 2
+              ;;
+          esac
+```
+
+The checkout is inspected as Git data. The job neither installs dependencies from
+it nor executes its scripts, tests, hooks, or configuration. Python isolation and
+the temporary virtual environment keep checkout modules out of the tool's import
+path. The summary is written directly to GitHub's per-step file; it is not copied
+to the command log or posted as a PR comment. No additional artifact is uploaded.
+
+This recipe remains advisory: a PR-controlled workflow is not a trusted
+enforcement boundary. Taking expectations from the base commit does not prevent a
+PR from editing the workflow itself. Do not use the job's successful exit as a
+merge-approval rule. Existing `init-ci` readiness and integrity gates are unchanged.
+
+Fork approval rules, token permissions, or missing local objects can prevent a
+report. Those conditions produce an unavailable review, not a passing review or
+an assertion that required checks are missing. If the PR base or head changes
+after the triggering event, the module refuses to combine results for different
+snapshots. Run a new review with the current explicit revisions.
+
+The recipe is an optional integration example; it is not automatically enabled
+in the repository and does not establish hosted-workflow validation by itself.
+
+## References
+
+- [GitHub pull-request event and merge-revision semantics](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request)
+- [Job summaries and their per-step size limit](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#step-isolation-and-limits)
+- [Risks of untrusted code checkout](https://docs.github.com/en/actions/reference/security/secure-use#mitigating-the-risks-of-untrusted-code-checkout)
+- [Deleted-file reference scope](deleted-references.md)
+  and [GitHub check comparison scope](pull-request-checks.md)
