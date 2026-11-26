@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evagix.dev/schemas/script-drift.schema.json",
+  "title": "Evagix Deleted Script Instruction Report (Preview)",
+  "type": "object",
+  "required": ["schema_version", "tool", "kind", "base", "head", "merge_base", "completeness", "scope", "inspected_documents", "limitations", "findings"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "tool": { "const": "evagix" },
+    "kind": { "const": "deleted_script_drift" },
+    "base": { "$ref": "#/$defs/revision" },
+    "head": { "$ref": "#/$defs/revision" },
+    "merge_base": { "$ref": "#/$defs/revision" },
+    "completeness": { "enum": ["complete", "incomplete"] },
+    "scope": {
+      "type": "object",
+      "required": ["documents", "syntax", "working_directory", "working_tree"],
+      "properties": {
+        "documents": { "const": ["README.md", "AGENTS.md"] },
+        "syntax": { "const": "literal_script_commands" },
+        "working_directory": { "const": "repository_root_assumed" },
+        "working_tree": { "const": "excluded" }
+      },
+      "additionalProperties": false
+    },
+    "inspected_documents": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "enum": ["README.md", "AGENTS.md"] }
+    },
+    "limitations": { "type": "array", "items": { "type": "string" } },
+    "findings": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {
+        "type": "object",
+        "required": ["code", "document", "line", "column", "target", "severity"],
+        "properties": {
+          "code": { "const": "context.deleted-script-reference" },
+          "document": { "enum": ["README.md", "AGENTS.md"] },
+          "line": { "type": "integer", "minimum": 1 },
+          "column": { "type": "integer", "minimum": 1 },
+          "target": { "type": "string", "minLength": 1 },
+          "severity": { "const": "advisory" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "$defs": {
+    "revision": { "type": "string", "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$" }
+  },
+  "additionalProperties": false
+}

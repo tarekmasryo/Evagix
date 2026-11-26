@@ -52,6 +52,13 @@ references to files deleted since the merge base. It does not change the stable
 `changed-report.schema.json` contract used without `--references`. See the
 [deleted-reference guide](guides/deleted-references.md).
 
+`evagix/schemas/script-drift.schema.json` describes the preview
+`evagix changed --scripts --format json` report. It records removed literal
+script targets, source locations, committed revisions, inspection completeness,
+and the repository-root working-directory assumption. It does not change either
+existing changed-file or Markdown-link report. See the
+[script-instruction guide](guides/deleted-scripts.md).
+
 ## Stability policy
 
 - Schema additions should be backward-compatible where possible.
