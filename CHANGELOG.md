@@ -6,6 +6,7 @@ All notable user-facing changes to Evagix are documented here.
 
 ### Added
 
+- Preview `changed --scripts` mode for literal script instructions left behind by committed deletions or renames. It reports source locations and incomplete inspection, declares its repository-root working-directory assumption, and excludes ambiguous shell contexts. Existing changed-file, Markdown-link, and automatic PR-summary behavior is unchanged.
 - Run advisory PR summaries in this repository's CI after existing jobs finish, using an independently pinned tool and read-only permissions. Findings remain advisory; incomplete or unavailable reviews are visible job failures. Existing scan commands and release gates are unchanged.
 - Advisory Markdown summaries for PR check inventories, expected-check comparisons, and deleted-file references. An optional CI helper combines reports for matching immutable revisions without requiring an expectations file, leaving required-check coverage unknown. Explicit expectations are still read only from the base commit; existing outputs and exit codes are unchanged.
 - Optional `pr-checks --expectations` comparison against caller-supplied check names, producer IDs, kinds, and revision scopes. The advisory report distinguishes missing, pending, failed, and unverified expectations without changing default reports or collection exit codes.

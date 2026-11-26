@@ -93,8 +93,24 @@ or operational error. JSON uses the separate `reference-drift.schema.json`
 preview contract. Without this flag, `changed` keeps its existing behavior.
 See [supported links, comparison rules, and limitations](guides/deleted-references.md).
 
-`--format markdown` is available with `--references` only. It preserves advisory
+Reference reports also support `--format markdown`. It preserves advisory
 exit semantics and refuses oversized output rather than silently truncating it.
+
+## Deleted script instructions (preview)
+
+```bash
+evagix changed . --scripts --base main --head HEAD
+```
+
+This separate opt-in mode reports supported literal script commands in root
+`README.md` and `AGENTS.md` whose tracked targets were removed since the
+merge base. It assumes a repository-root working directory and does not execute
+scripts or infer replacement paths. JSON uses `script-drift.schema.json`;
+text, Markdown, and GitHub annotations are also supported. Exit codes are `0`
+for complete advisory inspection, `1` for incomplete inspection, and `2`
+for input or operational errors. `--scripts` and `--references` are mutually
+exclusive; existing modes are unchanged. See the
+[supported commands and limits](guides/deleted-scripts.md).
 
 ## CI gate
 

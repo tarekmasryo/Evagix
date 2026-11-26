@@ -261,6 +261,21 @@ Most users only need a small part of the CLI.
 
 For the complete command inventory, flags, advanced workflows, and exit-code semantics, see [docs/commands.md](https://github.com/tarekmasryo/Evagix/blob/main/docs/commands.md).
 
+### Removed script instructions (development preview)
+
+Review script commands left behind when a committed change removes or renames a file:
+
+```bash
+evagix changed . --scripts --base main --head HEAD
+```
+
+This offline, advisory mode checks supported literal instructions in root
+`README.md` and `AGENTS.md`, assuming commands run from the repository root.
+It reports the source location and removed target without running scripts or
+choosing a replacement. See the
+[supported forms and limits](https://github.com/tarekmasryo/Evagix/blob/main/docs/guides/deleted-scripts.md).
+This preview is not included in the published `0.1.2` release.
+
 ### Optional GitHub evidence (development preview)
 
 Start from a PR URL to see reported check outcomes and links that need attention:

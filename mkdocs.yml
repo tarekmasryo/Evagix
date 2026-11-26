@@ -72,6 +72,7 @@ nav:
       - PR Review Summary: guides/pr-review-summary.md
       - Selected Check Evidence: guides/github-check-collection.md
       - Deleted File References: guides/deleted-references.md
+      - Deleted Script Instructions: guides/deleted-scripts.md
   - Reference:
       - CLI Reference: commands.md
       - Rules: rules.md

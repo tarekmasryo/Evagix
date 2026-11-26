@@ -7,6 +7,7 @@ from typing import Any
 
 from evagix.commands.git_cmds import _cmd_changed, _cmd_pr_risk
 from evagix.commands.reference_drift import _cmd_reference_drift
+from evagix.commands.script_drift import _cmd_script_drift
 
 
 def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
@@ -20,12 +21,18 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         "--format",
         choices=["text", "json", "github-annotations", "markdown"],
         default="text",
-        help="Output format. Markdown requires --references.",
+        help="Output format. Markdown requires --references or --scripts.",
     )
-    changed_parser.add_argument(
+    inspection_mode = changed_parser.add_mutually_exclusive_group()
+    inspection_mode.add_argument(
         "--references",
         action="store_true",
         help="Report explicit Markdown links broken by committed file deletions (preview; advisory).",
+    )
+    inspection_mode.add_argument(
+        "--scripts",
+        action="store_true",
+        help="Report literal script commands whose tracked targets were removed (preview; advisory).",
     )
 
     pr_risk_parser = subparsers.add_parser(
@@ -40,6 +47,14 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
 
 def dispatch(args: Any) -> int | None:
     if args.command == "changed":
+        if getattr(args, "scripts", False):
+            return _cmd_script_drift(
+                Path(args.path),
+                base=args.base,
+                head=args.head,
+                output_format=args.format,
+                style=args.terminal_style,
+            )
         if args.references:
             return _cmd_reference_drift(
                 Path(args.path),
