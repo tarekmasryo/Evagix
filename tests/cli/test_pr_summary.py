@@ -241,6 +241,7 @@ def test_incomplete_part_is_visible_and_has_distinct_exit(
     captured = capsys.readouterr()
     assert captured.err == "" and "incomplete" in captured.out
     assert "Deleted-file reference review" in captured.out
+    assert "Deleted-script instruction review" in captured.out
     assert ("Expected checks" if use_expectations else "Head checks") in captured.out
     if not checks_complete and use_expectations:
         assert "unverified: 1" in captured.out and "missing: 0" in captured.out
@@ -407,8 +408,13 @@ def test_only_explicit_provider_token_is_used(
 
 
 @pytest.mark.parametrize("use_expectations", [True, False])
+@pytest.mark.parametrize("renderer", ["render_reference_drift_markdown", "render_script_drift_markdown"])
 def test_rendering_failure_emits_no_partial_report_or_exception_value(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], use_expectations: bool
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    use_expectations: bool,
+    renderer: str,
 ) -> None:
     repo = _repository(tmp_path)
     monkeypatch.setattr(pr_summary, "collect_pr_checks", lambda *a, **k: PullRequestChecks(_payload(repo)))
@@ -416,20 +422,29 @@ def test_rendering_failure_emits_no_partial_report_or_exception_value(
     def fail(*args: object, **kwargs: object) -> str:
         raise ValueError("private rendering detail")
 
-    monkeypatch.setattr(pr_summary, "render_reference_drift_markdown", fail)
+    monkeypatch.setattr(pr_summary, renderer, fail)
     assert pr_summary.main(repo.args(expectations=use_expectations)) == 2
     captured = capsys.readouterr()
     assert captured.out == "" and "private rendering detail" not in captured.err
 
 
 @pytest.mark.parametrize("use_expectations", [True, False])
+@pytest.mark.parametrize("oversized_section", ["checks", "scripts", "combined"])
 def test_combined_size_limit_is_checked_in_bytes_before_any_output(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], use_expectations: bool
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    use_expectations: bool,
+    oversized_section: str,
 ) -> None:
     repo = _repository(tmp_path)
     monkeypatch.setattr(pr_summary, "collect_pr_checks", lambda *a, **k: PullRequestChecks(_payload(repo)))
-    monkeypatch.setattr(pr_summary, "render_pr_checks_markdown", lambda *a, **k: "é" * 475_001)
-    monkeypatch.setattr(pr_summary, "render_reference_drift_markdown", lambda *a, **k: "")
+    combined = "é" * 170_000 if oversized_section == "combined" else ""
+    checks = "é" * 475_001 if oversized_section == "checks" else combined
+    scripts = "é" * 475_001 if oversized_section == "scripts" else combined
+    monkeypatch.setattr(pr_summary, "render_pr_checks_markdown", lambda *a, **k: checks)
+    monkeypatch.setattr(pr_summary, "render_reference_drift_markdown", lambda *a, **k: combined)
+    monkeypatch.setattr(pr_summary, "render_script_drift_markdown", lambda *a, **k: scripts)
     assert pr_summary.main(repo.args(expectations=use_expectations)) == 2
     captured = capsys.readouterr()
     assert captured.out == "" and "Combined summary exceeds" in captured.err
@@ -444,6 +459,7 @@ def test_final_redaction_precedes_the_combined_size_limit(
     monkeypatch.setattr(pr_summary, "collect_pr_checks", lambda *a, **k: PullRequestChecks(_payload(repo)))
     monkeypatch.setattr(pr_summary, "render_pr_checks_markdown", lambda *a, **k: secret)
     monkeypatch.setattr(pr_summary, "render_reference_drift_markdown", lambda *a, **k: "")
+    monkeypatch.setattr(pr_summary, "render_script_drift_markdown", lambda *a, **k: "")
     monkeypatch.setattr(pr_summary, "_SUMMARY_BYTES", 400)
     assert pr_summary.main(repo.args(expectations=use_expectations)) == 0
     captured = capsys.readouterr()
@@ -455,3 +471,117 @@ def test_unknown_arguments_do_not_echo_private_values(tmp_path: Path, capsys: py
     assert pr_summary.main(repo.args() + ["--unexpected-private-value"]) == 2
     captured = capsys.readouterr()
     assert captured.out == "" and "unexpected-private-value" not in captured.err
+
+
+def _script_repository(
+    root: Path, change: str, *, document: str = "AGENTS.md", script_name: str = "test.sh"
+) -> _Repository:
+    _git(root, "init", "-b", "main")
+    (root / ".github").mkdir()
+    (root / "scripts").mkdir()
+    target = f"scripts/{script_name}"
+    instruction = f"Use the [test script]({target}).\n\nRun `sh {target}`.\n"
+    (root / document).write_text(instruction, encoding="utf-8")
+    (root / target).write_text("#!/bin/sh\ntouch SHOULD_NOT_RUN\n", encoding="utf-8")
+    (root / EXPECTATIONS_PATH).write_text(json.dumps(_expectations()), encoding="utf-8")
+    _git(root, "add", ".")
+    _git(root, "commit", "--no-gpg-sign", "-m", "document script")
+    base = _git(root, "rev-parse", "HEAD")
+    if change == "retained":
+        (root / "unrelated.txt").write_text("unrelated change\n", encoding="utf-8")
+    elif change in {"renamed", "corrected"}:
+        (root / target).rename(root / "scripts/check.sh")
+        if change == "corrected":
+            (root / document).write_text(instruction.replace(target, "scripts/check.sh"), encoding="utf-8")
+    elif change in {"deleted", "blocked"}:
+        (root / target).unlink()
+        if change == "blocked":
+            (root / "scripts").rmdir()
+            (root / "scripts").write_text("no longer a directory\n", encoding="utf-8")
+    else:
+        raise ValueError("Unknown fixture change")
+    _git(root, "add", ".")
+    _git(root, "commit", "--no-gpg-sign", "-m", "change script")
+    return _Repository(root, base, _git(root, "rev-parse", "HEAD"))
+
+
+@pytest.mark.parametrize("use_expectations", [True, False])
+@pytest.mark.parametrize(
+    "change,document,findings",
+    [
+        ("retained", "README.md", 0),
+        ("deleted", "AGENTS.md", 1),
+        ("renamed", "README.md", 1),
+        ("corrected", "AGENTS.md", 0),
+    ],
+)
+def test_summary_includes_committed_script_instructions(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    use_expectations: bool,
+    change: str,
+    document: str,
+    findings: int,
+) -> None:
+    repo = _script_repository(tmp_path, change, document=document)
+    calls: list[str] = []
+
+    def collect(url: str, *, token: str | None = None) -> PullRequestChecks:
+        calls.append(url)
+        return PullRequestChecks(_payload(repo, result="passed"))
+
+    monkeypatch.setattr(pr_summary, "collect_pr_checks", collect)
+    (tmp_path / document).write_text("Uncommitted replacement instructions.\n", encoding="utf-8")
+    before = _git(tmp_path, "status", "--porcelain")
+    assert pr_summary.main(repo.args(expectations=use_expectations)) == 0
+    captured = capsys.readouterr()
+    assert captured.err == "" and calls == [PR_URL]
+    references, scripts = captured.out.split("## Deleted-script instruction review\n", 1)
+    assert "Deleted-file reference review" in references
+    assert f"**Findings:** {findings}." in references and f"**Findings:** {findings}." in scripts
+    assert "**Inspection:** complete" in scripts
+    assert repo.base in scripts and repo.head in scripts
+    assert "repository-root working directory assumed" in scripts
+    assert "does not prove execution failure, select a replacement, or decide merge readiness" in scripts
+    if findings:
+        assert f"{document}:3:9" in scripts and "scripts/test.sh" in scripts
+        assert "scripts/check.sh" not in scripts
+    else:
+        assert "No deleted-script references found within the inspected scope" in scripts
+    assert _git(tmp_path, "status", "--porcelain") == before
+    assert not (tmp_path / "SHOULD_NOT_RUN").exists()
+
+
+@pytest.mark.parametrize("use_expectations", [True, False])
+def test_script_only_incompleteness_preserves_other_sections_and_returns_one(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    use_expectations: bool,
+) -> None:
+    repo = _script_repository(tmp_path, "blocked")
+    monkeypatch.setattr(
+        pr_summary, "collect_pr_checks", lambda *a, **k: PullRequestChecks(_payload(repo, result="passed"))
+    )
+    assert pr_summary.main(repo.args(expectations=use_expectations)) == 1
+    captured = capsys.readouterr()
+    assert captured.err == ""
+    references, scripts = captured.out.split("## Deleted-script instruction review\n", 1)
+    assert "**Inspection:** complete" in references and "passed: 1" in references
+    assert "**Inspection:** incomplete" in scripts
+    assert "below non-directory Git entries" in scripts
+    assert "Complete the missing inspection before relying on this report" in scripts
+
+
+def test_summary_redacts_removed_script_targets(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    secret = "ghp_" + "f" * 36
+    repo = _script_repository(tmp_path, "deleted", script_name=f"{secret}.sh")
+    monkeypatch.setattr(pr_summary, "collect_pr_checks", lambda *a, **k: PullRequestChecks(_payload(repo)))
+    assert pr_summary.main(repo.args(expectations=False)) == 0
+    captured = capsys.readouterr()
+    scripts = captured.out.split("## Deleted-script instruction review\n", 1)[1]
+    assert "**Findings:** 1" in scripts and "[REDACTED]" in scripts
+    assert secret not in captured.out + captured.err

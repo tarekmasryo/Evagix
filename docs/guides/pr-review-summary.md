@@ -1,11 +1,12 @@
 # Combine advisory PR reports in a job summary
 
-The development-version `evagix.pr_summary` module combines observed PR checks
-and deleted-file reference inspection in one advisory Markdown report, without
-requiring an expectations file. An explicit file enables expected-check comparison. It
-collects GitHub metadata once and requires that its base and head commits match
-the explicit commits supplied by the caller. The reference scan uses that same
-pair. Existing commands, JSON schemas, and exit codes are unchanged.
+The development-version `evagix.pr_summary` module combines observed PR checks,
+deleted-file references, and deleted-script instructions in one advisory Markdown
+report, without requiring an expectations file. An explicit file enables
+expected-check comparison. It collects GitHub metadata once and requires that its
+base and head commits match the explicit commits supplied by the caller. Both
+repository inspections use that same pair. Existing standalone commands, JSON
+schemas, and exit-code meanings are unchanged.
 
 This preview module is not included in the published `0.1.2` release. Install a
 reviewed commit containing it, or a later release that explicitly documents the
@@ -48,10 +49,16 @@ It does not read credential files or infer credentials from GitHub CLI.
 
 ## Interpret the result
 
+The repository sections inspect committed root `README.md` and `AGENTS.md`.
+The [script section](deleted-scripts.md) checks supported literal commands,
+assuming a repository-root working directory. It does not execute scripts,
+prove execution failure, or infer replacement paths. Editing an uncommitted
+instruction does not change the report.
+
 | Exit | Meaning |
 | --- | --- |
-| `0` | Both inspections completed within their stated scopes. Failed observed checks, missing expected checks, or broken references can still be present. |
-| `1` | At least one report is incomplete; both sections describe their available evidence. |
+| `0` | All three inspections completed within their stated scopes. Failed observed checks, missing expected checks, broken links, or stale script instructions can still be present. |
+| `1` | At least one report is incomplete; all sections describe their available evidence. |
 | `2` | Invalid input, unavailable local objects, collection failure, changed PR revisions, comparison failure, or output limit. No combined report is written to stdout. |
 
 The summary is advisory. It does not prove test execution, enforce required-check
@@ -84,6 +91,10 @@ the tool and its constraints are not loaded from the inspected checkout. The PR'
 checkout is read only as Git data by the installed tool, outside the checkout's
 import path. The workflow itself is still PR-controlled, so this is not a trusted
 policy-enforcement boundary.
+
+That pinned version predates the script section. The current automatic job still
+reports checks and deleted-file references; enabling script findings there
+requires a separate pin update to a reviewed commit containing this integration.
 
 Open **Actions → CI → Summary** to read the report. No expectations file,
 repository variable, PR comment, or additional uploaded artifact is required.

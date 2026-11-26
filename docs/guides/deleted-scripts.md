@@ -105,4 +105,6 @@ rejects oversized output instead of silently truncating it.
 `--scripts` and `--references` are mutually exclusive. The existing
 `changed`, `changed --references`, and `pr-risk` report contracts and exit
 codes are unchanged. The automatic PR-summary workflow is also unchanged; this
-preview is explicitly invoked through `changed --scripts`.
+preview can be invoked through `changed --scripts` or included by the
+development-version [combined PR summary](pr-review-summary.md). Evagix's automatic
+job remains pinned to an older tool version until a separate reviewed pin update.

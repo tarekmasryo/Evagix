@@ -1,4 +1,4 @@
-"""Preview CI adapter for two advisory reports bound to explicit Git commits."""
+"""Preview CI adapter for advisory reports bound to explicit Git commits."""
 
 from __future__ import annotations
 
@@ -14,6 +14,7 @@ from evagix.reference_drift import build_reference_drift_report, render_referenc
 from evagix.reports.pr_checks import render_pr_checks_markdown
 from evagix.safety import REPOSITORY_PATH_POLICY
 from evagix.scanning.git_snapshot import GitSnapshot
+from evagix.script_drift import build_script_drift_report, render_script_drift_markdown
 from evagix.security.output import execute_with_redacted_output
 from evagix.security.redaction import redact_sensitive_text
 from evagix.verification._json import decode_object
@@ -95,6 +96,7 @@ def _run(args: argparse.Namespace) -> tuple[str, int]:
             raise _SummaryError("The requested object IDs must identify commits directly.")
         expectations = _read_expectations(git, args.base, args.expectations) if args.expectations is not None else None
         references = build_reference_drift_report(root, base=args.base, head=args.head)
+        scripts = build_script_drift_report(root, base=args.base, head=args.head)
     except _SummaryError:
         raise
     except (OSError, RuntimeError, ValueError):
@@ -130,12 +132,14 @@ def _run(args: argparse.Namespace) -> tuple[str, int]:
             )
         output = redact_sensitive_text(
             "# Pull request review (advisory)\n\n"
-            "Both sections use the requested base and head commits. "
+            "All sections use the requested base and head commits. "
             + expectations_note
             + "\n\n"
             + render_pr_checks_markdown(payload, show_all=False).rstrip()
             + "\n\n"
             + render_reference_drift_markdown(references).rstrip()
+            + "\n\n"
+            + render_script_drift_markdown(scripts).rstrip()
             + "\n"
         )
     except ContractError:
@@ -146,7 +150,7 @@ def _run(args: argparse.Namespace) -> tuple[str, int]:
         ) from None
     if len(output.encode("utf-8")) > _SUMMARY_BYTES:
         raise _SummaryError("Combined summary exceeds the output limit; inspect the individual JSON reports.")
-    return output, 0 if checks.complete and references.complete else 1
+    return output, 0 if checks.complete and references.complete and scripts.complete else 1
 
 
 def _main(argv: list[str] | None) -> int:
