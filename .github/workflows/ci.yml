@@ -185,3 +185,75 @@ jobs:
 
       - name: Install and smoke-test wheel and sdist independently
         run: python scripts/verify_artifacts.py dist
+
+  advisory-pr-review:
+    name: Evagix advisory PR review
+    needs: [quality, test, self-governance, build, artifact-smoke]
+    if: ${{ always() && !cancelled() && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+      checks: read
+      statuses: read
+    steps:
+      - name: Check out the reviewed verification tool
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: tarekmasryo/Evagix
+          ref: e13e2485cbeb66013e5a5e893a66418640d667de
+          path: verification-tool
+          persist-credentials: false
+          submodules: false
+          lfs: false
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.11"
+
+      - name: Install the reviewed verification tool
+        working-directory: ${{ runner.temp }}
+        env:
+          TOOL_SOURCE: ${{ github.workspace }}/verification-tool
+        run: |
+          python -I -m venv "$RUNNER_TEMP/evagix-summary-env"
+          "$RUNNER_TEMP/evagix-summary-env/bin/python" -I -m pip install --upgrade \
+            -c "$TOOL_SOURCE/constraints-release.txt" pip setuptools wheel
+          "$RUNNER_TEMP/evagix-summary-env/bin/python" -I -m pip install \
+            --no-build-isolation --no-deps "$TOOL_SOURCE"
+
+      - name: Fetch inspected commits as data
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+          submodules: false
+          lfs: false
+          path: inspected
+
+      - name: Publish advisory review summary
+        if: ${{ always() }}
+        working-directory: ${{ runner.temp }}
+        env:
+          PR_URL: https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EVAGIX_GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          report="$RUNNER_TEMP/evagix-pr-review.md"
+          set +e
+          "$RUNNER_TEMP/evagix-summary-env/bin/python" -I -m evagix.pr_summary \
+            "$PR_URL" --repo "$GITHUB_WORKSPACE/inspected" \
+            --base "$BASE_SHA" --head "$HEAD_SHA" > "$report"
+          review_status=$?
+          set -e
+          if [[ ( "$review_status" == 0 || "$review_status" == 1 ) && -s "$report" ]]; then
+            cat "$report" >> "$GITHUB_STEP_SUMMARY"
+            exit "$review_status"
+          fi
+          printf '%s\n' '## Evagix review unavailable' '' \
+            'The review could not inspect matching committed inputs and GitHub evidence. See the operational error; no clean result is implied.' \
+            >> "$GITHUB_STEP_SUMMARY"
+          exit 2
