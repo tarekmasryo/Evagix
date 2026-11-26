@@ -1,7 +1,8 @@
 # Combine advisory PR reports in a job summary
 
-The development-version `evagix.pr_summary` module combines expected-check
-comparison and deleted-file reference inspection in one Markdown report. It
+The development-version `evagix.pr_summary` module combines observed PR checks
+and deleted-file reference inspection in one advisory Markdown report, without
+requiring an expectations file. An explicit file enables expected-check comparison. It
 collects GitHub metadata once and requires that its base and head commits match
 the explicit commits supplied by the caller. The reference scan uses that same
 pair. Existing commands, JSON schemas, and exit codes are unchanged.
@@ -18,21 +19,27 @@ Run from outside the inspected checkout using an independently installed Evagix:
 python -I -m evagix.pr_summary https://github.com/owner/repository/pull/123 \
   --repo /path/to/checkout \
   --base FULL_BASE_COMMIT \
-  --head FULL_HEAD_COMMIT \
-  --expectations .github/evagix-checks.json
+  --head FULL_HEAD_COMMIT
 ```
 
 Replace the commit placeholders with full lowercase commit IDs. Branch names,
 abbreviations, and tag-object IDs are rejected. Both commits and their required
 Git objects must already exist locally; the module never fetches them.
 
-`--expectations` is a repository-relative Git path, read from the requested base
-commit. It must identify a regular tracked file containing valid UTF-8 JSON no
+Without `--expectations`, the summary reports observed checks and explicitly
+leaves required-check coverage unknown. It does not infer required checks from
+CI configuration or discover an expectations file automatically. An empty
+inventory is not evidence that tests ran or that no checks are required.
+
+To compare an explicit list, add `--expectations .github/evagix-checks.json`.
+This optional argument is a repository-relative Git path, read from the requested
+base commit. It must identify a regular tracked file containing valid UTF-8 JSON no
 larger than 65,536 bytes, following the
 [expectations format](pull-request-checks.md#compare-caller-supplied-expectations).
 Edits or deletions to that file in the PR or working tree do not replace the base
 version. A missing, nonregular, oversized, or malformed base file fails before
-network collection. The supplied base remains a caller-selected snapshot, not
+network collection; it does not fall back to inventory mode. The supplied base
+remains a caller-selected snapshot, not
 proof that a protected acceptance policy authorized its contents.
 
 Only `EVAGIX_GITHUB_TOKEN` supplies optional authentication. The module uses the
@@ -43,15 +50,19 @@ It does not read credential files or infer credentials from GitHub CLI.
 
 | Exit | Meaning |
 | --- | --- |
-| `0` | Both inspections completed within their stated scopes. Missing or failed expected checks can still be present. |
+| `0` | Both inspections completed within their stated scopes. Failed observed checks, missing expected checks, or broken references can still be present. |
 | `1` | At least one report is incomplete; both sections describe their available evidence. |
 | `2` | Invalid input, unavailable local objects, collection failure, changed PR revisions, comparison failure, or output limit. No combined report is written to stdout. |
 
 The summary is advisory. It does not prove test execution, enforce required-check
-policy, approve merging, or validate all task requirements. A missing check means
-that it was not observed in the collected snapshot; it may not have started yet.
+policy, approve merging, or validate all task requirements. With an expectations
+file, a missing check means that it was not observed in the collected snapshot;
+it may not have started yet.
 Unavailable test-merge data and insufficient API permissions must not be
 interpreted as missing checks. Recollect after pending checks finish.
+
+Passed rows are hidden in the combined summary. To inspect them, use the
+standalone `evagix pr-checks PR_URL --all --format markdown` command.
 
 Each Markdown section is bounded to 450,000 UTF-8 bytes. The combined summary is
 bounded to 950,000 bytes after redaction, below GitHub's per-step summary limit.
@@ -65,14 +76,15 @@ The following job is a recipe to add to a workflow that already uses
 workflow. It runs after those jobs finish, including when they fail; unrelated
 provider checks can still be pending.
 
-Before enabling the job:
+Before enabling the job, set the repository variable `EVAGIX_TOOL_SHA` to a
+reviewed full commit ID from `tarekmasryo/Evagix` containing the optional-file
+behavior documented here. A missing or invalid value fails installation. Do not
+use the inspected PR's head, a moving branch, or `v0.1.2`.
 
-1. Add the expectations file to the base branch through normal review.
-2. Set the repository variable `EVAGIX_TOOL_SHA` to a reviewed full commit ID from
-   `tarekmasryo/Evagix` containing this module. A missing or invalid value fails
-   installation. Do not use the inspected PR's head, a moving branch, or `v0.1.2`.
-3. Keep this reporting job out of its own expectations list: it cannot observe
-   itself as completed while it is generating the report.
+The recipe needs no expectations file. To enable comparison, review the file
+into the base branch first and add `--expectations .github/evagix-checks.json` to
+the summary invocation. Keep this reporting job out of its own expectations
+list: it cannot observe itself as completed while generating the report.
 
 ```yaml
 jobs:
@@ -128,8 +140,7 @@ jobs:
           set +e
           "$RUNNER_TEMP/evagix-summary-env/bin/python" -I -m evagix.pr_summary \
             "$PR_URL" --repo "$GITHUB_WORKSPACE/inspected" \
-            --base "$BASE_SHA" --head "$HEAD_SHA" \
-            --expectations .github/evagix-checks.json > "$report"
+            --base "$BASE_SHA" --head "$HEAD_SHA" > "$report"
           review_status=$?
           set -e
           case "$review_status" in

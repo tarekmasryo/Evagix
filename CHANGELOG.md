@@ -6,7 +6,7 @@ All notable user-facing changes to Evagix are documented here.
 
 ### Added
 
-- Advisory Markdown summaries for PR check inventories, expected-check comparisons, and deleted-file references. An optional CI helper combines reports for matching immutable revisions and reads expectations from the base commit; existing outputs and exit codes are unchanged.
+- Advisory Markdown summaries for PR check inventories, expected-check comparisons, and deleted-file references. An optional CI helper combines reports for matching immutable revisions without requiring an expectations file, leaving required-check coverage unknown. Explicit expectations are still read only from the base commit; existing outputs and exit codes are unchanged.
 - Optional `pr-checks --expectations` comparison against caller-supplied check names, producer IDs, kinds, and revision scopes. The advisory report distinguishes missing, pending, failed, and unverified expectations without changing default reports or collection exit codes.
 - Preview `changed --references` mode for advisory detection of explicit local Markdown links in root `README.md` and `AGENTS.md` whose file targets were deleted between the merge base and committed head. It reports source locations and inspection completeness without changing existing changed-file risk gates or schemas.
 - Preview `pr-checks <PR_URL>` report with no request file or manual execution IDs. It shows head and available test-merge check outcomes separately, keeps provider identity and detail links, and hides passed text rows by default. Collection status is separate from check success; required-check policy and merge readiness are not evaluated.
@@ -15,6 +15,7 @@ All notable user-facing changes to Evagix are documented here.
 
 ### Fixed
 
+- Detect deleted-file links in adjacent continuation lines of plain Markdown list paragraphs, preserving source locations and conservative code-example filtering.
 - Inspect agent-context command safety, prompt-injection indicators, and incomplete reads in default `doctor`, including configured custom targets. Strict mode retains its additional checks without duplicating context safety findings.
 - Detect supported `.env` reads with relative paths, options, multiple arguments, and PowerShell `Get-Content` / `gc`, including bare commands in agent instructions. Environment templates remain excluded.
 - Filter nonmatching filenames before repository-boundary resolution during named-file and suffix discovery, while preserving traversal budgets and validation for returned files.

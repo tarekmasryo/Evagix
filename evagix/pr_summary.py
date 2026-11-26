@@ -70,10 +70,12 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--head", required=True, type=_commit, help="Full immutable head commit ID.")
     parser.add_argument(
         "--expectations",
-        required=True,
         type=_git_path,
         metavar="GIT_PATH",
-        help="Regular expectations file read only from the requested base commit.",
+        help=(
+            "Optional regular expectations file read only from the requested base commit. "
+            "If omitted, report observed checks without evaluating required-check coverage."
+        ),
     )
     return parser
 
@@ -91,11 +93,15 @@ def _run(args: argparse.Namespace) -> tuple[str, int]:
         git = GitSnapshot(root)
         if git.resolve(args.base) != args.base or git.resolve(args.head) != args.head:
             raise _SummaryError("The requested object IDs must identify commits directly.")
-        expectations = _read_expectations(git, args.base, args.expectations)
+        expectations = _read_expectations(git, args.base, args.expectations) if args.expectations is not None else None
         references = build_reference_drift_report(root, base=args.base, head=args.head)
     except _SummaryError:
         raise
     except (OSError, RuntimeError, ValueError):
+        if args.expectations is None:
+            raise _SummaryError(
+                "Unable to inspect committed inputs; check local history and repository data."
+            ) from None
         raise _SummaryError(
             "Unable to inspect committed inputs; check local history and the bounded UTF-8 expectations file."
         ) from None
@@ -111,11 +117,22 @@ def _run(args: argparse.Namespace) -> tuple[str, int]:
     if snapshot["base_sha"] != args.base or snapshot["head_sha"] != args.head:
         raise _SummaryError("The PR no longer matches the requested base and head commits; collect a new snapshot.")
     try:
-        payload = compare_pr_checks(checks, expectations).to_dict()
+        if expectations is None:
+            payload = snapshot
+            expectations_note = (
+                "No expectations supplied; observed checks only. "
+                "Required-check coverage is unknown; merge readiness is not evaluated."
+            )
+        else:
+            payload = compare_pr_checks(checks, expectations).to_dict()
+            expectations_note = (
+                "Expectations were read from the base commit; this does not authenticate repository acceptance policy."
+            )
         output = redact_sensitive_text(
             "# Pull request review (advisory)\n\n"
             "Both sections use the requested base and head commits. "
-            "Expectations were read from the base commit; this does not authenticate repository acceptance policy.\n\n"
+            + expectations_note
+            + "\n\n"
             + render_pr_checks_markdown(payload, show_all=False).rstrip()
             + "\n\n"
             + render_reference_drift_markdown(references).rstrip()
