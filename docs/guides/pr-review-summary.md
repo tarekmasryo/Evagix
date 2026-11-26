@@ -69,7 +69,38 @@ bounded to 950,000 bytes after redaction, below GitHub's per-step summary limit.
 Excess output is rejected rather than silently truncated. Use the individual
 JSON commands when a complete machine-readable report is needed.
 
-## Optional job for an existing pull-request workflow
+## Evagix's own pull-request workflow
+
+The repository's `CI` workflow includes an `Evagix advisory PR review` job.
+It waits for quality, platform tests, self-governance, build, and artifact-install
+jobs, including failures or skipped dependencies. It runs only on `pull_request`
+events and does not start after workflow cancellation. Push and release gates
+are unchanged.
+
+The job installs the tool from reviewed commit
+`e13e2485cbeb66013e5a5e893a66418640d667de`, using that commit's build constraints
+in an isolated environment. Updating this pin is a separate reviewed change;
+the tool and its constraints are not loaded from the inspected checkout. The PR's head
+checkout is read only as Git data by the installed tool, outside the checkout's
+import path. The workflow itself is still PR-controlled, so this is not a trusted
+policy-enforcement boundary.
+
+Open **Actions → CI → Summary** to read the report. No expectations file,
+repository variable, PR comment, or additional uploaded artifact is required.
+The job has read-only permissions and uses the workflow token only for metadata
+collection and checkout; no personal token or repository secret is required.
+
+Failed observed checks and broken links do not fail this advisory job. Incomplete
+inspection or an operational error does fail the job (and the workflow run), so
+an unavailable review is not presented as a clean result. Existing jobs retain
+their own results. Do not make the advisory job a required merge check.
+
+Tool installation or checkout failure produces an unavailable-review summary
+when the final step can run. A cancelled or timed-out runner cannot be guaranteed
+to publish a summary. Fork approval and token restrictions still apply; there is
+no privileged fallback. Other workflows may remain pending when this job runs.
+
+## Optional job for another pull-request workflow
 
 The following job is a recipe to add to a workflow that already uses
 `pull_request`. Replace `tests` in `needs` with the test job IDs from that
@@ -91,7 +122,7 @@ jobs:
   evagix-review:
     name: Evagix advisory PR review
     needs: [tests]
-    if: ${{ always() && github.event_name == 'pull_request' }}
+    if: ${{ always() && !cancelled() && github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -143,18 +174,14 @@ jobs:
             --base "$BASE_SHA" --head "$HEAD_SHA" > "$report"
           review_status=$?
           set -e
-          case "$review_status" in
-            0|1)
-              cat "$report" >> "$GITHUB_STEP_SUMMARY"
-              exit "$review_status"
-              ;;
-            *)
-              printf '%s\n' '## Evagix review unavailable' '' \
-                'The review could not inspect matching committed inputs and GitHub evidence. See the operational error; no clean result is implied.' \
-                >> "$GITHUB_STEP_SUMMARY"
-              exit 2
-              ;;
-          esac
+          if [[ ( "$review_status" == 0 || "$review_status" == 1 ) && -s "$report" ]]; then
+            cat "$report" >> "$GITHUB_STEP_SUMMARY"
+            exit "$review_status"
+          fi
+          printf '%s\n' '## Evagix review unavailable' '' \
+            'The review could not inspect matching committed inputs and GitHub evidence. See the operational error; no clean result is implied.' \
+            >> "$GITHUB_STEP_SUMMARY"
+          exit 2
 ```
 
 The checkout is inspected as Git data. The job neither installs dependencies from
@@ -174,8 +201,9 @@ an assertion that required checks are missing. If the PR base or head changes
 after the triggering event, the module refuses to combine results for different
 snapshots. Run a new review with the current explicit revisions.
 
-The recipe is an optional integration example; it is not automatically enabled
-in the repository and does not establish hosted-workflow validation by itself.
+The recipe is an optional integration example for other repositories. Local
+shell tests and review do not establish hosted-workflow validation; confirm the
+report in an actual run after enabling the job.
 
 ## References
 
