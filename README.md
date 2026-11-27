@@ -317,6 +317,9 @@ See the [artifact association guide](https://github.com/tarekmasryo/Evagix/blob/
 The combined PR summary can include one explicit local report with
 `--junit-report PATH`, retaining its unverified source and unknown revision binding.
 See the [optional summary input](https://github.com/tarekmasryo/Evagix/blob/main/docs/guides/pr-review-summary.md#optional-local-pytest-junit-report).
+Alternatively, an explicit original artifact ZIP can be compared with GitHub run
+metadata inside the summary, using the requested PR head and repository identities.
+See the [optional artifact association](https://github.com/tarekmasryo/Evagix/blob/main/docs/guides/pr-review-summary.md#optional-github-junit-association).
 This addition follows the prepared `0.2.0a1` preview and is not published.
 
 ### Strict gates
