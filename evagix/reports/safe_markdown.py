@@ -50,7 +50,7 @@ def markdown_details(value: object) -> str:
 
 
 def bounded_markdown(text: str) -> str:
-    """Keep two report sections below GitHub's per-step summary size limit."""
+    """Bound each section; combined summaries enforce their own total limit."""
     if len(text.encode("utf-8")) > _MAX_MARKDOWN_BYTES:
         raise ValueError(
             f"Markdown report exceeds the {_MAX_MARKDOWN_BYTES}-byte output limit; use JSON for the complete report."
