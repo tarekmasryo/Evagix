@@ -89,6 +89,12 @@ class PullRequestChecks:
     """An advisory report; completeness covers endpoint inventories, not policy."""
 
     _payload: dict[str, Any]
+    _head_repository_id: int | None = None
+
+    @property
+    def head_repository_id(self) -> int | None:
+        """Observed PR source repository, kept outside the existing JSON contract."""
+        return self._head_repository_id
 
     @property
     def complete(self) -> bool:
@@ -295,5 +301,6 @@ def collect_pr_checks(url: str, *, token: str | None = None) -> PullRequestCheck
             "policy_decision": "not_evaluated",
             "required_checks": "unknown",
             "revisions": revisions,
-        }
+        },
+        _head_repository_id=snapshot["head_repository_id"],
     )
