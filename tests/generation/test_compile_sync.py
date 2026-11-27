@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+from evagix import __version__
 from evagix.cli import main
 from evagix.scanner import scan_repo
 from evagix.validators import check_repo
@@ -131,6 +132,6 @@ def test_init_ci_writes_workflow(tmp_path: Path) -> None:
     assert workflow.exists()
     content = workflow.read_text(encoding="utf-8")
     assert "evagix check ." in content
-    assert "git+https://github.com/tarekmasryo/Evagix.git@v0.1.2" in content
+    assert f"git+https://github.com/tarekmasryo/Evagix.git@v{__version__}" in content
     assert "AGENTS.md" in content
     assert "CODEX.md" not in content
