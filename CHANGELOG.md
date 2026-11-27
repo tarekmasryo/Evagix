@@ -6,6 +6,7 @@ All notable user-facing changes to Evagix are documented here.
 
 ### Added
 
+- Optional `--junit-report PATH` in the preview combined PR summary. Local pytest outcomes are displayed separately from GitHub evidence, with unverified source and unknown revision/run binding. Incomplete reports remain visible; JUnit reader errors fail before GitHub collection. Existing behavior without the option is unchanged.
 - Preview `junit-report PATH` for local pytest JUnit XML, with reported case outcomes, separate marker counts, incomplete-data diagnostics and bounded XML parsing. Source verification and execution/revision binding remain unverified or unknown. Text and JSON omit logs and failure bodies; existing scans and reports are unchanged.
 
 ### Fixed

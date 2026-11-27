@@ -309,6 +309,9 @@ shows reported outcomes, skips and incomplete data. It does not run tests or
 authenticate execution against a commit. Exit `0` means consistent report
 collection, not successful tests. Use `--format json` for the preview schema.
 See the [local report guide](https://github.com/tarekmasryo/Evagix/blob/main/docs/guides/local-junit-reports.md).
+The combined PR summary can include one explicit local report with
+`--junit-report PATH`, retaining its unverified source and unknown revision binding.
+See the [optional summary input](https://github.com/tarekmasryo/Evagix/blob/main/docs/guides/pr-review-summary.md#optional-local-pytest-junit-report).
 This addition follows the prepared `0.2.0a1` preview and is not published.
 
 ### Strict gates

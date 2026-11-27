@@ -86,6 +86,10 @@ The `evagix.pr_summary` module needs no expectations file: it reports observed
 checks with required-check coverage explicitly unknown. Its optional
 `--expectations` path is read only from the requested base commit; an invalid
 explicit file fails rather than falling back to inventory mode.
+An optional `--junit-report PATH` adds local pytest outcomes as a separate,
+unverified section. It does not associate the report with GitHub jobs or the
+requested commits. Without this option the existing report is unchanged; see
+the [local input contract](guides/pr-review-summary.md#optional-local-pytest-junit-report).
 
 ## Selected GitHub check (preview)
 
