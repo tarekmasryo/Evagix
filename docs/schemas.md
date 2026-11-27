@@ -64,6 +64,14 @@ and the repository-root working-directory assumption. It does not change either
 existing changed-file or Markdown-link report. See the
 [script-instruction guide](guides/deleted-scripts.md).
 
+`evagix/schemas/junit-report.schema.json` describes the preview
+`evagix junit-report PATH --format json` display report. It separates collection
+status from reported test outcomes and leaves source verification, revision
+binding and run completion unverified or unknown. Cases and outcome-marker
+counters are distinct; logs and failure text are omitted. This addition is under
+development after the prepared `0.2.0a1` preview. See the
+[local JUnit guide](guides/local-junit-reports.md).
+
 ## Stability policy
 
 - Schema additions should be backward-compatible where possible.

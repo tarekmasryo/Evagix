@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evagix.dev/schemas/junit-report.schema.json",
+  "title": "Evagix Local Pytest JUnit Report (Preview)",
+  "type": "object",
+  "required": ["schema_version", "kind", "source_kind", "source_verification", "revision_binding", "run_completion", "policy_decision", "collection_status", "reported_outcome", "counts", "issues", "suites"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "kind": { "const": "local_pytest_junit" },
+    "source_kind": { "const": "local_file" },
+    "source_verification": { "const": "unverified" },
+    "revision_binding": { "const": "unknown" },
+    "run_completion": { "const": "unknown" },
+    "policy_decision": { "const": "not_evaluated" },
+    "collection_status": { "enum": ["complete", "incomplete", "error"] },
+    "reported_outcome": { "enum": ["passed", "failed", "skipped_only", "empty", "unknown"] },
+    "counts": {
+      "type": "object",
+      "required": ["cases", "passed", "failed", "error", "skipped"],
+      "properties": {
+        "cases": { "$ref": "#/$defs/count" },
+        "passed": { "$ref": "#/$defs/count" },
+        "failed": { "$ref": "#/$defs/count" },
+        "error": { "$ref": "#/$defs/count" },
+        "skipped": { "$ref": "#/$defs/count" }
+      },
+      "additionalProperties": false
+    },
+    "issues": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "enum": ["not_regular_file", "read_error", "invalid_xml", "unsafe_xml", "unsupported_encoding", "unsupported_structure", "missing_suite", "missing_case_name", "missing_or_invalid_counts", "count_mismatch", "file_limit_exceeded", "xml_limit_exceeded", "suite_limit_exceeded", "case_limit_exceeded"] }
+    },
+    "suites": { "type": "array", "maxItems": 100, "items": { "$ref": "#/$defs/suite" } }
+  },
+  "$defs": {
+    "count": { "type": "integer", "minimum": 0 },
+    "declaredCount": { "type": ["integer", "null"], "minimum": 0, "maximum": 999999999 },
+    "declared": {
+      "type": "object",
+      "required": ["tests", "failures", "errors", "skipped"],
+      "properties": {
+        "tests": { "$ref": "#/$defs/declaredCount" },
+        "failures": { "$ref": "#/$defs/declaredCount" },
+        "errors": { "$ref": "#/$defs/declaredCount" },
+        "skipped": { "$ref": "#/$defs/declaredCount" }
+      },
+      "additionalProperties": false
+    },
+    "observed": {
+      "type": "object",
+      "required": ["tests", "failures", "errors", "skipped"],
+      "properties": {
+        "tests": { "$ref": "#/$defs/count" },
+        "failures": { "$ref": "#/$defs/count" },
+        "errors": { "$ref": "#/$defs/count" },
+        "skipped": { "$ref": "#/$defs/count" }
+      },
+      "additionalProperties": false
+    },
+    "suite": {
+      "type": "object",
+      "required": ["name", "identity_truncated", "declared", "observed", "cases"],
+      "properties": {
+        "name": { "type": "string" },
+        "identity_truncated": { "type": "boolean" },
+        "declared": { "$ref": "#/$defs/declared" },
+        "observed": { "$ref": "#/$defs/observed" },
+        "cases": { "type": "array", "maxItems": 10000, "items": { "$ref": "#/$defs/case" } }
+      },
+      "additionalProperties": false
+    },
+    "case": {
+      "type": "object",
+      "required": ["name", "classname", "identity_truncated", "outcome", "markers"],
+      "properties": {
+        "name": { "type": "string" },
+        "classname": { "type": "string" },
+        "identity_truncated": { "type": "boolean" },
+        "outcome": { "enum": ["passed", "failed", "error", "skipped"] },
+        "markers": { "type": "array", "items": { "enum": ["failure", "error", "skipped"] } }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

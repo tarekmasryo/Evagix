@@ -30,6 +30,67 @@ FAKE_JWT = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.signaturevalue1234"
 @pytest.mark.parametrize(
     "raw",
     [
+        "mysql -u root -psynthetic-private-value",
+        "mysql -p synthetic-private-value",
+        "-----BEGIN PRIVATE KEY-----\nsynthetic-private-value\n-----END PRIVATE KEY-----",
+    ],
+)
+@pytest.mark.parametrize("as_array", [False, True])
+def test_final_output_redaction_preserves_json_syntax(capsys: CaptureFixture[str], raw: str, as_array: bool) -> None:
+    record = {"name": raw, "password": "synthetic-hidden-field", "outcome": "passed"}
+    payload = [record] if as_array else record
+    original = json.dumps(payload)
+    with pytest.raises(json.JSONDecodeError):
+        json.loads(redact_sensitive_text(original))
+    assert execute_with_redacted_output(lambda: (print(original), 7)[1]) == 7
+    output = capsys.readouterr().out
+    assert "synthetic-private-value" not in output
+    assert "synthetic-hidden-field" not in output
+    assert json.loads(output) == redact_for_output(payload)
+
+
+@pytest.mark.parametrize(
+    "original",
+    [
+        '{"count": 2, "name": "ordinary"}\n',
+        '{"token": "synthetic-value"}\n',
+        "ordinary text token=synthetic-value\n",
+        "{not json} token=synthetic-value\n",
+        "[not json] mysql -psynthetic-value\n",
+    ],
+)
+def test_final_output_preserves_existing_valid_json_and_text(capsys: CaptureFixture[str], original: str) -> None:
+    execute_with_redacted_output(lambda: print(original, end=""))
+    assert capsys.readouterr().out == redact_sensitive_text(original)
+
+
+def test_json_fallback_contains_unicode_controls(capsys: CaptureFixture[str]) -> None:
+    original = json.dumps({"name": "mysql -psecret", "other": "\u202e"})
+    execute_with_redacted_output(lambda: print(original))
+    output = capsys.readouterr().out
+    assert "\u202e" not in output
+    assert json.loads(output)["other"] == "\u202e"
+
+
+def test_json_fallback_failure_never_restores_raw_output(
+    capsys: CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import evagix.security.output as boundary
+
+    original = json.dumps({"name": "mysql -psynthetic-private-value"})
+
+    def recursive(value: object) -> object:
+        raise RecursionError("synthetic")
+
+    monkeypatch.setattr(boundary, "redact_for_output", recursive)
+    # The fallback must stay redacted even if structured processing cannot finish.
+    assert execute_with_redacted_output(lambda: (print(original), 7)[1]) == 7
+    assert capsys.readouterr().out == redact_sensitive_text(original) + "\n"
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
         FAKE_GITHUB_TOKEN,
         f"Authorization: Bearer {FAKE_JWT}",
         'API_KEY="supersecretvalue123"',
