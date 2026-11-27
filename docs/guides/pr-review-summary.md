@@ -79,8 +79,9 @@ well-formedness is established; these remain incomplete, never a clean result.
 An oversized rendered section or summary also returns `2` without partial output.
 
 This option is under development after the prepared `0.2.0a1` preview. Evagix's
-currently pinned CI reporting job does not attach JUnit reports; enabling that
-workflow behavior requires a separate tool-pin and input-collection change.
+own CI reporting job attaches a minimized report from `Quality gates`, as
+described below. The optional integration recipe later in this guide does not
+collect or attach JUnit automatically.
 
 ## Interpret the result
 
@@ -120,24 +121,56 @@ events and does not start after workflow cancellation. Push and release gates
 are unchanged.
 
 The job installs the tool from reviewed commit
-`491b5e6a890cdb6934c1dae3933dd8be105c3549`, using that commit's build constraints
+`76d423ed45aa43240899c9198ad61be9aa296eb7`, using that commit's build constraints
 in an isolated environment. Updating this pin is a separate reviewed change;
 the tool and its constraints are not loaded from the inspected checkout. The PR's head
 checkout is read only as Git data by the installed tool, outside the checkout's
 import path. The workflow itself is still PR-controlled, so this is not a trusted
 policy-enforcement boundary.
 
-The pinned version reports checks, deleted-file references, and deleted-script
-instructions. All three sections use the requested base and head commits;
-incomplete inspection in any section makes the combined report incomplete.
+The pinned version reports checks, deleted-file references, deleted-script
+instructions and an optional JUnit section. The three existing sections use the
+requested base and head commits; the JUnit section retains unknown revision
+binding and run completion. Incomplete inspection makes the review incomplete.
+
+The `Quality gates` job writes pytest XML to the runner's temporary directory,
+without changing pytest's exit status or the coverage threshold. On PR runs,
+`scripts/prepare_ci_junit.py` reads that file with the bounded reader. Only a
+complete supported report is converted into a transfer file: suite counters and
+case outcome markers are retained, while **all original suite/test names,
+class names, messages, logs, properties, paths and other metadata are omitted**.
+Labels such as `suite-1` and `case-2` are ordinal placeholders, not test names.
+Failures, skips and zero-test reports remain distinguishable. The raw XML is
+never selected for upload by this workflow.
+
+One minimized XML artifact is retained for one day. Its name includes the
+workflow attempt, and the reporting job downloads it only from the current run
+and matching attempt. Rerunning only the reporting job does not reuse an artifact
+from an earlier attempt: rerun `Quality gates` and the dependent review to get a
+new transfer. Original names and failure details remain in the existing test-job
+logs; the summary provides counts and ordinal rows only. This is a transfer
+association, not authentication of the report or proof of the tested revision.
+The other twelve platform jobs do not contribute JUnit files in this integration.
+
+Incomplete or rejected source reports are not converted into replacement XML.
+Their fixed collection state is passed separately. A missing, failed or stale
+transfer leaves the other advisory sections visible with a JUnit-unavailable
+notice and exit `1`; an incomplete source is identified explicitly. A downloaded
+file is still untrusted and is reparsed by the independently installed tool.
+Detected malformed XML or a rendering/collection error retains the module's
+existing exit `2` and unavailable-review behavior. A failed upload/download step
+also remains a failed workflow step. Cancellation or runner loss may prevent a
+summary altogether.
 
 Open **Actions → CI → Summary** to read the report. No expectations file,
-repository variable, PR comment, or additional uploaded artifact is required.
+repository variable or PR comment is required. The minimized JUnit artifact is
+the only additional uploaded file; it contains no original free-text fields.
 The job has read-only permissions and uses the workflow token only for metadata
 collection and checkout; no personal token or repository secret is required.
 
 Failed observed checks, broken links, and stale script instructions do not fail
-this advisory job. Incomplete inspection or an operational error does fail the
+this advisory job. Reported JUnit failures/skips do not change that behavior;
+the original test jobs retain their own results. Incomplete inspection or an operational error does fail the
 job (and the workflow run), so
 an unavailable review is not presented as a clean result. Existing jobs retain
 their own results. Do not make the advisory job a required merge check.

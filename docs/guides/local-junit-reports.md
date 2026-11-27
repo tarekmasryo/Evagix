@@ -117,5 +117,12 @@ can include this report through its optional `--junit-report PATH` argument.
 That section retains the same trust limits and is not associated with the PR's
 commits or GitHub jobs. Without the option, PR summaries are unchanged.
 
+Evagix's own PR workflow supplies a minimized transfer from its `Quality gates`
+job. That transfer replaces suite and test identities with ordinal labels and
+omits all original free-text fields before upload. Incomplete or rejected source
+files are not uploaded. The workflow identifies the transfer attempt separately;
+the reader still does not authenticate the execution or tested revision. See the
+[workflow scope and unavailable-report behavior](pr-review-summary.md#evagixs-own-pull-request-workflow).
+
 See pytest's [JUnit output documentation](https://docs.pytest.org/en/stable/how-to/output.html#creating-junitxml-format-files)
 and Python's [XML security guidance](https://docs.python.org/3/library/xml.html#xml-security).

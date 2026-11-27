@@ -16,6 +16,9 @@ jobs:
     name: Quality gates
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      junit-status: ${{ steps.junit-transfer.outputs.status }}
+      junit-attempt: ${{ steps.junit-transfer.outputs.attempt }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -42,7 +45,32 @@ jobs:
         run: python -m mypy evagix
 
       - name: Tests with coverage
-        run: python -m pytest --cov=evagix --cov-branch --cov-report=term-missing --cov-fail-under=80
+        run: python -m pytest --cov=evagix --cov-branch --cov-report=term-missing --cov-fail-under=80 --junitxml="$RUNNER_TEMP/evagix-quality-raw.xml"
+
+      - name: Prepare minimized JUnit transfer
+        id: junit-transfer
+        if: ${{ always() && !cancelled() && github.event_name == 'pull_request' }}
+        run: |
+          set +e
+          python -m scripts.prepare_ci_junit \
+            "$RUNNER_TEMP/evagix-quality-raw.xml" "$RUNNER_TEMP/evagix-quality-junit.xml"
+          transfer_status=$?
+          set -e
+          case "$transfer_status" in
+            0) state=complete ;;
+            1) state=incomplete ;;
+            *) state=error ;;
+          esac
+          printf 'status=%s\nattempt=%s\n' "$state" "$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+
+      - name: Upload minimized JUnit report
+        if: ${{ always() && !cancelled() && github.event_name == 'pull_request' && steps.junit-transfer.outputs.status == 'complete' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: evagix-quality-junit-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/evagix-quality-junit.xml
+          if-no-files-found: error
+          retention-days: 1
 
   test:
     name: ${{ matrix.os }} / Python ${{ matrix.python-version }}
@@ -202,7 +230,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: tarekmasryo/Evagix
-          ref: 491b5e6a890cdb6934c1dae3933dd8be105c3549
+          ref: 76d423ed45aa43240899c9198ad61be9aa296eb7
           path: verification-tool
           persist-credentials: false
           submodules: false
@@ -233,6 +261,15 @@ jobs:
           lfs: false
           path: inspected
 
+      - name: Download minimized JUnit report
+        id: junit-download
+        if: ${{ !cancelled() && needs.quality.outputs.junit-status == 'complete' && needs.quality.outputs.junit-attempt == github.run_attempt }}
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: evagix-quality-junit-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/evagix-junit-input
+          digest-mismatch: error
+
       - name: Publish advisory review summary
         if: ${{ always() }}
         working-directory: ${{ runner.temp }}
@@ -241,16 +278,35 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           EVAGIX_GITHUB_TOKEN: ${{ github.token }}
+          JUNIT_STATUS: ${{ needs.quality.outputs.junit-status }}
+          JUNIT_ATTEMPT: ${{ needs.quality.outputs.junit-attempt }}
+          JUNIT_DOWNLOAD: ${{ steps.junit-download.outcome }}
         run: |
           report="$RUNNER_TEMP/evagix-pr-review.md"
+          junit_args=()
+          if [[ "$JUNIT_STATUS" == complete && "$JUNIT_DOWNLOAD" == success && "$JUNIT_ATTEMPT" == "$GITHUB_RUN_ATTEMPT" ]]; then
+            junit_args=(--junit-report "$RUNNER_TEMP/evagix-junit-input/evagix-quality-junit.xml")
+          fi
           set +e
           "$RUNNER_TEMP/evagix-summary-env/bin/python" -I -m evagix.pr_summary \
             "$PR_URL" --repo "$GITHUB_WORKSPACE/inspected" \
-            --base "$BASE_SHA" --head "$HEAD_SHA" > "$report"
+            --base "$BASE_SHA" --head "$HEAD_SHA" "${junit_args[@]}" > "$report"
           review_status=$?
           set -e
           if [[ ( "$review_status" == 0 || "$review_status" == 1 ) && -s "$report" ]]; then
             cat "$report" >> "$GITHUB_STEP_SUMMARY"
+            if [[ ${#junit_args[@]} == 0 ]]; then
+              printf '%s\n' '' '## Quality gates JUnit unavailable' '' \
+                'No complete, usable JUnit transfer was available for this workflow attempt. Test success and complete execution cannot be inferred; inspect the Quality gates job.' \
+                >> "$GITHUB_STEP_SUMMARY"
+              if [[ "$JUNIT_STATUS" == incomplete ]]; then
+                printf '%s\n' '' 'The source report was incomplete and was not uploaded.' >> "$GITHUB_STEP_SUMMARY"
+              fi
+              exit 1
+            fi
+            printf '%s\n' '' \
+              'JUnit transfer scope: Quality gates only, from this workflow attempt. Suite and case labels are ordinal placeholders; original names, messages and metadata were not transferred. This association does not authenticate execution or the tested revision.' \
+              >> "$GITHUB_STEP_SUMMARY"
             exit "$review_status"
           fi
           printf '%s\n' '## Evagix review unavailable' '' \
