@@ -302,6 +302,15 @@ reports whether its success claim is supported. This command uses the network;
 repository scans remain offline. It does not establish which code was actually
 tested or authorize a merge. See the [request format and evidence limits](https://github.com/tarekmasryo/Evagix/blob/main/docs/guides/github-check-collection.md).
 
+### Local pytest reports (development preview)
+
+`evagix junit-report results.xml` reads an existing local pytest JUnit report and
+shows reported outcomes, skips and incomplete data. It does not run tests or
+authenticate execution against a commit. Exit `0` means consistent report
+collection, not successful tests. Use `--format json` for the preview schema.
+See the [local report guide](https://github.com/tarekmasryo/Evagix/blob/main/docs/guides/local-junit-reports.md).
+This addition follows the prepared `0.2.0a1` preview and is not published.
+
 ### Strict gates
 
 Evagix can start in reporting mode and later enforce explicit repository policy.

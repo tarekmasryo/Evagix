@@ -32,6 +32,24 @@ Human-readable terminal styling is enabled on supported interactive terminals. D
 | Git-aware review | `evagix changed`, `evagix pr-risk` |
 | Remediation | `evagix fix` |
 | Explicit GitHub evidence (preview, network required) | `evagix pr-checks`, `evagix verify-check` |
+| Local test reports (preview, offline) | `evagix junit-report` |
+
+## Local pytest JUnit report (preview)
+
+```bash
+evagix junit-report results.xml
+evagix junit-report results.xml --format json
+```
+
+Reads one local pytest report without running tests or using the network. It
+shows reported passed, failed, error and skipped case counts; `--all` includes
+passed text rows. Source verification remains `unverified`, revision binding and
+run completion remain `unknown`, and merge policy is not evaluated.
+
+Exit `0` means consistent report collection, even when tests failed or all rows
+were skipped. Exit `1` means incomplete data; `2` means unreadable, malformed or
+unsafe input. See [supported formats, trust limits and examples](guides/local-junit-reports.md).
+This addition is under development after the prepared `0.2.0a1` preview.
 
 ## Pull request check report (preview)
 

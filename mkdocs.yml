@@ -72,6 +72,7 @@ nav:
       - Pull Request Checks: guides/pull-request-checks.md
       - PR Review Summary: guides/pr-review-summary.md
       - Selected Check Evidence: guides/github-check-collection.md
+      - Local JUnit Reports: guides/local-junit-reports.md
       - Deleted File References: guides/deleted-references.md
       - Deleted Script Instructions: guides/deleted-scripts.md
   - Reference:

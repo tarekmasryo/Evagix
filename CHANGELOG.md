@@ -4,6 +4,14 @@ All notable user-facing changes to Evagix are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- Preview `junit-report PATH` for local pytest JUnit XML, with reported case outcomes, separate marker counts, incomplete-data diagnostics and bounded XML parsing. Source verification and execution/revision binding remain unverified or unknown. Text and JSON omit logs and failure bodies; existing scans and reports are unchanged.
+
+### Fixed
+
+- Keep JSON output parseable when final text redaction would consume string delimiters or insert literal newlines, including credential examples in test identifiers. The fallback redacts structured values before serializing; ordinary text and valid redacted JSON are unchanged.
+
 ## 0.2.0a1 (unreleased preview)
 
 Prepared for local evaluation; not published. See the
