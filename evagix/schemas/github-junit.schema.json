@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evagix.dev/schemas/github-junit.schema.json",
+  "title": "Evagix GitHub JUnit Artifact Association (Preview)",
+  "type": "object",
+  "required": ["schema_version", "kind", "request", "collection_status", "metadata_source", "archive_binding", "artifact_run_match", "revision_match", "selected_attempt_status", "artifact_attempt_binding", "tested_revision_binding", "execution_verification", "policy_decision", "run", "attempt", "artifact", "junit", "issues"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "kind": { "const": "github_junit_association" },
+    "request": { "$ref": "#/$defs/request" },
+    "collection_status": { "enum": ["complete", "incomplete", "error"] },
+    "metadata_source": { "enum": [null, "github.com-rest:2026-03-10:tls"] },
+    "archive_binding": { "enum": ["matched", "mismatched", "unknown"] },
+    "artifact_run_match": { "enum": ["match", "mismatch", "unknown"] },
+    "revision_match": { "enum": ["match", "mismatch", "unknown"] },
+    "selected_attempt_status": { "enum": ["current", "stale", "unknown"] },
+    "artifact_attempt_binding": { "const": "unknown" },
+    "tested_revision_binding": { "const": "unknown" },
+    "execution_verification": { "const": "unverified" },
+    "policy_decision": { "const": "not_evaluated" },
+    "run": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/run" }] },
+    "attempt": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/run" }] },
+    "artifact": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/artifact" }] },
+    "junit": { "anyOf": [{ "type": "null" }, { "$ref": "https://evagix.dev/schemas/junit-report.schema.json" }] },
+    "issues": {
+      "type": "array", "uniqueItems": true,
+      "items": { "enum": ["archive_not_regular", "archive_read_error", "archive_limit_exceeded", "archive_member_mismatch", "unsupported_archive_member", "report_limit_exceeded", "invalid_archive", "invalid_junit_report", "metadata_incomplete", "artifact_digest_unavailable", "artifact_expired", "invalid_token", "request_limit", "response_limit", "total_response_limit", "time_budget", "unauthorized", "forbidden", "rate_limited", "not_found", "redirect_refused", "http_error", "transport_error", "invalid_response", "pagination_mismatch", "scope_mismatch", "run_changed"] }
+    }
+  },
+  "$defs": {
+    "id": { "type": "integer", "minimum": 1, "maximum": 9223372036854775807 },
+    "sha": { "type": "string", "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$" },
+    "request": {
+      "type": "object",
+      "required": ["repository", "run_id", "attempt", "artifact_id", "revision", "member"],
+      "properties": {
+        "repository": { "type": "string", "minLength": 3, "maxLength": 140 },
+        "run_id": { "$ref": "#/$defs/id" },
+        "attempt": { "$ref": "#/$defs/id" },
+        "artifact_id": { "$ref": "#/$defs/id" },
+        "revision": { "$ref": "#/$defs/sha" },
+        "member": { "type": "string", "minLength": 1, "maxLength": 256 }
+      },
+      "additionalProperties": false
+    },
+    "run": {
+      "type": "object",
+      "required": ["id", "repository_id", "head_repository_id", "workflow_id", "provider_head_sha", "attempt", "event", "status", "conclusion"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "repository_id": { "$ref": "#/$defs/id" },
+        "head_repository_id": { "$ref": "#/$defs/id" },
+        "workflow_id": { "$ref": "#/$defs/id" },
+        "provider_head_sha": { "$ref": "#/$defs/sha" },
+        "attempt": { "$ref": "#/$defs/id" },
+        "event": { "type": "string", "pattern": "^[a-z_]{1,64}$" },
+        "status": { "enum": ["queued", "in_progress", "completed", "waiting", "pending", "requested"] },
+        "conclusion": { "enum": [null, "success", "failure", "neutral", "cancelled", "skipped", "timed_out", "action_required", "stale", "startup_failure"] }
+      },
+      "additionalProperties": false
+    },
+    "artifact": {
+      "type": "object",
+      "required": ["id", "run_id", "repository_id", "head_repository_id", "provider_head_sha", "digest", "size_in_bytes", "expired"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "run_id": { "$ref": "#/$defs/id" },
+        "repository_id": { "$ref": "#/$defs/id" },
+        "head_repository_id": { "$ref": "#/$defs/id" },
+        "provider_head_sha": { "$ref": "#/$defs/sha" },
+        "digest": { "type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$" },
+        "size_in_bytes": { "type": "integer", "minimum": 0, "maximum": 9223372036854775807 },
+        "expired": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

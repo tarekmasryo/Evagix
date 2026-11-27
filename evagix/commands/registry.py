@@ -11,6 +11,7 @@ from evagix.commands import (
     git_cli,
     inspect_cli,
     junit_cli,
+    junit_github_cli,
     pr_checks_cli,
     preview_cli,
     readiness_cli,
@@ -37,6 +38,7 @@ COMMAND_MODULES: tuple[CommandModule, ...] = (
     verification_cli,
     pr_checks_cli,
     junit_cli,
+    junit_github_cli,
 )
 
 

@@ -309,6 +309,11 @@ shows reported outcomes, skips and incomplete data. It does not run tests or
 authenticate execution against a commit. Exit `0` means consistent report
 collection, not successful tests. Use `--format json` for the preview schema.
 See the [local report guide](https://github.com/tarekmasryo/Evagix/blob/main/docs/guides/local-junit-reports.md).
+
+The opt-in `evagix junit-github` command associates an original artifact ZIP with
+GitHub run metadata and compares its revision and selected attempt. Archive
+integrity and run association do not prove the producing attempt or tested code.
+See the [artifact association guide](https://github.com/tarekmasryo/Evagix/blob/main/docs/guides/github-junit-association.md).
 The combined PR summary can include one explicit local report with
 `--junit-report PATH`, retaining its unverified source and unknown revision binding.
 See the [optional summary input](https://github.com/tarekmasryo/Evagix/blob/main/docs/guides/pr-review-summary.md#optional-local-pytest-junit-report).
