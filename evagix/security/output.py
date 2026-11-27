@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 from collections.abc import Callable
 from contextlib import redirect_stderr, redirect_stdout
@@ -53,6 +54,28 @@ def _write_text(stream: TextIO, text: str) -> None:
         stream.write(escaped)
 
 
+def _redact_stream(value: str) -> str:
+    """Preserve valid JSON if a text rule consumes syntax or inserts newlines."""
+    redacted = redact_sensitive_text(value)
+    if redacted == value or not value.lstrip().startswith(("{", "[")):
+        return redacted
+    try:
+        json.loads(redacted)
+    except (ValueError, RecursionError):
+        try:
+            original = json.loads(value)
+        except (ValueError, RecursionError):
+            return redacted
+        # Redact values before serializing, never restore unredacted content.
+        try:
+            return json.dumps(redact_for_output(original), ensure_ascii=True, indent=2, sort_keys=True) + (
+                "\n" if value.endswith("\n") else ""
+            )
+        except (ValueError, RecursionError):
+            return redacted
+    return redacted
+
+
 def execute_with_redacted_output(action: Callable[[], T]) -> T:
     """Execute a CLI action behind a final redaction boundary.
 
@@ -72,7 +95,7 @@ def execute_with_redacted_output(action: Callable[[], T]) -> T:
         _redact_exception(exception)
         raise
     finally:
-        _write_text(stdout_target, redact_sensitive_text(stdout_buffer.getvalue()))
+        _write_text(stdout_target, _redact_stream(stdout_buffer.getvalue()))
         _write_text(stderr_target, redact_sensitive_text(stderr_buffer.getvalue()))
         stdout_target.flush()
         stderr_target.flush()
