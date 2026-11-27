@@ -85,24 +85,25 @@ events and does not start after workflow cancellation. Push and release gates
 are unchanged.
 
 The job installs the tool from reviewed commit
-`e13e2485cbeb66013e5a5e893a66418640d667de`, using that commit's build constraints
+`491b5e6a890cdb6934c1dae3933dd8be105c3549`, using that commit's build constraints
 in an isolated environment. Updating this pin is a separate reviewed change;
 the tool and its constraints are not loaded from the inspected checkout. The PR's head
 checkout is read only as Git data by the installed tool, outside the checkout's
 import path. The workflow itself is still PR-controlled, so this is not a trusted
 policy-enforcement boundary.
 
-That pinned version predates the script section. The current automatic job still
-reports checks and deleted-file references; enabling script findings there
-requires a separate pin update to a reviewed commit containing this integration.
+The pinned version reports checks, deleted-file references, and deleted-script
+instructions. All three sections use the requested base and head commits;
+incomplete inspection in any section makes the combined report incomplete.
 
 Open **Actions → CI → Summary** to read the report. No expectations file,
 repository variable, PR comment, or additional uploaded artifact is required.
 The job has read-only permissions and uses the workflow token only for metadata
 collection and checkout; no personal token or repository secret is required.
 
-Failed observed checks and broken links do not fail this advisory job. Incomplete
-inspection or an operational error does fail the job (and the workflow run), so
+Failed observed checks, broken links, and stale script instructions do not fail
+this advisory job. Incomplete inspection or an operational error does fail the
+job (and the workflow run), so
 an unavailable review is not presented as a clean result. Existing jobs retain
 their own results. Do not make the advisory job a required merge check.
 

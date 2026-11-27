@@ -275,8 +275,8 @@ It reports the source location and removed target without running scripts or
 choosing a replacement. See the
 [supported forms and limits](https://github.com/tarekmasryo/Evagix/blob/main/docs/guides/deleted-scripts.md).
 The development-version [combined PR summary](https://github.com/tarekmasryo/Evagix/blob/main/docs/guides/pr-review-summary.md)
-also includes these findings. The repository's automatic CI job remains on its
-previously reviewed tool version until a separate pin update.
+also includes these findings. The repository's automatic CI job installs a
+reviewed commit containing this integration.
 This preview is not included in the published `0.1.2` release.
 
 ### Optional GitHub evidence (development preview)
