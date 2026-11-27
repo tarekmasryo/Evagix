@@ -4,7 +4,7 @@ For a report from a PR URL without preparing request JSON, start with
 [pr-checks](pull-request-checks.md). The command below is the advanced interface
 for an explicitly selected push job claim.
 
-`verify-check` is an opt-in preview command in the development version. It asks
+`verify-check` is an opt-in command in the [0.2.0a1 preview](preview-release.md). It asks
 GitHub.com whether a specific job execution reports success for the repository,
 revision, workflow, run, and attempt selected by the caller. Existing repository
 scans remain offline; this command makes HTTPS requests and runs no project code.

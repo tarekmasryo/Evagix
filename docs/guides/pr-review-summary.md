@@ -1,6 +1,6 @@
 # Combine advisory PR reports in a job summary
 
-The development-version `evagix.pr_summary` module combines observed PR checks,
+The preview `evagix.pr_summary` module combines observed PR checks,
 deleted-file references, and deleted-script instructions in one advisory Markdown
 report, without requiring an expectations file. An explicit file enables
 expected-check comparison. It collects GitHub metadata once and requires that its
@@ -8,9 +8,11 @@ base and head commits match the explicit commits supplied by the caller. Both
 repository inspections use that same pair. Existing standalone commands, JSON
 schemas, and exit-code meanings are unchanged.
 
-This preview module is not included in the published `0.1.2` release. Install a
-reviewed commit containing it, or a later release that explicitly documents the
-feature. Do not install the inspected PR's code as the verification tool.
+This module is included in the unpublished [0.2.0a1 preview](preview-release.md),
+and is not included in the published `0.1.2` release. For local evaluation, use
+the preview wheel. The CI recipe below uses a separately reviewed commit
+containing the feature. Do not install the inspected PR's code as the
+verification tool.
 
 ## Local invocation
 

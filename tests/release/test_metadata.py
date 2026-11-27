@@ -37,5 +37,5 @@ def test_package_version_matches_project_metadata() -> None:
     metadata = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
     namespace: dict[str, str] = {}
     exec(Path("evagix/__init__.py").read_text(encoding="utf-8"), namespace)
-    assert metadata["project"]["version"] == "0.1.2"
+    assert metadata["project"]["version"] == "0.2.0a1"
     assert namespace["__version__"] == metadata["project"]["version"]

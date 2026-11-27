@@ -22,6 +22,11 @@ Evagix emits stable, machine-readable JSON for CI, dashboards, and automation. T
 
 ## Preview evidence contracts
 
+These contracts are included in the `0.2.0a1` preview. They remain preview APIs
+despite having packaged schemas and contract tests. Pin the tool version when
+consuming them; the stable contracts above are unchanged. See the
+[preview guide](guides/preview-release.md) for installation and upgrade notes.
+
 `evagix/schemas/check-verification.schema.json` describes the redacted result of
 `evagix.verification.evaluate_check`. Its `$defs/request` and `$defs/batch` describe
 the JSON inputs; source assessment is a separate in-process input. The optional

@@ -1,6 +1,6 @@
 # Find script instructions left behind by deletions
 
-The development-version `changed --scripts` preview reviews supported script
+The [0.2.0a1 preview](preview-release.md) includes `changed --scripts`, which reviews supported script
 commands in root `README.md` and `AGENTS.md` against committed Git snapshots.
 It reports a literal target only when it was a regular tracked file at the merge
 base and its path is absent at the head. A rename can therefore leave a finding
@@ -105,7 +105,7 @@ rejects oversized output instead of silently truncating it.
 `--scripts` and `--references` are mutually exclusive. The existing
 `changed`, `changed --references`, and `pr-risk` report contracts and exit
 codes are unchanged. This preview can be invoked through `changed --scripts` or
-included by the development-version [combined PR summary](pr-review-summary.md).
+included by the preview [combined PR summary](pr-review-summary.md).
 Evagix's automatic PR-summary job installs a reviewed commit containing this
 integration and includes the script section alongside checks and deleted-file
 references.

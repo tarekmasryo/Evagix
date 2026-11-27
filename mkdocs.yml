@@ -65,6 +65,7 @@ nav:
   - Getting Started:
       - Overview: index.md
       - Quick Start: getting-started/index.md
+      - Preview Release: guides/preview-release.md
   - Guides:
       - Configuration: configuration.md
       - CI Integration: guides/ci.md

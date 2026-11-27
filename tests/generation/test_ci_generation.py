@@ -4,13 +4,14 @@ from pathlib import Path
 
 from pytest import CaptureFixture
 
+from evagix import __version__
 from evagix.cli import main
 
 
 def test_init_ci_defaults_to_github_install_for_external_repos(tmp_path: Path) -> None:
     assert main(["init-ci", str(tmp_path), "--fail-under", "80"]) == 0
     workflow = (tmp_path / ".github" / "workflows" / "evagix.yml").read_text(encoding="utf-8")
-    assert "git+https://github.com/tarekmasryo/Evagix.git@v0.1.2" in workflow
+    assert f"git+https://github.com/tarekmasryo/Evagix.git@v{__version__}" in workflow
     assert "python -m pip install -e ." not in workflow
 
 

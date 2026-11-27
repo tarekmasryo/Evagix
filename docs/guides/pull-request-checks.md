@@ -1,6 +1,6 @@
 # Inspect checks from a pull request URL
 
-The development-version `pr-checks` command takes a GitHub.com PR URL. No local
+The `pr-checks` command in the [0.2.0a1 preview](preview-release.md) takes a GitHub.com PR URL. No local
 checkout, request file, workflow ID, or job ID is needed.
 
 ```bash
