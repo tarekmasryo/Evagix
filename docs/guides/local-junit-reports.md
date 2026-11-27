@@ -67,6 +67,9 @@ Missing or invalid numeric counters are reported as `null` and make collection
 incomplete. For well-formed supported reports, count/name issues preserve observed
 rows. Malformed XML, unsupported structures and resource-limit failures discard
 partial observations, rather than presenting a partial parse as a clean report.
+An unsupported structure or resource limit can stop the reader before it checks
+the remaining XML. Such input stays incomplete even if its unread remainder is
+malformed; incomplete collection does not establish XML well-formedness.
 Errors produce a generic structured report in JSON mode, without echoing paths,
 XML fragments or system exception messages.
 
@@ -108,7 +111,11 @@ declarations and processing instructions are rejected. No XML references are
 fetched, no XInclude is processed, and compressed input is unsupported.
 
 The packaged preview schema is `evagix/schemas/junit-report.schema.json`.
-Existing CLI commands, JSON contracts, default scans and PR summaries are unchanged.
+Existing CLI commands, JSON contracts and default scans are unchanged.
+The [combined PR summary](pr-review-summary.md#optional-local-pytest-junit-report)
+can include this report through its optional `--junit-report PATH` argument.
+That section retains the same trust limits and is not associated with the PR's
+commits or GitHub jobs. Without the option, PR summaries are unchanged.
 
 See pytest's [JUnit output documentation](https://docs.pytest.org/en/stable/how-to/output.html#creating-junitxml-format-files)
 and Python's [XML security guidance](https://docs.python.org/3/library/xml.html#xml-security).

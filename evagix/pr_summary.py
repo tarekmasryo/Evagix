@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import NoReturn
 
 from evagix.reference_drift import build_reference_drift_report, render_reference_drift_markdown
+from evagix.reports.junit import render_junit_report_markdown
 from evagix.reports.pr_checks import render_pr_checks_markdown
 from evagix.safety import REPOSITORY_PATH_POLICY
 from evagix.scanning.git_snapshot import GitSnapshot
@@ -21,6 +22,7 @@ from evagix.verification._json import decode_object
 from evagix.verification.contracts import ContractError
 from evagix.verification.github_collection import GitHubCollectionError
 from evagix.verification.github_pr_checks import collect_pr_checks
+from evagix.verification.junit import read_junit_report
 from evagix.verification.pr_expectations import CheckExpectations, compare_pr_checks, parse_expectations
 
 _SHA = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
@@ -78,6 +80,16 @@ def _parser() -> argparse.ArgumentParser:
             "If omitted, report observed checks without evaluating required-check coverage."
         ),
     )
+    parser.add_argument(
+        "--junit-report",
+        type=Path,
+        action="append",
+        metavar="PATH",
+        help=(
+            "Optional local pytest JUnit XML file, relative to the caller's working directory. "
+            "Specify once; source and revision remain unverified."
+        ),
+    )
     return parser
 
 
@@ -89,6 +101,15 @@ def _read_expectations(git: GitSnapshot, base: str, path: str) -> CheckExpectati
 
 
 def _run(args: argparse.Namespace) -> tuple[str, int]:
+    junit = None
+    if args.junit_report is not None:
+        if len(args.junit_report) != 1:
+            raise _SummaryError("Select exactly one local JUnit report.")
+        junit = read_junit_report(args.junit_report[0])
+        if junit.collection_status == "error":
+            raise _SummaryError(
+                "Unable to inspect the selected local JUnit report; use evagix junit-report PATH for details."
+            )
     try:
         root = REPOSITORY_PATH_POLICY.normalize(args.repo)
         git = GitSnapshot(root)
@@ -130,9 +151,16 @@ def _run(args: argparse.Namespace) -> tuple[str, int]:
             expectations_note = (
                 "Expectations were read from the base commit; this does not authenticate repository acceptance policy."
             )
+        scope_note = (
+            "All sections use the requested base and head commits. "
+            if junit is None
+            else "GitHub checks and repository sections use the requested base and head commits. "
+            "The optional local JUnit section has no verified revision binding. "
+        )
+        junit_section = "\n\n" + render_junit_report_markdown(junit).rstrip() if junit is not None else ""
         output = redact_sensitive_text(
             "# Pull request review (advisory)\n\n"
-            "All sections use the requested base and head commits. "
+            + scope_note
             + expectations_note
             + "\n\n"
             + render_pr_checks_markdown(payload, show_all=False).rstrip()
@@ -140,6 +168,7 @@ def _run(args: argparse.Namespace) -> tuple[str, int]:
             + render_reference_drift_markdown(references).rstrip()
             + "\n\n"
             + render_script_drift_markdown(scripts).rstrip()
+            + junit_section
             + "\n"
         )
     except ContractError:
@@ -150,7 +179,10 @@ def _run(args: argparse.Namespace) -> tuple[str, int]:
         ) from None
     if len(output.encode("utf-8")) > _SUMMARY_BYTES:
         raise _SummaryError("Combined summary exceeds the output limit; inspect the individual JSON reports.")
-    return output, 0 if checks.complete and references.complete and scripts.complete else 1
+    complete = checks.complete and references.complete and scripts.complete
+    if junit is not None:
+        complete = complete and junit.collection_status == "complete"
+    return output, 0 if complete else 1
 
 
 def _main(argv: list[str] | None) -> int:

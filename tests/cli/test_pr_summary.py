@@ -129,6 +129,248 @@ def no_unexpected_network(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(pr_summary, "collect_pr_checks", lambda *a, **k: pytest.fail("Unexpected collection"))
 
 
+def _junit_xml(*, marker: str = "", tests: int = 1, failures: int = 0, errors: int = 0, skipped: int = 0) -> str:
+    case = f'<testcase name="test_case" classname="suite.module">{marker}</testcase>' if tests else ""
+    return (
+        f'<testsuite name="pytest" tests="{tests}" failures="{failures}" errors="{errors}" skipped="{skipped}">'
+        + case
+        + "</testsuite>"
+    )
+
+
+@pytest.mark.parametrize("use_expectations", [True, False])
+@pytest.mark.parametrize(
+    "xml,outcome,status",
+    [
+        (_junit_xml(), "passed", 0),
+        (_junit_xml(marker="<failure>private failure body</failure>", failures=1), "failed", 0),
+        (_junit_xml(marker="<error/><error/>", errors=2), "failed", 0),
+        (_junit_xml(marker="<skipped/>", skipped=1), "skipped_only", 0),
+        (_junit_xml(tests=0), "empty", 0),
+        (_junit_xml(tests=2), "unknown", 1),
+        (_junit_xml(marker="<failure/>", failures=2), "failed", 1),
+        (_junit_xml().replace(' tests="1"', ""), "unknown", 1),
+        (_junit_xml().replace("</testsuite>", "<other>"), "unknown", 1),
+        ("<testsuite>unsupported body", "unknown", 1),
+    ],
+    ids=[
+        "pass",
+        "failure",
+        "errors",
+        "skipped",
+        "empty",
+        "count-mismatch",
+        "incomplete-failure",
+        "missing-counts",
+        "unsupported-before-malformed-tail",
+        "unsupported-body",
+    ],
+)
+def test_optional_junit_outcomes_and_collection_remain_separate(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    use_expectations: bool,
+    xml: str,
+    outcome: str,
+    status: int,
+) -> None:
+    repo = _repository(tmp_path)
+    report = tmp_path / "local report.xml"
+    report.write_text(xml, encoding="utf-8")
+    calls: list[str] = []
+
+    def collect(url: str, **kwargs: object) -> PullRequestChecks:
+        calls.append(url)
+        return PullRequestChecks(_payload(repo, result="failed"))
+
+    monkeypatch.setattr(pr_summary, "collect_pr_checks", collect)
+    before = _git(tmp_path, "status", "--porcelain")
+    assert pr_summary.main([*repo.args(expectations=use_expectations), "--junit-report", str(report)]) == status
+    captured = capsys.readouterr()
+    assert captured.err == "" and calls == [PR_URL]
+    assert "## Local pytest JUnit report" in captured.out
+    assert f"**Reported outcome:** {outcome}" in captured.out
+    assert "Source verification: `unverified`" in captured.out
+    assert "revision binding: `unknown`" in captured.out and "run completion: `unknown`" in captured.out
+    assert "not associated with a GitHub job or the requested commits" in captured.out
+    assert "All sections use the requested base and head commits" not in captured.out
+    assert "Deleted-file reference review" in captured.out and "Deleted-script instruction review" in captured.out
+    assert "required-tests" in captured.out and "failed: 1" in captured.out
+    assert "private failure body" not in captured.out and str(report) not in captured.out
+    assert ("**Collection:** incomplete" in captured.out) == (status == 1)
+    assert _git(tmp_path, "status", "--porcelain") == before
+    assert not (tmp_path / "SHOULD_NOT_RUN").exists()
+
+
+@pytest.mark.parametrize("use_expectations", [True, False])
+def test_without_junit_preserves_summary_and_never_reads_a_local_report(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], use_expectations: bool
+) -> None:
+    repo = _repository(tmp_path)
+    monkeypatch.setattr(pr_summary, "collect_pr_checks", lambda *a, **k: PullRequestChecks(_payload(repo)))
+    assert pr_summary.main(repo.args(expectations=use_expectations)) == 0
+    previous = capsys.readouterr()
+    (tmp_path / "junit.xml").write_text("invalid XML must not be discovered", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        pr_summary, "read_junit_report", lambda *a, **k: pytest.fail("Unexpected local report read"), raising=False
+    )
+    assert pr_summary.main(repo.args(expectations=use_expectations)) == 0
+    captured = capsys.readouterr()
+    assert captured == previous
+    assert "All sections use the requested base and head commits" in captured.out
+    assert "JUnit" not in captured.out
+
+
+@pytest.mark.parametrize("checks_complete,invalid_document", [(False, False), (True, True)])
+def test_complete_junit_cannot_override_existing_incomplete_evidence(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    checks_complete: bool,
+    invalid_document: bool,
+) -> None:
+    repo = _repository(tmp_path, invalid_document=invalid_document)
+    report = tmp_path / "passed.xml"
+    report.write_text(_junit_xml(), encoding="utf-8")
+    monkeypatch.setattr(
+        pr_summary, "collect_pr_checks", lambda *a, **k: PullRequestChecks(_payload(repo, complete=checks_complete))
+    )
+    assert pr_summary.main([*repo.args(), "--junit-report", str(report)]) == 1
+    captured = capsys.readouterr()
+    assert captured.err == "" and "**Reported outcome:** passed" in captured.out
+    assert "Deleted-file reference review" in captured.out and "incomplete" in captured.out
+
+
+@pytest.mark.parametrize("kind", ["malformed", "unsafe", "missing", "directory"])
+def test_invalid_optional_junit_fails_before_network_without_partial_output(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], kind: str
+) -> None:
+    repo = _repository(tmp_path)
+    report = tmp_path / "private-report-path.xml"
+    if kind == "malformed":
+        report.write_text(_junit_xml().replace("</testsuite>", ""), encoding="utf-8")
+    elif kind == "unsafe":
+        report.write_text('<!DOCTYPE testsuite SYSTEM "file:///private-fixture">' + _junit_xml(), encoding="utf-8")
+    elif kind == "directory":
+        report.mkdir()
+    assert pr_summary.main([*repo.args(), "--junit-report", str(report)]) == 2
+    captured = capsys.readouterr()
+    assert captured.out == "" and "local JUnit report" in captured.err
+    assert "private" not in captured.err and str(tmp_path) not in captured.err
+
+
+@pytest.mark.parametrize("arguments", [["--junit-report"], ["--junit-report", "one.xml", "--junit-report", "two.xml"]])
+def test_optional_junit_requires_exactly_one_explicit_path(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], arguments: list[str]
+) -> None:
+    repo = _repository(tmp_path)
+    assert pr_summary.main([*repo.args(), *arguments]) == 2
+    captured = capsys.readouterr()
+    assert captured.out == "" and captured.err.startswith("ERROR:")
+    assert "one.xml" not in captured.err and "two.xml" not in captured.err
+
+
+def test_relative_junit_path_uses_caller_directory_without_rebinding_its_evidence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    root = tmp_path / "repository"
+    root.mkdir()
+    repo = _repository(root)
+    (root / "report.xml").write_text("invalid repository-controlled report", encoding="utf-8")
+    (tmp_path / "report.xml").write_text(
+        _junit_xml().replace(
+            "<testcase", f'<properties><property name="commit" value="{repo.head}"/></properties><testcase'
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(pr_summary, "collect_pr_checks", lambda *a, **k: PullRequestChecks(_payload(repo)))
+    assert pr_summary.main([*repo.args(), "--junit-report", "report.xml"]) == 0
+    captured = capsys.readouterr()
+    junit_section = captured.out.split("## Local pytest JUnit report", 1)[1]
+    assert "**Reported outcome:** passed" in junit_section
+    assert "revision binding: `unknown`" in junit_section
+    assert repo.head not in junit_section
+
+
+def test_junit_section_preserves_existing_check_and_repository_results(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    repo = _repository(tmp_path)
+    monkeypatch.setattr(
+        pr_summary, "collect_pr_checks", lambda *a, **k: PullRequestChecks(_payload(repo, result="failed"))
+    )
+    assert pr_summary.main(repo.args()) == 0
+    original = capsys.readouterr().out
+    report = tmp_path / "report.xml"
+    report.write_text(_junit_xml(), encoding="utf-8")
+    assert pr_summary.main([*repo.args(), "--junit-report", str(report)]) == 0
+    existing_sections = capsys.readouterr().out.split("## Local pytest JUnit report", 1)[0]
+    existing_sections = existing_sections.replace(
+        "GitHub checks and repository sections use the requested base and head commits. "
+        "The optional local JUnit section has no verified revision binding. ",
+        "All sections use the requested base and head commits. ",
+        1,
+    )
+    assert existing_sections.rstrip() == original.rstrip()
+
+
+@pytest.mark.parametrize("limit", ["junit_section", "combined_bytes"])
+def test_optional_junit_output_limits_reject_without_partial_summary(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], limit: str
+) -> None:
+    repo = _repository(tmp_path)
+    report = tmp_path / "report.xml"
+    if limit == "junit_section":
+        cases = f'<testcase name="{"x" * 2048}"><failure/></testcase>' * 300
+        xml = '<testsuite name="large" tests="300" failures="300" errors="0" skipped="0">' + cases + "</testsuite>"
+    else:
+        xml = _junit_xml()
+        for renderer in (
+            "render_pr_checks_markdown",
+            "render_reference_drift_markdown",
+            "render_script_drift_markdown",
+            "render_junit_report_markdown",
+        ):
+            monkeypatch.setattr(pr_summary, renderer, lambda *a, **k: "é" * 120_000)
+    report.write_text(xml, encoding="utf-8")
+    monkeypatch.setattr(pr_summary, "collect_pr_checks", lambda *a, **k: PullRequestChecks(_payload(repo)))
+    assert pr_summary.main([*repo.args(), "--junit-report", str(report)]) == 2
+    captured = capsys.readouterr()
+    assert captured.out == "" and captured.err.startswith("ERROR:")
+    assert (
+        "Combined summary exceeds" in captured.err if limit == "combined_bytes" else "bounded Markdown" in captured.err
+    )
+
+
+def test_untrusted_junit_labels_are_redacted_literal_and_do_not_leak_bodies(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    repo = _repository(tmp_path)
+    secret = "ghp_" + "a" * 36
+    name = f'```&#10;## forged-heading&#10;&lt;img src="fixture"&gt;\u202e token={secret}'
+    # Attribute quotes are XML-escaped; newlines are character references so the parser preserves them.
+    name = name.replace('"', "&quot;")
+    xml = _junit_xml(marker='<failure message="private-message">private-traceback</failure>', failures=1)
+    xml = xml.replace('name="test_case"', f'name="{name}" file="private-source"')
+    xml = xml.replace("</testsuite>", "<system-out>private-logs</system-out></testsuite>")
+    report = tmp_path / "report.xml"
+    report.write_text(xml, encoding="utf-8")
+    monkeypatch.setattr(pr_summary, "collect_pr_checks", lambda *a, **k: PullRequestChecks(_payload(repo)))
+    assert pr_summary.main([*repo.args(), "--junit-report", str(report)]) == 0
+    captured = capsys.readouterr()
+    assert captured.err == ""
+    assert secret not in captured.out and "[REDACTED" in captured.out
+    assert "\n## forged-heading" not in captured.out and "\\n## forged-heading" in captured.out
+    assert "\u202e" not in captured.out and r"\u202e" in captured.out
+    assert all(
+        value not in captured.out
+        for value in ("private-message", "private-traceback", "private-source", "private-logs")
+    )
+
+
 def test_summary_uses_base_expectations_and_one_collection_without_worktree_execution(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:

@@ -3,7 +3,8 @@
 The preview `evagix.pr_summary` module combines observed PR checks,
 deleted-file references, and deleted-script instructions in one advisory Markdown
 report, without requiring an expectations file. An explicit file enables
-expected-check comparison. It collects GitHub metadata once and requires that its
+expected-check comparison. An optional local pytest JUnit file adds a separate,
+unverified test-report section. It collects GitHub metadata once and requires that its
 base and head commits match the explicit commits supplied by the caller. Both
 repository inspections use that same pair. Existing standalone commands, JSON
 schemas, and exit-code meanings are unchanged.
@@ -49,6 +50,38 @@ Only `EVAGIX_GITHUB_TOKEN` supplies optional authentication. The module uses the
 existing [GitHub collector boundary](github-check-collection.md#authentication-and-network-boundary).
 It does not read credential files or infer credentials from GitHub CLI.
 
+## Optional local pytest JUnit report
+
+Add `--junit-report /path/to/results.xml` to the invocation above to include one
+explicitly selected local report. Relative paths use the caller's working
+directory, not `--repo`. The option may appear only once. No report is discovered,
+generated, downloaded or read from Git automatically. Without this option, output
+and exit behavior are unchanged.
+
+The section reuses the bounded [local pytest reader](local-junit-reports.md).
+It shows case-row counts, reported failures/errors/skips and collection issues;
+passed rows are hidden. Failure bodies, logs, properties and source paths are
+omitted. Names remain untrusted display text and are redacted and escaped.
+
+The local report is **not associated with a GitHub job or either requested
+commit**. Its source remains unverified, revision binding and run completion
+remain unknown, and no merge policy is evaluated. A SHA or timestamp inside XML
+does not change that. GitHub check outcomes and local test outcomes remain
+separate; one cannot validate or override the other.
+
+A consistent report with failures, only skipped tests or zero tests does not
+fail collection. An incomplete report is displayed with the other sections and
+makes the combined exit status `1`. Reader errors, including unreadable input,
+detected malformed XML and rejected unsafe declarations, return `2`, with a
+diagnostic on stderr and no combined stdout, before GitHub collection.
+Unsupported structure or resource limits can stop inspection before XML
+well-formedness is established; these remain incomplete, never a clean result.
+An oversized rendered section or summary also returns `2` without partial output.
+
+This option is under development after the prepared `0.2.0a1` preview. Evagix's
+currently pinned CI reporting job does not attach JUnit reports; enabling that
+workflow behavior requires a separate tool-pin and input-collection change.
+
 ## Interpret the result
 
 The repository sections inspect committed root `README.md` and `AGENTS.md`.
@@ -59,9 +92,9 @@ instruction does not change the report.
 
 | Exit | Meaning |
 | --- | --- |
-| `0` | All three inspections completed within their stated scopes. Failed observed checks, missing expected checks, broken links, or stale script instructions can still be present. |
-| `1` | At least one report is incomplete; all sections describe their available evidence. |
-| `2` | Invalid input, unavailable local objects, collection failure, changed PR revisions, comparison failure, or output limit. No combined report is written to stdout. |
+| `0` | The three existing inspections and any selected JUnit report completed within their stated scopes. Failed checks/tests, missing expected checks, broken links, or stale script instructions can still be present. |
+| `1` | At least one selected report is incomplete; all sections describe their available evidence. |
+| `2` | Invalid input (including JUnit reader errors), unavailable local objects, collection failure, changed PR revisions, comparison failure, or output limit. No combined report is written to stdout. |
 
 The summary is advisory. It does not prove test execution, enforce required-check
 policy, approve merging, or validate all task requirements. With an expectations
