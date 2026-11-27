@@ -72,6 +72,16 @@ counters are distinct; logs and failure text are omitted. This addition is under
 development after the prepared `0.2.0a1` preview. See the
 [local JUnit guide](guides/local-junit-reports.md).
 
+`evagix/schemas/github-junit.schema.json` describes the preview
+`evagix junit-github ARCHIVE --format json` association report, with the explicit
+run, attempt, artifact and revision selection. Archive integrity, run identity,
+provider revision and selected-attempt currentness are separate fields;
+artifact-producing attempt and tested-code binding remain unknown. Its optional
+`junit` object references the existing local-report schema, without changing that
+contract. Register both packaged schemas by `$id` for offline validation. This
+addition is under development after the prepared `0.2.0a1` preview. See the
+[GitHub JUnit association guide](guides/github-junit-association.md).
+
 ## Stability policy
 
 - Schema additions should be backward-compatible where possible.

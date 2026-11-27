@@ -31,7 +31,7 @@ Human-readable terminal styling is enabled on supported interactive terminals. D
 | Preview and experimental | `evagix agents`, `evagix prepare`, `evagix context-pack`, `evagix mcp` |
 | Git-aware review | `evagix changed`, `evagix pr-risk` |
 | Remediation | `evagix fix` |
-| Explicit GitHub evidence (preview, network required) | `evagix pr-checks`, `evagix verify-check` |
+| Explicit GitHub evidence (preview, network required) | `evagix pr-checks`, `evagix verify-check`, `evagix junit-github` |
 | Local test reports (preview, offline) | `evagix junit-report` |
 
 ## Local pytest JUnit report (preview)
@@ -50,6 +50,21 @@ Exit `0` means consistent report collection, even when tests failed or all rows
 were skipped. Exit `1` means incomplete data; `2` means unreadable, malformed or
 unsafe input. See [supported formats, trust limits and examples](guides/local-junit-reports.md).
 This addition is under development after the prepared `0.2.0a1` preview.
+
+## GitHub JUnit artifact association (preview)
+
+`evagix junit-github ARCHIVE --run RUN_URL --attempt N --artifact-id N --revision SHA`
+compares an original local artifact ZIP with live GitHub metadata. It checks the
+archive digest, run identity, expected provider revision and whether the selected
+attempt is current. The artifact-producing attempt and actual tested code remain
+unknown; run conclusions and XML outcomes are shown separately.
+
+Exit `0` means complete matching collection with a current selected attempt,
+not test success or merge approval. Exit `1` means incomplete, mismatched or stale
+evidence; `2` means invalid input or an operational error. This optional addition
+is under development after the prepared `0.2.0a1` preview. See the
+[artifact association guide](guides/github-junit-association.md) for input limits,
+credentials, JSON output and the distinction between run and attempt association.
 
 ## Pull request check report (preview)
 

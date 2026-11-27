@@ -112,6 +112,9 @@ fetched, no XInclude is processed, and compressed input is unsupported.
 
 The packaged preview schema is `evagix/schemas/junit-report.schema.json`.
 Existing CLI commands, JSON contracts and default scans are unchanged.
+The separate opt-in [`junit-github` command](github-junit-association.md) can
+compare an original artifact ZIP with GitHub run metadata. It does not change
+this local reader's trust fields or authenticate the artifact-producing attempt.
 The [combined PR summary](pr-review-summary.md#optional-local-pytest-junit-report)
 can include this report through its optional `--junit-report PATH` argument.
 That section retains the same trust limits and is not associated with the PR's
