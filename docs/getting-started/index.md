@@ -11,6 +11,11 @@ python -m pip install evagix
 evagix --version
 ```
 
+These commands install the stable release. The `0.2.0a1` preview is prepared for
+local evaluation and is not published. See the
+[preview installation and upgrade guide](../guides/preview-release.md) for its
+additional reports and compatibility notes.
+
 ## Run the first check
 
 From the repository root:

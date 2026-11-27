@@ -1,6 +1,6 @@
 # Find links broken by committed file deletions
 
-The development-version `changed --references` preview checks explicit local
+The [0.2.0a1 preview](preview-release.md) includes `changed --references`, which checks explicit local
 Markdown links in the repository-root `README.md` and `AGENTS.md`.
 
 ```bash

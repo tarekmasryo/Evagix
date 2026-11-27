@@ -24,6 +24,11 @@ evagix init-ci . --fail-under 85
 
 The command writes `.github/workflows/evagix.yml` and refuses to overwrite an existing workflow unless `--force` is supplied.
 
+When using the unpublished `0.2.0a1` preview, select an available installation
+source explicitly. Default Git refs and PyPI versions follow the installed tool
+version, so they are not downloadable until that version is published. See the
+[preview CI notes](preview-release.md#ci-and-installation-pins).
+
 ### Install modes
 
 For a released PyPI package, use the generated PyPI mode or select it explicitly:

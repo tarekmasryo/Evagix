@@ -67,6 +67,10 @@
 
 ## Quick start
 
+This checkout prepares the **unpublished `0.2.0a1` preview**. The installation
+commands below use the stable PyPI release. For the new advisory PR reports and
+deletion checks, follow the [preview installation and upgrade guide](https://github.com/tarekmasryo/Evagix/blob/main/docs/guides/preview-release.md).
+
 Install Evagix from PyPI:
 
 ```bash
@@ -261,7 +265,7 @@ Most users only need a small part of the CLI.
 
 For the complete command inventory, flags, advanced workflows, and exit-code semantics, see [docs/commands.md](https://github.com/tarekmasryo/Evagix/blob/main/docs/commands.md).
 
-### Removed script instructions (development preview)
+### Removed script instructions (0.2.0a1 preview)
 
 Review script commands left behind when a committed change removes or renames a file:
 
@@ -274,12 +278,12 @@ This offline, advisory mode checks supported literal instructions in root
 It reports the source location and removed target without running scripts or
 choosing a replacement. See the
 [supported forms and limits](https://github.com/tarekmasryo/Evagix/blob/main/docs/guides/deleted-scripts.md).
-The development-version [combined PR summary](https://github.com/tarekmasryo/Evagix/blob/main/docs/guides/pr-review-summary.md)
+The preview [combined PR summary](https://github.com/tarekmasryo/Evagix/blob/main/docs/guides/pr-review-summary.md)
 also includes these findings. The repository's automatic CI job installs a
 reviewed commit containing this integration.
 This preview is not included in the published `0.1.2` release.
 
-### Optional GitHub evidence (development preview)
+### Optional GitHub evidence (0.2.0a1 preview)
 
 Start from a PR URL to see reported check outcomes and links that need attention:
 

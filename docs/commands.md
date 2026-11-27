@@ -2,6 +2,10 @@
 
 Evagix has several commands because it supports repository inspection, generated-context governance, README evidence checks, and PR risk review. Most users only need a small path first.
 
+The new evidence and deletion reports below are included in the unpublished
+`0.2.0a1` preview. See [installation and upgrade notes](guides/preview-release.md)
+before trying them with a stable installation.
+
 ## First-time local use
 
 ```bash
@@ -71,7 +75,7 @@ explicit file fails rather than falling back to inventory mode.
 evagix verify-check --request check-request.json --github-repo owner/repository --format json
 ```
 
-This development-version command collects GitHub.com metadata for one explicitly
+This preview command collects GitHub.com metadata for one explicitly
 selected `push` job execution. It uses `EVAGIX_GITHUB_TOKEN` only when set; public
 metadata can be read anonymously. It does not run repository commands or change
 existing scans. See [request format, permissions, limits, and evidence meaning](guides/github-check-collection.md).
@@ -252,7 +256,7 @@ These commands cover initial inspection and opt-in setup. Inspection commands do
 
 ## Advanced and preview commands
 
-These commands are useful for staged adoption and early feedback. Preview and experimental JSON is not a stable public schema unless `docs/schemas.md` lists it.
+These commands are useful for staged adoption and early feedback. See the stable and preview contract sections in [Schemas](schemas.md); packaging a schema does not by itself promote a preview API to stable.
 
 | Command | Purpose | Read/write behavior | Important flags | Exit codes | JSON stability |
 | --- | --- | --- | --- | --- | --- |
@@ -265,4 +269,4 @@ These commands are useful for staged adoption and early feedback. Preview and ex
 
 ## Machine-readable contract stability
 
-Stable JSON outputs are the commands listed in `docs/schemas.md`; each has a packaged JSON Schema and an executable contract test. A preview or experimental command is not a stable machine-readable contract merely because it can emit JSON. Such output may evolve until it is promoted by adding a packaged schema, documentation, and contract coverage.
+Stable JSON outputs are listed in the stable schema table in [Schemas](schemas.md); each has a packaged JSON Schema and an executable contract test. Preview contracts are listed separately and may evolve before a stable release. Their packaged schemas describe the current output, not a promise of stability. Pin the preview version when consuming those reports.
