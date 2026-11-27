@@ -116,6 +116,8 @@ def test_url_resolves_fork_pr_to_separate_head_and_merge_inventories(monkeypatch
     payload = report.to_dict()
 
     assert report.complete is True
+    assert report.head_repository_id == 20
+    assert "head_repository_id" not in payload
     assert payload["repository_id"] == 10
     assert payload["pull_request"] == 7
     assert payload["required_checks"] == "unknown"
@@ -136,6 +138,14 @@ def test_url_resolves_fork_pr_to_separate_head_and_merge_inventories(monkeypatch
     ]
     payload["revisions"].clear()
     assert len(report.to_dict()["revisions"]) == 2
+
+
+def test_deleted_head_repository_remains_unknown_without_changing_json(monkeypatch):
+    install(monkeypatch, before=pull(head={"sha": HEAD, "ref": "feature", "repo": None}))
+    report = pr_checks.collect_pr_checks(URL)
+    assert report.head_repository_id is None
+    assert report.complete is True
+    assert "head_repository_id" not in report.to_dict()
 
 
 @pytest.mark.parametrize(

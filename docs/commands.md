@@ -105,6 +105,11 @@ An optional `--junit-report PATH` adds local pytest outcomes as a separate,
 unverified section. It does not associate the report with GitHub jobs or the
 requested commits. Without this option the existing report is unchanged; see
 the [local input contract](guides/pr-review-summary.md#optional-local-pytest-junit-report).
+Alternatively, `--junit-archive PATH --junit-run-id N --junit-attempt N --junit-artifact-id N`
+compares an original artifact ZIP with GitHub metadata and the requested PR head.
+This mode is mutually exclusive with local XML input and preserves unknown
+producing-attempt and tested-code provenance. See the
+[association options and exit meanings](guides/pr-review-summary.md#optional-github-junit-association).
 
 ## Selected GitHub check (preview)
 

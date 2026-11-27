@@ -95,6 +95,11 @@ it does not promote the local parser's observations to authenticated execution
 evidence. Offline JSON Schema validators can register both packaged schemas by
 their `$id`; schema validation does not require fetching schemas from the network.
 
+The [combined PR summary](pr-review-summary.md#optional-github-junit-association)
+can run this check with an explicit local ZIP and run/attempt/artifact IDs. It
+derives the repository and expected head revision from the requested PR and
+compares repository identities without changing this standalone command.
+
 ## Input and transport limits
 
 - Local input must be a regular, non-symlink ZIP of at most 8,100,000 bytes.

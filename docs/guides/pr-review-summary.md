@@ -4,7 +4,8 @@ The preview `evagix.pr_summary` module combines observed PR checks,
 deleted-file references, and deleted-script instructions in one advisory Markdown
 report, without requiring an expectations file. An explicit file enables
 expected-check comparison. An optional local pytest JUnit file adds a separate,
-unverified test-report section. It collects GitHub metadata once and requires that its
+unverified test-report section. Alternatively, an explicit artifact ZIP can be
+compared with GitHub run metadata. It collects the PR check inventory once and requires that its
 base and head commits match the explicit commits supplied by the caller. Both
 repository inspections use that same pair. Existing standalone commands, JSON
 schemas, and exit-code meanings are unchanged.
@@ -83,6 +84,55 @@ own CI reporting job attaches a minimized report from `Quality gates`, as
 described below. The optional integration recipe later in this guide does not
 collect or attach JUnit automatically.
 
+## Optional GitHub JUnit association
+
+Select an original local artifact ZIP to include the
+[GitHub association check](github-junit-association.md) in the same report:
+
+```bash
+python -I -m evagix.pr_summary https://github.com/owner/repository/pull/123 \
+  --repo /path/to/checkout --base FULL_BASE_COMMIT --head FULL_HEAD_COMMIT \
+  --junit-archive /path/to/original-artifact.zip \
+  --junit-run-id 456 --junit-attempt 1 --junit-artifact-id 789
+```
+
+The run and artifact IDs belong to the PR's base repository. The expected provider
+revision is always the explicit `--head`; it cannot be overridden with an older
+revision. The original ZIP must already exist locally; nothing is downloaded,
+uploaded, extracted or executed. Relative paths use the caller's working directory.
+The default sole member is `evagix-quality-junit.xml`; use `--junit-member results.xml`
+for a different supported member. All four required options must appear together
+and once. The member option may appear once and requires an archive. This mode
+cannot be combined with `--junit-report`.
+
+After local committed inputs and any explicit base expectations are validated,
+the archive is inspected and associated, then the existing PR collector
+checks its before/after snapshot against the requested base and head. The summary
+compares the run's numeric repository and head-repository IDs with the observed PR
+identities, including forks. A missing head repository leaves that comparison
+unknown. XML counts are omitted when repository identity cannot be matched; the
+remaining sections and explicit linkage diagnostics stay visible.
+
+The section reports archive/run linkage, provider revision matching, selected
+attempt currentness, run/attempt outcomes and XML counters separately. Failed,
+skipped-only or empty XML does not fail collection. A complete matching association
+does not override failed checks, broken references or an incomplete inspection.
+`current` means latest attempt **within the selected run**, not latest workflow or
+PR run. The producing attempt, job, actual tested checkout, full-suite execution
+and task completion remain unverified. A matching SHA does not prove that a run
+was triggered by this PR. Test names and free-text failure details are omitted.
+
+| Exit | Additional meaning when an archive is selected |
+| --- | --- |
+| `0` | Existing inspections are complete, archive/run/revision and repository identities match, and the selected attempt is current. Test success and merge readiness are not evaluated. |
+| `1` | Any inspection is incomplete, or the association is stale, mismatched or has an unknown PR repository identity. The available sections remain visible. |
+| `2` | Invalid option combinations, unreadable/unsafe/corrupt input, provider errors, changed PR revisions or rendering errors. No combined stdout is emitted. |
+
+The local XML reader and summaries without either JUnit option retain their
+behavior. Existing JSON schemas are unchanged. This development-preview option
+does not update the tool pin or enable archive association in Evagix's automatic
+CI job; that job continues to use the local XML transfer described below.
+
 ## Interpret the result
 
 The repository sections inspect committed root `README.md` and `AGENTS.md`.
@@ -93,8 +143,8 @@ instruction does not change the report.
 
 | Exit | Meaning |
 | --- | --- |
-| `0` | The three existing inspections and any selected JUnit report completed within their stated scopes. Failed checks/tests, missing expected checks, broken links, or stale script instructions can still be present. |
-| `1` | At least one selected report is incomplete; all sections describe their available evidence. |
+| `0` | The three existing inspections and any selected JUnit input completed within their stated scopes, with matching/current artifact linkage when requested. Failed checks/tests, missing expected checks, broken links, or stale script instructions can still be present. |
+| `1` | At least one selected report is incomplete, or an optional artifact association is stale, mismatched or has unknown PR identity; all sections describe their available evidence. |
 | `2` | Invalid input (including JUnit reader errors), unavailable local objects, collection failure, changed PR revisions, comparison failure, or output limit. No combined report is written to stdout. |
 
 The summary is advisory. It does not prove test execution, enforce required-check
