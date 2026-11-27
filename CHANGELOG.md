@@ -6,8 +6,8 @@ All notable user-facing changes to Evagix are documented here.
 
 ### Added
 
-- Include deleted-script instruction findings in development-version combined PR summaries, using the same immutable revisions as checks and deleted-file references. Findings remain advisory; incomplete script inspection makes the summary incomplete. The automatic CI tool pin and standalone report contracts are unchanged.
-- Preview `changed --scripts` mode for literal script instructions left behind by committed deletions or renames. It reports source locations and incomplete inspection, declares its repository-root working-directory assumption, and excludes ambiguous shell contexts. Existing changed-file, Markdown-link, and automatic PR-summary behavior is unchanged.
+- Include deleted-script instruction findings in development-version combined PR summaries, using the same immutable revisions as checks and deleted-file references. Findings remain advisory; incomplete script inspection makes the summary incomplete. Standalone report contracts are unchanged.
+- Preview `changed --scripts` mode for literal script instructions left behind by committed deletions or renames. It reports source locations and incomplete inspection, declares its repository-root working-directory assumption, and excludes ambiguous shell contexts. Existing changed-file and Markdown-link behavior is unchanged.
 - Run advisory PR summaries in this repository's CI after existing jobs finish, using an independently pinned tool and read-only permissions. Findings remain advisory; incomplete or unavailable reviews are visible job failures. Existing scan commands and release gates are unchanged.
 - Advisory Markdown summaries for PR check inventories, expected-check comparisons, and deleted-file references. An optional CI helper combines reports for matching immutable revisions without requiring an expectations file, leaving required-check coverage unknown. Explicit expectations are still read only from the base commit; existing outputs and exit codes are unchanged.
 - Optional `pr-checks --expectations` comparison against caller-supplied check names, producer IDs, kinds, and revision scopes. The advisory report distinguishes missing, pending, failed, and unverified expectations without changing default reports or collection exit codes.
@@ -15,6 +15,10 @@ All notable user-facing changes to Evagix are documented here.
 - Preview `pr-checks <PR_URL>` report with no request file or manual execution IDs. It shows head and available test-merge check outcomes separately, keeps provider identity and detail links, and hides passed text rows by default. Collection status is separate from check success; required-check policy and merge readiness are not evaluated.
 - Preview `verify-check` command and optional GitHub.com collector for an explicitly selected push job execution. Collection verifies the provider endpoint, attempt scope, pagination, and observed run stability; results describe provider-reported outcomes, not checkout/test provenance or merge approval. Existing scans stay offline, and no runtime dependency or existing report schema changes.
 - Preview Python contract for verifying a specified check against supplied execution evidence and a separate caller assessment, with redacted results, a packaged schema, and a reproducible synthetic evaluation. It does not authenticate CI sources or change existing CLI behavior.
+
+### Changed
+
+- Update this repository's pinned advisory PR tool to include deleted-script instruction findings. Workflow permissions, isolation, and existing quality and release gates are unchanged.
 
 ### Fixed
 
