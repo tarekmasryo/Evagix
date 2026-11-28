@@ -6,6 +6,7 @@ All notable user-facing changes to Evagix are documented here.
 
 ### Added
 
+- Preview `changed --tests` for advisory review of removed Python test-file paths and added literal unconditional pytest skip declarations. Git rename candidates are shown separately; conditional skips, working-tree changes and test execution are excluded. Existing report contracts and automatic summaries are unchanged.
 - Optional GitHub JUnit artifact association in combined PR summaries, with explicit archive/run inputs and repository/head identity comparisons. Stale, mismatched or incomplete evidence remains visible; producing-attempt and tested-code provenance remain unknown. Existing local XML input is unchanged.
 - Preview `junit-github` command for associating an original local artifact ZIP with live GitHub run metadata. It compares the archive digest, run identity, expected provider revision and selected-attempt currentness; producing-attempt and tested-code provenance remain unknown. Existing offline JUnit behavior is unchanged.
 - Optional `--junit-report PATH` in the preview combined PR summary. Local pytest outcomes are displayed separately from GitHub evidence, with unverified source and unknown revision/run binding. Incomplete reports remain visible; JUnit reader errors fail before GitHub collection. Existing behavior without the option is unchanged.

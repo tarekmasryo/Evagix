@@ -82,6 +82,14 @@ contract. Register both packaged schemas by `$id` for offline validation. This
 addition is under development after the prepared `0.2.0a1` preview. See the
 [GitHub JUnit association guide](guides/github-junit-association.md).
 
+`evagix/schemas/test-changes.schema.json` describes the preview
+`evagix changed --tests --format json` report. It separates advisory removed
+test-file paths, Git rename candidates and added literal skip declarations,
+with immutable revisions, source locations and inspection limits. It does not
+evaluate collection, execution or merge policy. This addition is under
+development after the prepared `0.2.0a1` preview and leaves existing changed-file
+contracts unchanged. See the [test-change guide](guides/test-changes.md).
+
 ## Stability policy
 
 - Schema additions should be backward-compatible where possible.

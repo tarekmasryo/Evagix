@@ -76,6 +76,7 @@ nav:
       - GitHub JUnit Association: guides/github-junit-association.md
       - Deleted File References: guides/deleted-references.md
       - Deleted Script Instructions: guides/deleted-scripts.md
+      - Test Changes: guides/test-changes.md
   - Reference:
       - CLI Reference: commands.md
       - Rules: rules.md
