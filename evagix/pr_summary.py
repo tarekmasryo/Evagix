@@ -14,11 +14,13 @@ from evagix.reference_drift import build_reference_drift_report, render_referenc
 from evagix.reports.github_junit import render_github_junit_markdown
 from evagix.reports.junit import render_junit_report_markdown
 from evagix.reports.pr_checks import render_pr_checks_markdown
+from evagix.reports.test_changes import render_test_changes_markdown
 from evagix.safety import REPOSITORY_PATH_POLICY
 from evagix.scanning.git_snapshot import GitSnapshot
 from evagix.script_drift import build_script_drift_report, render_script_drift_markdown
 from evagix.security.output import execute_with_redacted_output
 from evagix.security.redaction import redact_sensitive_text
+from evagix.test_changes import build_test_changes_report
 from evagix.verification._json import decode_object
 from evagix.verification.contracts import ContractError
 from evagix.verification.github_collection import GitHubCollectionError
@@ -175,6 +177,7 @@ def _run(args: argparse.Namespace) -> tuple[str, int]:
         expectations = _read_expectations(git, args.base, args.expectations) if args.expectations is not None else None
         references = build_reference_drift_report(root, base=args.base, head=args.head)
         scripts = build_script_drift_report(root, base=args.base, head=args.head)
+        test_changes = build_test_changes_report(root, base=args.base, head=args.head)
     except _SummaryError:
         raise
     except (OSError, RuntimeError, ValueError):
@@ -252,6 +255,8 @@ def _run(args: argparse.Namespace) -> tuple[str, int]:
             + render_reference_drift_markdown(references).rstrip()
             + "\n\n"
             + render_script_drift_markdown(scripts).rstrip()
+            + "\n\n"
+            + render_test_changes_markdown(test_changes).rstrip()
             + junit_section
             + "\n"
         )
@@ -263,7 +268,7 @@ def _run(args: argparse.Namespace) -> tuple[str, int]:
         ) from None
     if len(output.encode("utf-8")) > _SUMMARY_BYTES:
         raise _SummaryError("Combined summary exceeds the output limit; inspect the individual JSON reports.")
-    complete = checks.complete and references.complete and scripts.complete
+    complete = checks.complete and references.complete and scripts.complete and test_changes.complete
     if junit is not None:
         complete = complete and junit.collection_status == "complete"
     if association is not None:
