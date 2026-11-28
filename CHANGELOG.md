@@ -6,13 +6,14 @@ All notable user-facing changes to Evagix are documented here.
 
 ### Added
 
-- Optional GitHub JUnit artifact association in combined PR summaries, with explicit archive/run inputs and repository/head identity comparisons. Stale, mismatched or incomplete evidence remains visible; producing-attempt and tested-code provenance remain unknown. Existing local XML input and automatic CI behavior are unchanged.
-- Preview `junit-github` command for associating an original local artifact ZIP with live GitHub run metadata. It compares the archive digest, run identity, expected provider revision and selected-attempt currentness; producing-attempt and tested-code provenance remain unknown. Existing offline JUnit and automatic PR-summary behavior are unchanged.
+- Optional GitHub JUnit artifact association in combined PR summaries, with explicit archive/run inputs and repository/head identity comparisons. Stale, mismatched or incomplete evidence remains visible; producing-attempt and tested-code provenance remain unknown. Existing local XML input is unchanged.
+- Preview `junit-github` command for associating an original local artifact ZIP with live GitHub run metadata. It compares the archive digest, run identity, expected provider revision and selected-attempt currentness; producing-attempt and tested-code provenance remain unknown. Existing offline JUnit behavior is unchanged.
 - Optional `--junit-report PATH` in the preview combined PR summary. Local pytest outcomes are displayed separately from GitHub evidence, with unverified source and unknown revision/run binding. Incomplete reports remain visible; JUnit reader errors fail before GitHub collection. Existing behavior without the option is unchanged.
 - Preview `junit-report PATH` for local pytest JUnit XML, with reported case outcomes, separate marker counts, incomplete-data diagnostics and bounded XML parsing. Source verification and execution/revision binding remain unverified or unknown. Text and JSON omit logs and failure bodies; existing scans and reports are unchanged.
 
 ### Changed
 
+- Associate the minimized JUnit artifact in this repository's automatic PR summary with GitHub run metadata. The reviewed tool receives the original archive, upload ID and current run/attempt, with read-only Actions access and explicit incomplete or mismatched results. Test gates and public CLI/schema contracts are unchanged; artifact-producing attempt and tested-code provenance remain unknown.
 - Include minimized `Quality gates` JUnit results in this repository's advisory PR summary. Only counters and outcome markers are transferred, with ordinal labels and one-day retention; missing, incomplete or stale transfers are explicit. The reviewed tool pin includes JUnit support. Test gates, public CLI contracts and unverified report semantics are unchanged.
 
 ### Fixed
