@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evagix.dev/schemas/test-changes.schema.json",
+  "title": "Evagix Test Change Report (Preview)",
+  "type": "object",
+  "required": ["schema_version", "tool", "kind", "base", "head", "merge_base", "completeness", "policy_decision", "scope", "inspected_files", "renames", "limitations", "findings"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "tool": { "const": "evagix" },
+    "kind": { "const": "test_changes" },
+    "base": { "$ref": "#/$defs/revision" },
+    "head": { "$ref": "#/$defs/revision" },
+    "merge_base": { "$ref": "#/$defs/revision" },
+    "completeness": { "enum": ["complete", "incomplete"] },
+    "policy_decision": { "const": "not_evaluated" },
+    "scope": {
+      "type": "object",
+      "required": ["filenames", "skip_syntax", "working_tree", "collection", "rename_similarity"],
+      "properties": {
+        "filenames": { "const": ["test_*.py", "*_test.py"] },
+        "skip_syntax": { "const": "literal_pytest_mark_skip" },
+        "working_tree": { "const": "excluded" },
+        "collection": { "const": "not_evaluated" },
+        "rename_similarity": { "const": 50 }
+      },
+      "additionalProperties": false
+    },
+    "inspected_files": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "renames": {
+      "type": "array", "maxItems": 200,
+      "items": {
+        "type": "object", "required": ["previous_path", "path", "similarity"],
+        "properties": {
+          "previous_path": { "type": "string", "minLength": 1 },
+          "path": { "type": "string", "minLength": 1 },
+          "similarity": { "type": "integer", "minimum": 50, "maximum": 100 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "limitations": { "type": "array", "items": { "type": "string" } },
+    "findings": {
+      "type": "array", "maxItems": 1000,
+      "items": {
+        "type": "object",
+        "required": ["code", "path", "revision", "line", "column", "test", "previous_path", "previous_line", "marker_scope", "severity"],
+        "properties": {
+          "code": { "enum": ["tests.deleted-file", "tests.unconditional-skip-added"] },
+          "path": { "type": "string", "minLength": 1 },
+          "revision": { "enum": ["merge_base", "head"] },
+          "line": { "type": "integer", "minimum": 1 },
+          "column": { "type": "integer", "minimum": 1 },
+          "test": { "type": ["string", "null"] },
+          "previous_path": { "type": ["string", "null"] },
+          "previous_line": { "type": ["integer", "null"], "minimum": 1 },
+          "marker_scope": { "enum": ["module", "class", "test", null] },
+          "severity": { "const": "advisory" }
+        },
+        "allOf": [{
+          "if": { "properties": { "code": { "const": "tests.deleted-file" } } },
+          "then": { "properties": {
+            "revision": { "const": "merge_base" }, "line": { "const": 1 }, "column": { "const": 1 },
+            "test": { "type": "null" }, "previous_path": { "type": "null" }, "previous_line": { "type": "null" }, "marker_scope": { "type": "null" }
+          } },
+          "else": { "properties": {
+            "revision": { "const": "head" }, "test": { "type": "string", "minLength": 1 },
+            "previous_path": { "type": "string", "minLength": 1 }, "previous_line": { "type": "integer" },
+            "marker_scope": { "enum": ["module", "class", "test"] }
+          } }
+        }],
+        "additionalProperties": false
+      }
+    }
+  },
+  "$defs": { "revision": { "type": "string", "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$" } },
+  "additionalProperties": false
+}

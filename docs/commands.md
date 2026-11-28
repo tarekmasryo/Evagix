@@ -160,6 +160,22 @@ for input or operational errors. `--scripts` and `--references` are mutually
 exclusive; existing modes are unchanged. See the
 [supported commands and limits](guides/deleted-scripts.md).
 
+## Test changes (preview)
+
+```bash
+evagix changed . --tests --base main --head HEAD
+```
+
+This opt-in advisory mode reports removed Python test-file paths and new supported
+unconditional pytest skip declarations on existing named tests. Git rename
+candidates are shown separately; conditional skips are excluded. It reads
+committed snapshots without importing or executing tests. JSON uses the separate
+`test-changes.schema.json` contract. Exit codes are `0` for complete inspection,
+`1` for incomplete inspection and `2` for input/operational errors, independently
+of finding counts. `--tests`, `--scripts` and `--references` are mutually exclusive.
+This addition is under development after the prepared `0.2.0a1` preview. See
+[supported syntax, renames and limits](guides/test-changes.md).
+
 ## CI gate
 
 ```bash

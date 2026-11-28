@@ -8,6 +8,7 @@ from typing import Any
 from evagix.commands.git_cmds import _cmd_changed, _cmd_pr_risk
 from evagix.commands.reference_drift import _cmd_reference_drift
 from evagix.commands.script_drift import _cmd_script_drift
+from evagix.commands.test_changes import _cmd_test_changes
 
 
 def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
@@ -21,7 +22,7 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         "--format",
         choices=["text", "json", "github-annotations", "markdown"],
         default="text",
-        help="Output format. Markdown requires --references or --scripts.",
+        help="Output format. Markdown requires --references, --scripts or --tests.",
     )
     inspection_mode = changed_parser.add_mutually_exclusive_group()
     inspection_mode.add_argument(
@@ -33,6 +34,11 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         "--scripts",
         action="store_true",
         help="Report literal script commands whose tracked targets were removed (preview; advisory).",
+    )
+    inspection_mode.add_argument(
+        "--tests",
+        action="store_true",
+        help="Review deleted Python test paths and added unconditional skip declarations (preview; advisory).",
     )
 
     pr_risk_parser = subparsers.add_parser(
@@ -47,6 +53,14 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
 
 def dispatch(args: Any) -> int | None:
     if args.command == "changed":
+        if getattr(args, "tests", False):
+            return _cmd_test_changes(
+                Path(args.path),
+                base=args.base,
+                head=args.head,
+                output_format=args.format,
+                style=args.terminal_style,
+            )
         if getattr(args, "scripts", False):
             return _cmd_script_drift(
                 Path(args.path),
