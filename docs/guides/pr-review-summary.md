@@ -1,7 +1,8 @@
 # Combine advisory PR reports in a job summary
 
 The preview `evagix.pr_summary` module combines observed PR checks,
-deleted-file references, deleted-script instructions, and supported test changes
+deleted-file references, deleted-script instructions, supported test changes,
+and lower literal CI coverage declarations
 in one advisory Markdown report, without requiring an expectations file. An explicit file enables
 expected-check comparison. An optional local pytest JUnit file adds a separate,
 unverified test-report section. Alternatively, an explicit artifact ZIP can be
@@ -19,6 +20,10 @@ verification tool.
 The test-change section is under development after the prepared preview. Use a
 reviewed build containing this addition to evaluate it. Evagix's automatic CI
 report includes the section through the reviewed tool pin described below.
+
+The coverage-declaration section is also under development after the prepared
+preview. It is included when running a reviewed build containing this addition;
+the automatic CI tool pin does not yet include it.
 
 ## Local invocation
 
@@ -157,9 +162,22 @@ keeps the other sections visible and returns `1`. A complete JUnit report or
 successful GitHub check cannot override that limitation. Fatal inspection or
 rendering errors return `2` without partial combined output.
 
+The [coverage-declaration section](coverage-thresholds.md) compares the same
+merge base and requested head for lower literal `pytest-cov` thresholds in
+changed existing GitHub Actions workflows. Matching uses the workflow path,
+job and a unique step identity. Increases and unchanged values produce no
+reduction finding. Missing, dynamic or ambiguous declarations remain unresolved;
+they are not assigned a threshold of zero. Effective coverage and test execution
+are not evaluated.
+
+Coverage findings remain advisory, including when GitHub checks or JUnit cases
+report failures. Incomplete coverage inspection keeps the other sections visible
+and returns `1`; a passing check or complete JUnit report cannot override it.
+Operational or rendering failures return `2` without partial output.
+
 | Exit | Meaning |
 | --- | --- |
-| `0` | All four inspections and any selected JUnit input completed within their stated scopes, with matching/current artifact linkage when requested. Failed checks/tests, missing expected checks, broken links, stale script instructions, removed test-file paths or added skips can still be present. |
+| `0` | All five inspections and any selected JUnit input completed within their stated scopes, with matching/current artifact linkage when requested. Failed checks/tests, missing expected checks, broken links, stale script instructions, removed test-file paths, added skips or lower coverage declarations can still be present. |
 | `1` | At least one selected report is incomplete, or an optional artifact association is stale, mismatched or has unknown PR identity; all sections describe their available evidence. |
 | `2` | Invalid input (including JUnit reader errors), unavailable local objects, collection failure, changed PR revisions, comparison failure, or output limit. No combined report is written to stdout. |
 
@@ -200,6 +218,9 @@ usable transfer is available. The four inspections use the requested base and he
 the JUnit section compares the artifact with the current run, selected attempt
 and PR identities. Actual tested-code and producing-attempt provenance remain
 unknown. Incomplete inspection makes the review incomplete.
+
+This pin excludes the newer coverage-declaration section. Enabling it in the
+automatic report requires a separate reviewed tool-pin update.
 
 The `Quality gates` job writes pytest XML to the runner's temporary directory,
 without changing pytest's exit status or the coverage threshold. On PR runs,

@@ -105,5 +105,8 @@ identities must not be reused as raw evidence keys after redaction.
 
 `--coverage`, `--tests`, `--scripts` and `--references` are mutually exclusive.
 Existing commands and report contracts are unchanged without the new option.
-This inspection is not yet included in the combined PR summary or the pinned
-automatic CI report.
+This inspection also appears in the [combined PR summary](pr-review-summary.md),
+using the same explicit base/head pair as the other repository sections.
+Findings remain advisory; incomplete coverage inspection makes the combined
+summary incomplete. The pinned automatic CI report does not yet include this
+section; its tool pin is updated separately.
