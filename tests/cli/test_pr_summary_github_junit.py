@@ -449,6 +449,34 @@ def test_good_artifact_cannot_override_incomplete_check_inventory(
     assert "incomplete" in output
 
 
+@pytest.mark.parametrize(
+    "xml,outcome",
+    [(_xml(), "passed"), (_xml("<failure/>", failures=1), "failed"), (_xml("<skipped/>", skipped=1), "skipped_only")],
+)
+def test_automatic_review_does_not_infer_completion_of_its_own_running_workflow(
+    repo: _Repo,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    xml: bytes,
+    outcome: str,
+) -> None:
+    path = tmp_path / "original-artifact.zip"
+    contents = _archive(path, xml)
+    run = _run(repo)
+    run.update(status="in_progress", conclusion=None)
+    _install(monkeypatch, _responses(contents, run), _checks(repo))
+    assert pr_summary.main([*repo.args(), *_options(path)]) == 0
+    section = _plain(_section(capsys.readouterr().out))
+    assert "run state: in_progress; conclusion: unknown" in section
+    assert "selected attempt state: in_progress; conclusion: unknown" in section
+    assert f"reported outcome: {outcome}" in section
+    assert "currentness: current" in section
+    assert "artifact-producing attempt: unknown" in section
+    assert "tested revision: unknown" in section and "execution verification: unverified" in section
+    assert "policy decision: not_evaluated" in section
+
+
 def test_current_run_and_selected_old_attempt_keep_distinct_conclusions(
     repo: _Repo, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:

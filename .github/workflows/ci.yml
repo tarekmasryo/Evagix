@@ -19,6 +19,7 @@ jobs:
     outputs:
       junit-status: ${{ steps.junit-transfer.outputs.status }}
       junit-attempt: ${{ steps.junit-transfer.outputs.attempt }}
+      junit-artifact-id: ${{ steps.junit-upload.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -64,6 +65,7 @@ jobs:
           printf 'status=%s\nattempt=%s\n' "$state" "$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
 
       - name: Upload minimized JUnit report
+        id: junit-upload
         if: ${{ always() && !cancelled() && github.event_name == 'pull_request' && steps.junit-transfer.outputs.status == 'complete' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -225,12 +227,13 @@ jobs:
       pull-requests: read
       checks: read
       statuses: read
+      actions: read
     steps:
       - name: Check out the reviewed verification tool
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: tarekmasryo/Evagix
-          ref: 76d423ed45aa43240899c9198ad61be9aa296eb7
+          ref: 2972f69896f7f607cf38503c4f143455e26169f8
           path: verification-tool
           persist-credentials: false
           submodules: false
@@ -263,11 +266,12 @@ jobs:
 
       - name: Download minimized JUnit report
         id: junit-download
-        if: ${{ !cancelled() && needs.quality.outputs.junit-status == 'complete' && needs.quality.outputs.junit-attempt == github.run_attempt }}
+        if: ${{ !cancelled() && needs.quality.outputs.junit-status == 'complete' && needs.quality.outputs.junit-attempt == github.run_attempt && needs.quality.outputs.junit-artifact-id != '' }}
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: evagix-quality-junit-${{ github.run_attempt }}
+          artifact-ids: ${{ needs.quality.outputs.junit-artifact-id }}
           path: ${{ runner.temp }}/evagix-junit-input
+          skip-decompress: true
           digest-mismatch: error
 
       - name: Publish advisory review summary
@@ -280,12 +284,18 @@ jobs:
           EVAGIX_GITHUB_TOKEN: ${{ github.token }}
           JUNIT_STATUS: ${{ needs.quality.outputs.junit-status }}
           JUNIT_ATTEMPT: ${{ needs.quality.outputs.junit-attempt }}
+          JUNIT_ARTIFACT_ID: ${{ needs.quality.outputs.junit-artifact-id }}
           JUNIT_DOWNLOAD: ${{ steps.junit-download.outcome }}
         run: |
           report="$RUNNER_TEMP/evagix-pr-review.md"
           junit_args=()
-          if [[ "$JUNIT_STATUS" == complete && "$JUNIT_DOWNLOAD" == success && "$JUNIT_ATTEMPT" == "$GITHUB_RUN_ATTEMPT" ]]; then
-            junit_args=(--junit-report "$RUNNER_TEMP/evagix-junit-input/evagix-quality-junit.xml")
+          if [[ "$JUNIT_STATUS" == complete && "$JUNIT_DOWNLOAD" == success && "$JUNIT_ATTEMPT" == "$GITHUB_RUN_ATTEMPT" && "$JUNIT_ARTIFACT_ID" =~ ^[1-9][0-9]*$ && "$GITHUB_RUN_ID" =~ ^[1-9][0-9]*$ && "$GITHUB_RUN_ATTEMPT" =~ ^[1-9][0-9]*$ ]]; then
+            shopt -s nullglob dotglob
+            junit_files=("$RUNNER_TEMP/evagix-junit-input"/*)
+            shopt -u nullglob dotglob
+            if [[ ${#junit_files[@]} == 1 && -f "${junit_files[0]}" && ! -L "${junit_files[0]}" ]]; then
+              junit_args=(--junit-archive "${junit_files[0]}" --junit-run-id "$GITHUB_RUN_ID" --junit-attempt "$GITHUB_RUN_ATTEMPT" --junit-artifact-id "$JUNIT_ARTIFACT_ID")
+            fi
           fi
           set +e
           "$RUNNER_TEMP/evagix-summary-env/bin/python" -I -m evagix.pr_summary \
@@ -305,7 +315,7 @@ jobs:
               exit 1
             fi
             printf '%s\n' '' \
-              'JUnit transfer scope: Quality gates only, from this workflow attempt. Suite and case labels are ordinal placeholders; original names, messages and metadata were not transferred. This association does not authenticate execution or the tested revision.' \
+              'JUnit transfer scope: Quality gates only. The original archive is compared with GitHub artifact and run metadata. Suite and case labels are ordinal placeholders; original names, messages and metadata were not transferred. The producing attempt and tested revision remain unproven; this association does not authenticate execution.' \
               >> "$GITHUB_STEP_SUMMARY"
             exit "$review_status"
           fi
