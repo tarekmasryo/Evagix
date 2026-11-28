@@ -6,6 +6,7 @@ All notable user-facing changes to Evagix are documented here.
 
 ### Added
 
+- Preview `changed --coverage` for advisory comparison of lower literal pytest-cov thresholds in committed GitHub Actions workflows. Reports include source locations and explicit comparison limits; missing or dynamic values are not treated as zero. Existing commands, combined summaries and CI gates are unchanged.
 - Include advisory test-file removals and added unconditional skip declarations in combined PR summaries for the same committed revisions. Rename candidates and inspection limits remain visible; incomplete test inspection makes the summary incomplete. Standalone commands and the pinned automatic CI report are unchanged.
 - Preview `changed --tests` for advisory review of removed Python test-file paths and added literal unconditional pytest skip declarations. Git rename candidates are shown separately; conditional skips, working-tree changes and test execution are excluded. Existing report contracts and automatic summaries are unchanged.
 - Optional GitHub JUnit artifact association in combined PR summaries, with explicit archive/run inputs and repository/head identity comparisons. Stale, mismatched or incomplete evidence remains visible; producing-attempt and tested-code provenance remain unknown. Existing local XML input is unchanged.

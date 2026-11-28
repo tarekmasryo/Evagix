@@ -77,6 +77,7 @@ nav:
       - Deleted File References: guides/deleted-references.md
       - Deleted Script Instructions: guides/deleted-scripts.md
       - Test Changes: guides/test-changes.md
+      - CI Coverage Declarations: guides/coverage-thresholds.md
   - Reference:
       - CLI Reference: commands.md
       - Rules: rules.md
