@@ -10,7 +10,9 @@ import unicodedata
 from pathlib import Path
 from typing import NoReturn
 
+from evagix.coverage_drift import build_coverage_drift_report
 from evagix.reference_drift import build_reference_drift_report, render_reference_drift_markdown
+from evagix.reports.coverage_drift import render_coverage_drift_markdown
 from evagix.reports.github_junit import render_github_junit_markdown
 from evagix.reports.junit import render_junit_report_markdown
 from evagix.reports.pr_checks import render_pr_checks_markdown
@@ -178,6 +180,7 @@ def _run(args: argparse.Namespace) -> tuple[str, int]:
         references = build_reference_drift_report(root, base=args.base, head=args.head)
         scripts = build_script_drift_report(root, base=args.base, head=args.head)
         test_changes = build_test_changes_report(root, base=args.base, head=args.head)
+        coverage = build_coverage_drift_report(root, base=args.base, head=args.head)
     except _SummaryError:
         raise
     except (OSError, RuntimeError, ValueError):
@@ -257,6 +260,8 @@ def _run(args: argparse.Namespace) -> tuple[str, int]:
             + render_script_drift_markdown(scripts).rstrip()
             + "\n\n"
             + render_test_changes_markdown(test_changes).rstrip()
+            + "\n\n"
+            + render_coverage_drift_markdown(coverage).rstrip()
             + junit_section
             + "\n"
         )
@@ -268,7 +273,9 @@ def _run(args: argparse.Namespace) -> tuple[str, int]:
         ) from None
     if len(output.encode("utf-8")) > _SUMMARY_BYTES:
         raise _SummaryError("Combined summary exceeds the output limit; inspect the individual JSON reports.")
-    complete = checks.complete and references.complete and scripts.complete and test_changes.complete
+    complete = (
+        checks.complete and references.complete and scripts.complete and test_changes.complete and coverage.complete
+    )
     if junit is not None:
         complete = complete and junit.collection_status == "complete"
     if association is not None:
