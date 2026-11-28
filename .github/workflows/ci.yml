@@ -233,7 +233,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: tarekmasryo/Evagix
-          ref: 2972f69896f7f607cf38503c4f143455e26169f8
+          ref: 69701c2ee29fa4e97f630bf430c714110cbe74f0
           path: verification-tool
           persist-credentials: false
           submodules: false

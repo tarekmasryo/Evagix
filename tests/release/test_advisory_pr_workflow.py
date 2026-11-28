@@ -9,6 +9,9 @@ from pathlib import Path
 
 import pytest
 
+from evagix.reports.test_changes import render_test_changes_markdown
+from evagix.test_changes import build_test_changes_report
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -48,7 +51,7 @@ def test_advisory_tool_and_constraints_are_independent_of_the_inspected_pr() -> 
     tool = _step("Check out the reviewed verification tool")
     assert "repository: tarekmasryo/Evagix" in tool
     assert re.search(r"^          ref: [0-9a-f]{40}$", tool, re.MULTILINE)
-    assert "ref: 2972f69896f7f607cf38503c4f143455e26169f8" in tool
+    assert "ref: 69701c2ee29fa4e97f630bf430c714110cbe74f0" in tool
     assert "path: verification-tool" in tool
     install = _step("Install the reviewed verification tool")
     assert "working-directory: ${{ runner.temp }}" in install
@@ -345,7 +348,8 @@ def _run_archive_selection(
     executable = tmp_path / "evagix-summary-env/bin/python"
     executable.parent.mkdir(parents=True)
     executable.write_text(
-        '#!/usr/bin/env bash\nprintf "%s\\n" "$@" > "$STUB_ARGUMENTS"\nprintf "%s" "$STUB_REPORT"\n',
+        '#!/usr/bin/env bash\nprintf "%s\\n" "$@" > "$STUB_ARGUMENTS"\n'
+        'printf "%s" "$STUB_REPORT"\nexit "$STUB_STATUS"\n',
         encoding="utf-8",
         newline="\n",
     )
@@ -393,6 +397,7 @@ def _run_archive_selection(
         "EVAGIX_GITHUB_TOKEN": "fixture-token-not-for-output",
         "STUB_ARGUMENTS": arguments.as_posix(),
         "STUB_REPORT": "# Existing advisory findings\nAGENTS.md:2: deleted script\n",
+        "STUB_STATUS": "0",
         **(overrides or {}),
     }
     result = subprocess.run(
@@ -410,6 +415,104 @@ def _run_archive_selection(
     assert not result.stdout
     assert "AGENTS.md:2: deleted script" in output
     return result, output, arguments.read_text(encoding="utf-8").splitlines(), archive
+
+
+@pytest.mark.parametrize(
+    "change,code",
+    [
+        ("healthy", None),
+        ("deleted", "tests.deleted-file"),
+        ("renamed", None),
+        ("conditional", None),
+        ("unconditional", "tests.unconditional-skip-added"),
+        ("incomplete", None),
+    ],
+)
+def test_publisher_preserves_generated_test_change_evidence_and_collection_status(
+    tmp_path: Path, change: str, code: str | None
+) -> None:
+    workspace = tmp_path / "workspace with spaces"
+    repository = workspace / "inspected"
+    repository.mkdir(parents=True)
+
+    def git(*args: str) -> str:
+        return subprocess.run(
+            [
+                "git",
+                "-c",
+                "user.name=Fixture User",
+                "-c",
+                "user.email=fixture@example.invalid",
+                "-c",
+                "commit.gpgsign=false",
+                "-c",
+                "core.autocrlf=false",
+                *args,
+            ],
+            cwd=repository,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=True,
+        ).stdout.strip()
+
+    source = "import pytest\n\ndef test_existing():\n    assert True\n\nraise RuntimeError('SOURCE_MUST_NOT_EXECUTE')\n"
+    test_file = repository / "test_example.py"
+    test_file.write_text(source, encoding="utf-8")
+    (repository / "README.md").write_text("# Fixture repository\n", encoding="utf-8")
+    git("init", "-q", "-b", "main")
+    git("add", ".")
+    git("commit", "-qm", "base")
+    base = git("rev-parse", "HEAD")
+    if change == "deleted":
+        test_file.unlink()
+    elif change == "renamed":
+        test_file.rename(repository / "test_renamed.py")
+    else:
+        updated = {
+            "healthy": source.replace("assert True", "assert 1"),
+            "conditional": source.replace(
+                "def test_existing", "@pytest.mark.skipif(True, reason='SOURCE_ONLY_SKIP_REASON')\ndef test_existing"
+            ),
+            "unconditional": source.replace(
+                "def test_existing", "@pytest.mark.skip(reason='SOURCE_ONLY_SKIP_REASON')\ndef test_existing"
+            ),
+            "incomplete": "def test_existing(:\n",
+        }[change]
+        test_file.write_text(updated, encoding="utf-8")
+    git("add", ".")
+    git("commit", "-qm", "change tests")
+    head = git("rev-parse", "HEAD")
+    evidence = build_test_changes_report(repository, base=base, head=head)
+    assert [finding.code for finding in evidence.findings] == ([] if code is None else [code])
+    assert bool(evidence.renames) is (change == "renamed")
+    assert evidence.complete is (change != "incomplete")
+    status = 0 if evidence.complete else 1
+    report = "# Existing advisory findings\nAGENTS.md:2: deleted script\n\n" + render_test_changes_markdown(evidence)
+    runner = tmp_path / "runner temp"
+    runner.mkdir()
+    result, output, arguments, _ = _run_archive_selection(
+        runner,
+        overrides={
+            "STUB_REPORT": report,
+            "STUB_STATUS": str(status),
+            "BASE_SHA": base,
+            "HEAD_SHA": head,
+            "GITHUB_WORKSPACE": workspace.as_posix(),
+        },
+    )
+    assert result.returncode == status
+    assert output.startswith(report)
+    assert "## Test change review" in output
+    assert "Advisory only: collection, execution, test quality and merge readiness are not verified" in output
+    assert "JUnit transfer scope: Quality gates only" in output
+    assert "producing attempt and tested revision remain unproven" in output
+    assert arguments[arguments.index("--base") + 1] == base
+    assert arguments[arguments.index("--head") + 1] == head
+    assert arguments[arguments.index("--repo") + 1] == repository.as_posix()
+    assert "--junit-archive" in arguments
+    assert "SOURCE_MUST_NOT_EXECUTE" not in output + result.stderr
+    assert "SOURCE_ONLY_SKIP_REASON" not in output + result.stderr
 
 
 @pytest.mark.parametrize(
