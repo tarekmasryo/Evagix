@@ -1,12 +1,12 @@
 # Combine advisory PR reports in a job summary
 
 The preview `evagix.pr_summary` module combines observed PR checks,
-deleted-file references, and deleted-script instructions in one advisory Markdown
-report, without requiring an expectations file. An explicit file enables
+deleted-file references, deleted-script instructions, and supported test changes
+in one advisory Markdown report, without requiring an expectations file. An explicit file enables
 expected-check comparison. An optional local pytest JUnit file adds a separate,
 unverified test-report section. Alternatively, an explicit artifact ZIP can be
 compared with GitHub run metadata. It collects the PR check inventory once and requires that its
-base and head commits match the explicit commits supplied by the caller. Both
+base and head commits match the explicit commits supplied by the caller. All
 repository inspections use that same pair. Existing standalone commands, JSON
 schemas, and exit-code meanings are unchanged.
 
@@ -15,6 +15,11 @@ and is not included in the published `0.1.2` release. For local evaluation, use
 the preview wheel. The CI recipe below uses a separately reviewed commit
 containing the feature. Do not install the inspected PR's code as the
 verification tool.
+
+The test-change section is under development after the prepared preview. Use a
+reviewed build containing this addition to evaluate it. Evagix's currently
+pinned automatic CI report does not include this section yet; updating that pin
+is a separate change.
 
 ## Local invocation
 
@@ -134,15 +139,28 @@ this development-preview association for its minimized transfer, as described be
 
 ## Interpret the result
 
-The repository sections inspect committed root `README.md` and `AGENTS.md`.
+The reference and script sections inspect committed root `README.md` and `AGENTS.md`.
 The [script section](deleted-scripts.md) checks supported literal commands,
 assuming a repository-root working directory. It does not execute scripts,
 prove execution failure, or infer replacement paths. Editing an uncommitted
 instruction does not change the report.
 
+The [test-change section](test-changes.md) compares the unique merge base with
+the requested head. It reports removed Python test-file paths and supported
+literal unconditional `pytest.mark.skip` additions on existing named tests.
+Git rename candidates appear separately; conditional skips, new test names and
+working-tree changes remain outside the supported comparison. No tests are
+imported, collected or executed. A removal or skip may be intentional; the section
+does not establish lost coverage, weaker tests or a failed acceptance criterion.
+
+Incomplete test inspection, including unsupported or unreadable changed source,
+keeps the other sections visible and returns `1`. A complete JUnit report or
+successful GitHub check cannot override that limitation. Fatal inspection or
+rendering errors return `2` without partial combined output.
+
 | Exit | Meaning |
 | --- | --- |
-| `0` | The three existing inspections and any selected JUnit input completed within their stated scopes, with matching/current artifact linkage when requested. Failed checks/tests, missing expected checks, broken links, or stale script instructions can still be present. |
+| `0` | All four inspections and any selected JUnit input completed within their stated scopes, with matching/current artifact linkage when requested. Failed checks/tests, missing expected checks, broken links, stale script instructions, removed test-file paths or added skips can still be present. |
 | `1` | At least one selected report is incomplete, or an optional artifact association is stale, mismatched or has unknown PR identity; all sections describe their available evidence. |
 | `2` | Invalid input (including JUnit reader errors), unavailable local objects, collection failure, changed PR revisions, comparison failure, or output limit. No combined report is written to stdout. |
 

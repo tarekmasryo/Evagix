@@ -650,7 +650,9 @@ def test_only_explicit_provider_token_is_used(
 
 
 @pytest.mark.parametrize("use_expectations", [True, False])
-@pytest.mark.parametrize("renderer", ["render_reference_drift_markdown", "render_script_drift_markdown"])
+@pytest.mark.parametrize(
+    "renderer", ["render_reference_drift_markdown", "render_script_drift_markdown", "render_test_changes_markdown"]
+)
 def test_rendering_failure_emits_no_partial_report_or_exception_value(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -671,7 +673,7 @@ def test_rendering_failure_emits_no_partial_report_or_exception_value(
 
 
 @pytest.mark.parametrize("use_expectations", [True, False])
-@pytest.mark.parametrize("oversized_section", ["checks", "scripts", "combined"])
+@pytest.mark.parametrize("oversized_section", ["checks", "scripts", "tests", "combined"])
 def test_combined_size_limit_is_checked_in_bytes_before_any_output(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -684,9 +686,11 @@ def test_combined_size_limit_is_checked_in_bytes_before_any_output(
     combined = "é" * 170_000 if oversized_section == "combined" else ""
     checks = "é" * 475_001 if oversized_section == "checks" else combined
     scripts = "é" * 475_001 if oversized_section == "scripts" else combined
+    tests = "é" * 475_001 if oversized_section == "tests" else combined
     monkeypatch.setattr(pr_summary, "render_pr_checks_markdown", lambda *a, **k: checks)
     monkeypatch.setattr(pr_summary, "render_reference_drift_markdown", lambda *a, **k: combined)
     monkeypatch.setattr(pr_summary, "render_script_drift_markdown", lambda *a, **k: scripts)
+    monkeypatch.setattr(pr_summary, "render_test_changes_markdown", lambda *a, **k: tests)
     assert pr_summary.main(repo.args(expectations=use_expectations)) == 2
     captured = capsys.readouterr()
     assert captured.out == "" and "Combined summary exceeds" in captured.err
@@ -702,6 +706,7 @@ def test_final_redaction_precedes_the_combined_size_limit(
     monkeypatch.setattr(pr_summary, "render_pr_checks_markdown", lambda *a, **k: secret)
     monkeypatch.setattr(pr_summary, "render_reference_drift_markdown", lambda *a, **k: "")
     monkeypatch.setattr(pr_summary, "render_script_drift_markdown", lambda *a, **k: "")
+    monkeypatch.setattr(pr_summary, "render_test_changes_markdown", lambda *a, **k: "")
     monkeypatch.setattr(pr_summary, "_SUMMARY_BYTES", 400)
     assert pr_summary.main(repo.args(expectations=use_expectations)) == 0
     captured = capsys.readouterr()
