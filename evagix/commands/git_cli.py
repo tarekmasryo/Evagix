@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from evagix.commands.coverage_drift import _cmd_coverage_drift
 from evagix.commands.git_cmds import _cmd_changed, _cmd_pr_risk
 from evagix.commands.reference_drift import _cmd_reference_drift
 from evagix.commands.script_drift import _cmd_script_drift
@@ -22,7 +23,7 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         "--format",
         choices=["text", "json", "github-annotations", "markdown"],
         default="text",
-        help="Output format. Markdown requires --references, --scripts or --tests.",
+        help="Output format. Markdown requires --references, --scripts, --tests or --coverage.",
     )
     inspection_mode = changed_parser.add_mutually_exclusive_group()
     inspection_mode.add_argument(
@@ -40,6 +41,11 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         action="store_true",
         help="Review deleted Python test paths and added unconditional skip declarations (preview; advisory).",
     )
+    inspection_mode.add_argument(
+        "--coverage",
+        action="store_true",
+        help="Review lowered literal pytest-cov thresholds in committed GitHub workflows (preview; advisory).",
+    )
 
     pr_risk_parser = subparsers.add_parser(
         "pr-risk", help="Review PR-level repository risk and return merge/review/block guidance."
@@ -53,6 +59,10 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
 
 def dispatch(args: Any) -> int | None:
     if args.command == "changed":
+        if getattr(args, "coverage", False):
+            return _cmd_coverage_drift(
+                Path(args.path), base=args.base, head=args.head, output_format=args.format, style=args.terminal_style
+            )
         if getattr(args, "tests", False):
             return _cmd_test_changes(
                 Path(args.path),

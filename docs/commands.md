@@ -178,6 +178,23 @@ of finding counts. `--tests`, `--scripts` and `--references` are mutually exclus
 This addition is under development after the prepared `0.2.0a1` preview. See
 [supported syntax, renames and limits](guides/test-changes.md).
 
+## CI coverage declarations (preview)
+
+```bash
+evagix changed . --coverage --base main --head HEAD
+```
+
+Compare literal `pytest-cov` thresholds in changed existing GitHub Actions
+workflows. A lower value produces an advisory finding with both source
+locations. Increased or unchanged values produce no reduction finding; missing,
+dynamic or ambiguous declarations remain unresolved. This does not verify
+effective coverage, test execution or merge policy. Formats are `text`, `json`,
+`markdown` and `github-annotations`; JSON uses the separate
+`coverage-drift.schema.json` preview contract. Exit codes are `0` for complete
+inspection, `1` for incomplete inspection and `2` for input/operational errors.
+`--coverage`, `--tests`, `--scripts` and `--references` are mutually exclusive.
+See the [supported declarations and limits](guides/coverage-thresholds.md).
+
 ## CI gate
 
 ```bash

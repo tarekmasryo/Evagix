@@ -90,6 +90,14 @@ evaluate collection, execution or merge policy. This addition is under
 development after the prepared `0.2.0a1` preview and leaves existing changed-file
 contracts unchanged. See the [test-change guide](guides/test-changes.md).
 
+`evagix/schemas/coverage-drift.schema.json` describes the preview
+`evagix changed --coverage --format json` report. It records lower literal
+pytest-cov declarations, immutable revisions, source locations, comparison
+counts and inspection limitations. Threshold values are decimal strings;
+effective coverage, execution and merge policy remain unevaluated. Existing
+report contracts are unchanged. See the
+[coverage declaration guide](guides/coverage-thresholds.md).
+
 ## Stability policy
 
 - Schema additions should be backward-compatible where possible.

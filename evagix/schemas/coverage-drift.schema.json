@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evagix.dev/schemas/coverage-drift.schema.json",
+  "title": "Evagix CI Coverage Declaration Review (Preview)",
+  "type": "object",
+  "required": ["schema_version", "tool", "kind", "base", "head", "merge_base", "inspected_files", "compared_thresholds", "limitations", "findings", "completeness", "policy_decision", "scope"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "tool": {"const": "evagix"},
+    "kind": {"const": "coverage_drift"},
+    "base": {"$ref": "#/$defs/revision"},
+    "head": {"$ref": "#/$defs/revision"},
+    "merge_base": {"$ref": "#/$defs/revision"},
+    "completeness": {"enum": ["complete", "incomplete"]},
+    "policy_decision": {"const": "not_evaluated"},
+    "compared_thresholds": {"type": "integer", "minimum": 0},
+    "inspected_files": {"type": "array", "maxItems": 40, "items": {"type": "string", "minLength": 1}},
+    "limitations": {"type": "array", "items": {"type": "string"}},
+    "scope": {
+      "type": "object",
+      "required": ["source", "comparison", "working_tree", "effective_coverage", "execution"],
+      "properties": {
+        "source": {"const": "github_actions_literal_pytest_cov_fail_under"},
+        "comparison": {"const": "merge_base_to_committed_head"},
+        "working_tree": {"const": "excluded"},
+        "effective_coverage": {"const": "not_evaluated"},
+        "execution": {"const": "not_evaluated"}
+      },
+      "additionalProperties": false
+    },
+    "findings": {
+      "type": "array", "maxItems": 200,
+      "items": {
+        "type": "object",
+        "required": ["path", "job", "step_kind", "step", "previous_value", "value", "previous_line", "previous_column", "line", "column", "code", "revision", "severity"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "job": {"type": "string", "minLength": 1},
+          "step_kind": {"enum": ["id", "name"]},
+          "step": {"type": "string", "minLength": 1},
+          "previous_value": {"$ref": "#/$defs/percentage"},
+          "value": {"$ref": "#/$defs/percentage"},
+          "previous_line": {"type": "integer", "minimum": 1},
+          "previous_column": {"type": "integer", "minimum": 1},
+          "line": {"type": "integer", "minimum": 1},
+          "column": {"type": "integer", "minimum": 1},
+          "code": {"const": "ci.coverage-threshold-lowered"},
+          "revision": {"const": "head"},
+          "severity": {"const": "advisory"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "$defs": {
+    "revision": {"type": "string", "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"},
+    "percentage": {"type": "string", "pattern": "^(?:100|[0-9]{1,2}(?:\\.[0-9]+)?)$"}
+  },
+  "additionalProperties": false
+}
