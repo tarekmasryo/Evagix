@@ -17,9 +17,8 @@ containing the feature. Do not install the inspected PR's code as the
 verification tool.
 
 The test-change section is under development after the prepared preview. Use a
-reviewed build containing this addition to evaluate it. Evagix's currently
-pinned automatic CI report does not include this section yet; updating that pin
-is a separate change.
+reviewed build containing this addition to evaluate it. Evagix's automatic CI
+report includes the section through the reviewed tool pin described below.
 
 ## Local invocation
 
@@ -188,7 +187,7 @@ events and does not start after workflow cancellation. Push and release gates
 are unchanged.
 
 The job installs the tool from reviewed commit
-`2972f69896f7f607cf38503c4f143455e26169f8`, using that commit's build constraints
+`69701c2ee29fa4e97f630bf430c714110cbe74f0`, using that commit's build constraints
 in an isolated environment. Updating this pin is a separate reviewed change;
 the tool and its constraints are not loaded from the inspected checkout. The PR's head
 checkout is read only as Git data by the installed tool, outside the checkout's
@@ -196,8 +195,8 @@ import path. The workflow itself is still PR-controlled, so this is not a truste
 policy-enforcement boundary.
 
 The pinned version reports checks, deleted-file references, deleted-script
-instructions and a GitHub-associated JUnit section when a usable transfer is
-available. The three existing sections use the requested base and head commits;
+instructions, supported test changes and a GitHub-associated JUnit section when a
+usable transfer is available. The four inspections use the requested base and head commits;
 the JUnit section compares the artifact with the current run, selected attempt
 and PR identities. Actual tested-code and producing-attempt provenance remain
 unknown. Incomplete inspection makes the review incomplete.
@@ -255,8 +254,9 @@ metadata. It uses the workflow token only for metadata collection and checkout;
 no personal token or repository secret is required. The artifact action retains
 its current-run scope, with no cross-run token or download fallback.
 
-Failed observed checks, broken links, and stale script instructions do not fail
-this advisory job. Reported JUnit failures/skips do not change that behavior;
+Failed observed checks, broken links, stale script instructions, removed test-file
+paths and added unconditional skip findings do not fail this advisory job.
+Reported JUnit failures/skips do not change that behavior;
 the original test jobs retain their own results. Incomplete inspection or an operational error does fail the
 job (and the workflow run), so
 an unavailable review is not presented as a clean result. Existing jobs retain

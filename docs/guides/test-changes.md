@@ -120,4 +120,5 @@ commands, schemas and exit codes are unchanged without the new option. This
 inspection also appears in the [combined PR summary](pr-review-summary.md),
 using the same explicit base/head pair as the other repository sections.
 Findings remain advisory; incomplete inspection makes the summary incomplete.
-The currently pinned automatic CI report does not include this section yet.
+This repository's automatic CI report includes the section through its reviewed
+tool pin. Findings do not fail the advisory job; incomplete inspection does.

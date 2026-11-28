@@ -15,6 +15,7 @@ All notable user-facing changes to Evagix are documented here.
 
 ### Changed
 
+- Update this repository's reviewed CI tool pin to include test-file removals, added unconditional skip declarations and rename candidates in the automatic advisory summary. Complete findings remain advisory; incomplete test inspection makes the reporting job incomplete. Permissions, isolation, JUnit transfer and existing quality gates are unchanged.
 - Associate the minimized JUnit artifact in this repository's automatic PR summary with GitHub run metadata. The reviewed tool receives the original archive, upload ID and current run/attempt, with read-only Actions access and explicit incomplete or mismatched results. Test gates and public CLI/schema contracts are unchanged; artifact-producing attempt and tested-code provenance remain unknown.
 - Include minimized `Quality gates` JUnit results in this repository's advisory PR summary. Only counters and outcome markers are transferred, with ordinal labels and one-day retention; missing, incomplete or stale transfers are explicit. The reviewed tool pin includes JUnit support. Test gates, public CLI contracts and unverified report semantics are unchanged.
 

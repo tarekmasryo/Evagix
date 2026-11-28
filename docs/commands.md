@@ -97,8 +97,8 @@ without partial stdout. The [optional CI summary recipe](guides/pr-review-summar
 combines checks, deleted-file references, deleted-script instructions, and
 supported test changes for the same immutable base/head pair. Repository findings
 remain advisory; an incomplete inspection makes the combined report incomplete.
-The test-change section is a development-preview addition; the currently pinned
-automatic CI report does not include it yet.
+The test-change section is a development-preview addition included by this
+repository's reviewed CI tool pin.
 The `evagix.pr_summary` module needs no expectations file: it reports observed
 checks with required-check coverage explicitly unknown. Its optional
 `--expectations` path is read only from the requested base commit; an invalid
