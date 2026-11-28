@@ -117,4 +117,7 @@ Deleted-file notices do not attach old-tree locations to head lines.
 
 `--tests`, `--scripts` and `--references` are mutually exclusive. Existing
 commands, schemas and exit codes are unchanged without the new option. This
-mode is not yet included in the combined PR summary or automatic CI report.
+inspection also appears in the [combined PR summary](pr-review-summary.md),
+using the same explicit base/head pair as the other repository sections.
+Findings remain advisory; incomplete inspection makes the summary incomplete.
+The currently pinned automatic CI report does not include this section yet.
