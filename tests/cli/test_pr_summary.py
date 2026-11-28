@@ -651,7 +651,13 @@ def test_only_explicit_provider_token_is_used(
 
 @pytest.mark.parametrize("use_expectations", [True, False])
 @pytest.mark.parametrize(
-    "renderer", ["render_reference_drift_markdown", "render_script_drift_markdown", "render_test_changes_markdown"]
+    "renderer",
+    [
+        "render_reference_drift_markdown",
+        "render_script_drift_markdown",
+        "render_test_changes_markdown",
+        "render_coverage_drift_markdown",
+    ],
 )
 def test_rendering_failure_emits_no_partial_report_or_exception_value(
     tmp_path: Path,
@@ -707,6 +713,7 @@ def test_final_redaction_precedes_the_combined_size_limit(
     monkeypatch.setattr(pr_summary, "render_reference_drift_markdown", lambda *a, **k: "")
     monkeypatch.setattr(pr_summary, "render_script_drift_markdown", lambda *a, **k: "")
     monkeypatch.setattr(pr_summary, "render_test_changes_markdown", lambda *a, **k: "")
+    monkeypatch.setattr(pr_summary, "render_coverage_drift_markdown", lambda *a, **k: "")
     monkeypatch.setattr(pr_summary, "_SUMMARY_BYTES", 400)
     assert pr_summary.main(repo.args(expectations=use_expectations)) == 0
     captured = capsys.readouterr()
